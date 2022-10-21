@@ -1,0 +1,214 @@
+<template>
+    <div class="main-container" 
+        :class="{'light-theme': this.$store.state.theme =='light', 'dark-theme': this.$store.state.theme =='dark'}"
+    >
+        
+        <div class="row_content_container" style="display flex-direction: row;">
+            <div class="leftside_container">
+                <img
+                    v-if="post_image"
+                    class="post_img" 
+                    src="../../assets/test_blog_photo.png"
+                    alt='post_img'
+                >
+            </div>
+
+            <div class="rightside_container">
+                <div class="autor_data_container"> <!--ссылка на профиль-->
+                    <img class="profile_img" src="../../assets/test_blog_photo.png" alt="">
+                    <span class="profile_name">{{this.creator_nickname}}</span> 
+                    <span class="dot_divider">•</span>
+                    <span class="post_date">{{this.post_date}}</span>
+                </div>
+
+                <div class="title_field"
+                    @click="$router.push({ name: 'postitem', params: {id: this.id} })" 
+                >
+                    {{this.title}}
+                </div>
+
+                <div class="description_field">{{this.description}}</div>
+            </div>
+        </div>
+        
+        
+        <div class="bottom_container">
+            <div class="reactions_container">
+                <emoticon-container
+                    v-for="emoticon in sortedReactions().slice(0,5)" :key='emoticon'
+                    :post_id="this.id">
+                </emoticon-container>
+            </div>
+        </div>
+    
+    </div>
+</template>
+
+<script>
+import EmoticonContainer from './EmoticonContainer.vue'
+export default {
+  components: { EmoticonContainer },
+    data(){
+        return{
+            id: this.$.vnode.key.data.post_id,
+            post_image: this.$.vnode.key.data.post_img || false,
+            creator_nickname: this.$.vnode.key.data.creator_nickname,
+            post_date: this.$.vnode.key.data.post_date,
+            title: this.$.vnode.key.data.title,
+            description: this.$.vnode.key.data.description,
+            comments: this.$.vnode.key.comments, 
+            tag_list: this.$.vnode.key.tag_list,
+            reactions: this.$.vnode.key.reactions,
+        }
+    },
+    computed:{
+    },
+    methods:{
+        sortedReactions(){
+            if(this.reactions.length > 0){ 
+                return this.reactions.sort((a, b) => b.data.length - a.data.length);
+            }
+            else{return [];}
+        }
+    }
+}
+
+</script>
+
+<style lang="scss" scoped>
+.main-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 640px;
+    height: max-content;
+    margin-bottom: 15px;
+    padding: 10px 10px 5px 10px;
+    border-radius: 5px;
+
+    background-color: var(--bg_block_color);
+
+    box-shadow: var(--box_shadow);
+
+    caret-color: transparent;
+    font: var(--font_header);
+
+
+/*    &:hover{
+        background-color: var(--bg_block_hover_color);
+        color: var(--text_color_hover);
+    }
+*/
+
+    .row_content_container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    
+        .leftside_container .post_img{
+            width: 150px;
+            height: 150px;
+            cursor: pointer;
+        }
+
+        .rightside_container{
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            width: auto;
+            padding-left: 10px;
+            color: var(--text_color_primary);
+
+            .autor_data_container{
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: flex-start;
+                width: max-content;
+                margin-bottom: 5px;
+
+                .profile_img{
+                    width: 25px;
+                    height: 25px;
+                    border-radius: 50%;
+                    background-color: #ffff;
+                    cursor: pointer;
+                }
+
+                .profile_name{
+                    padding: 0 5px;
+                    font-size: 12px;
+                    color: var(--text_color_primary);
+                    cursor: pointer;
+                }
+
+                .dot_divider{padding-right:5px; color: var(--text_color_secondary)}
+
+                .post_date{
+                    font-weight: 400;
+                    font-size: 12px;
+                    cursor: pointer;
+                }
+            }
+
+            .title_field{
+                display: inline-block; 
+                cursor:pointer;
+                color: var(--text_color_primary);
+            }
+
+            .description_field{
+                padding: 15px 0;
+                font-weight: 300;
+
+            }
+        }
+    }
+
+    .bottom_container{
+        display: flex;
+        flex-direction: row;
+        width: calc(98%);
+        border-top: 2px solid var(--text_color_primary);
+        padding-top: 5px;
+
+        .reactions_container{
+            display: flex;
+            flex-direction: row;
+        }
+
+        .tag_container{
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            overflow: hidden;
+            row-gap: 4px;
+            width: calc(100% - 100px);
+            cursor: pointer;
+
+            .tag_element{
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 2em;
+                width: max-content;
+                padding: 0 5px;
+                margin: 0 2px;
+                border: 1px solid var(--block_border_color);
+                border-radius: 5px;
+                font-size: 14px;
+                font-weight: 400;
+                color: var(--text_color_secondary);
+                cursor: pointer;
+            }
+        }
+    }
+
+
+}
+
+//--text_color: #535C70;
+//--text_color_hover: #ffff;
+
+</style>
