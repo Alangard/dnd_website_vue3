@@ -2,7 +2,8 @@
 <div class="reactors_container" v-show='this.isHover'>
     <div class="reactors_list">
         <div class="reactors_info"
-            v-for='reactor in this.reactors_list.slice(0,5)' :key='reactor'>
+            v-for='reactor in this.reactors_list.slice(0,5)' :key='reactor'
+            @click="$router.push({ name: 'user', params: {id: reactor.username} })">
                 <img class="profile_img" src="../../assets/test_blog_photo.png" alt="">
                 <span class="profile_name">{{reactor.username.split('.')[0]}}</span> 
         </div>

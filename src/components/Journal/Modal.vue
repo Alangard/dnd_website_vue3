@@ -11,11 +11,10 @@
             </div>
 
             <div class="modal-body">
-                <img class="profile_img" src="../../assets/test_blog_photo.png" alt="" 
-                    :title=reactor.username 
-                    v-for="reactor in this.reactors_list" 
-                    :key='reactor'
-                   
+                <img class="profile_img" data-bs-dismiss="modal" src="../../assets/test_blog_photo.png" alt="" 
+                    v-for="reactor in this.reactors_list" :key='reactor'
+                    :title=reactor.username.split(/[.]/)[0]
+                    @click="$router.push({ name: 'user', params: {id: reactor.username } })"
                 >
             </div>
 
@@ -28,7 +27,10 @@
 
 <script>
 export default {
-    props:['reactors_list'],   
+    props:['reactors_list'],
+    data(){
+        return{}
+    }   
 }
 </script>
 
@@ -47,7 +49,7 @@ export default {
         stroke: var(--text_color_primary);
 
         &:hover{
-            stroke: var(--bg_button_active_color)
+            stroke: var(--bg_button_active_color);
         }
     }
 }
@@ -63,9 +65,14 @@ export default {
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        margin: 10px 15px;
+        margin: 20px 15px;
         background-color: #ffff;
         cursor: pointer;
+
+        &:hover{
+            transform: scale(1.4);
+            filter: drop-shadow(0 0 5px var(--bg_button_active_color));
+        }
     }
 }
 

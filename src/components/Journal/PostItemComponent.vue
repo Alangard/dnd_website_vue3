@@ -1,29 +1,32 @@
 <template>
     <div class="main-container" 
-        :class="{'light-theme': this.$store.state.theme =='light', 'dark-theme': this.$store.state.theme =='dark'}"
-    >
+        :class="{'light-theme': this.$store.getters.getTheme =='light', 'dark-theme': this.$store.getters.getTheme =='dark'}">
         
         <div class="row_content_container" style="display flex-direction: row;">
             <div class="leftside_container">
-                <img
+                <img class="post_img" src="../../assets/test_blog_photo.png" alt='post_img'
                     v-if="post_image"
-                    class="post_img" 
-                    src="../../assets/test_blog_photo.png"
-                    alt='post_img'
+                    @click="$router.push({ name: 'postitem', params: {id: this.id} })"
                 >
             </div>
 
             <div class="rightside_container">
-                <div class="autor_data_container"> <!--ссылка на профиль-->
-                    <img class="profile_img" src="../../assets/test_blog_photo.png" alt="">
-                    <span class="profile_name">{{this.creator_nickname}}</span> 
-                    <span class="dot_divider">•</span>
-                    <span class="post_date">{{this.post_date}}</span>
+                <div class="autor_data_container">
+                        <img class="profile_img" src="../../assets/test_blog_photo.png" alt="" 
+                            @click="$router.push({ name: 'user', params: {id: this.creator_nickname} })"
+                        >
+
+                        <span class="profile_name"
+                            @click="$router.push({ name: 'user', params: {id: this.creator_nickname} })">
+                            {{this.creator_nickname.split('.')[0]}}
+                        </span> 
+
+                        <span class="dot_divider">•</span>
+                        <span class="post_date">{{this.post_date}}</span>
                 </div>
 
                 <div class="title_field"
-                    @click="$router.push({ name: 'postitem', params: {id: this.id} })" 
-                >
+                    @click="$router.push({ name: 'postitem', params: {id: this.id} })">
                     {{this.title}}
                 </div>
 
@@ -35,10 +38,23 @@
         <div class="bottom_container">
             <div class="reactions_container">
                 <emoticon-container
-                    v-for="emoticon in sortedReactions().slice(0,5)" :key='emoticon'
-                    :post_id="this.id">
+                    v-for="emoticon in sortedReactions().slice(0,5)" :key='emoticon' :post_id="this.id">
                 </emoticon-container>
             </div>
+
+            <div class="user_activities_rightside_container">
+                <div class="comments_container"
+                    @click="$router.push({ name: 'postitem', params: {id: this.id} })">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <span>{{this.comments.counter}}</span>
+                </div>
+            
+                <WebShare></WebShare>
+            </div>
+            
+
         </div>
     
     </div>
@@ -46,8 +62,9 @@
 
 <script>
 import EmoticonContainer from './EmoticonContainer.vue'
+import WebShare from './WebShare.vue';
 export default {
-  components: { EmoticonContainer },
+  components: { EmoticonContainer, WebShare },
     data(){
         return{
             id: this.$.vnode.key.data.post_id,
@@ -80,7 +97,8 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 640px;
+    width: 90%;
+    max-width: 640px;
     height: max-content;
     margin-bottom: 15px;
     padding: 10px 10px 5px 10px;
@@ -92,13 +110,6 @@ export default {
 
     caret-color: transparent;
     font: var(--font_header);
-
-
-/*    &:hover{
-        background-color: var(--bg_block_hover_color);
-        color: var(--text_color_hover);
-    }
-*/
 
     .row_content_container {
         display: flex;
@@ -168,6 +179,7 @@ export default {
     .bottom_container{
         display: flex;
         flex-direction: row;
+        justify-content: space-between;
         width: calc(98%);
         border-top: 2px solid var(--text_color_primary);
         padding-top: 5px;
@@ -175,6 +187,45 @@ export default {
         .reactions_container{
             display: flex;
             flex-direction: row;
+        }
+
+        .user_activities_rightside_container{
+            display: flex;
+            flex-direction: row;
+        }
+
+        .comments_container{
+            display: flex;
+            align-items: center;
+            height: 31px;
+            padding: 0 2px;
+            margin-right: 10px;
+            border: 1px solid var(--bg_button_color);
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: var(--bg_button_color);
+            color: var(--text_color_secondary);
+
+            & svg{
+               stroke: var(--text_color_secondary); 
+               width: 25px;
+               height: 25px; 
+            }
+
+            span{
+                margin: 0 4px 3px 4px;
+                font-weight: 300;
+                font-size: 14px;
+            }
+
+            &:hover{
+                background-color: var(--bg_button_active_color);
+                color: #ffff;
+            }
+
+            &:hover > svg{
+                stroke: #ffff;;
+            }
         }
 
         .tag_container{
@@ -207,8 +258,5 @@ export default {
 
 
 }
-
-//--text_color: #535C70;
-//--text_color_hover: #ffff;
 
 </style>

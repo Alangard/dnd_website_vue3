@@ -1,6 +1,7 @@
 <template>
 
-    <div class="main-container" :class="{'light-theme': this.$store.state.theme =='light', 'dark-theme': this.$store.state.theme =='dark'}">
+    <div class="main-container" 
+        :class="{'light-theme': this.$store.getters.getTheme =='light', 'dark-theme': this.$store.getters.getTheme =='dark'}">
 
         <button 
             class="router-link"
