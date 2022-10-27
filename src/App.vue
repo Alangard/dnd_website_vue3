@@ -53,6 +53,9 @@ export default {
   --block_border_color: #535C70;
   --box_shadow: 1px 1px 5px #535C70;
   --font_header: 700 normal 17px/1.3em 'Oswald', sans-serif;
+  --drop_shadow_color: #535C70;
+  --gradien_to_transparent_color:#ababaf;
+
 
 
 }
@@ -70,6 +73,9 @@ export default {
   --block_border_color: #535C70;
   --box_shadow: 2px 2px 10px black;
   --font_header: 700 normal 17px/1.3em 'Oswald', sans-serif;
+  --drop_shadow_color: #5B58F7;
+  --gradien_to_transparent_color:#4c4b4b;
+
 
 }
 

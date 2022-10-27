@@ -2,49 +2,52 @@
     <div class="main-container" 
         :class="{'light-theme': this.$store.getters.getTheme =='light', 'dark-theme': this.$store.getters.getTheme =='dark'}">
         
-        <div class="row_content_container" style="display flex-direction: row;">
-            <div class="leftside_container">
-                <img class="post_img" src="../../assets/test_blog_photo.png" alt='post_img'
-                    v-if="post_image"
-                    @click="$router.push({ name: 'postitem', params: {id: this.id} })"
-                >
+        <div class="rightside_container">
+            <div class="autor_data_container">
+                    <img class="profile_img" src="../../assets/test_blog_photo.png" alt="" 
+                        @click="$router.push({ name: 'user', params: {id: this.creator_nickname} })"
+                    >
+
+                    <span class="profile_name"
+                        @click="$router.push({ name: 'user', params: {id: this.creator_nickname} })">
+                        {{this.creator_nickname.split('.')[0]}}
+                    </span> 
+
+                    <span class="dot_divider">•</span>
+                    <span class="post_date">{{this.post_date}}</span>
             </div>
 
-            <div class="rightside_container">
-                <div class="autor_data_container">
-                        <img class="profile_img" src="../../assets/test_blog_photo.png" alt="" 
-                            @click="$router.push({ name: 'user', params: {id: this.creator_nickname} })"
-                        >
-
-                        <span class="profile_name"
-                            @click="$router.push({ name: 'user', params: {id: this.creator_nickname} })">
-                            {{this.creator_nickname.split('.')[0]}}
-                        </span> 
-
-                        <span class="dot_divider">•</span>
-                        <span class="post_date">{{this.post_date}}</span>
-                </div>
-
-                <div class="title_field"
-                    @click="$router.push({ name: 'postitem', params: {id: this.id} })">
-                    {{this.title}}
-                </div>
-
-                <div class="description_field">{{this.description}}</div>
+            <div class="title_field"
+                @click="$router.push({ name: 'postitem', params: {id: this.id} })">
+                {{this.title}}
             </div>
+
+            <img class="post_img" src="../../assets/test_blog_photo.png" alt='post_img'
+                v-if="post_image"
+                @click="$router.push({ name: 'postitem', params: {id: this.id} })"
+            >
+
+            <div class="description_field">{{this.description}}</div>
+
         </div>
-        
-        
+
         <div class="bottom_container">
-            <div class="reactions_container">
-                <emoticon-container
-                    v-for="emoticon in sortedReactions().slice(0,5)" :key='emoticon' :post_id="this.id">
-                </emoticon-container>
-            </div>
+
+            <EmoticonContainer
+                data-bs-toggle="modal" :data-bs-target="this.modal_id"
+                :sortedReactions = 'sortedReactions()' 
+                :post_id='this.id'>
+            </EmoticonContainer>
+
+            <ReactionsModal 
+                :post_id='this.id'
+                :sortedReaction='this.sortedReactions()'>
+            </ReactionsModal>
 
             <div class="user_activities_rightside_container">
                 <div class="comments_container"
                     @click="$router.push({ name: 'postitem', params: {id: this.id} })">
+
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                         </svg>
@@ -52,19 +55,19 @@
                 </div>
             
                 <WebShare></WebShare>
-            </div>
-            
 
+            </div>
         </div>
-    
     </div>
+
 </template>
 
 <script>
 import EmoticonContainer from './EmoticonContainer.vue'
+import ReactionsModal from './ReactionsModal.vue';
 import WebShare from './WebShare.vue';
 export default {
-  components: { EmoticonContainer, WebShare },
+  components: { EmoticonContainer, WebShare, ReactionsModal},
     data(){
         return{
             id: this.$.vnode.key.data.post_id,
@@ -76,6 +79,7 @@ export default {
             comments: this.$.vnode.key.comments, 
             tag_list: this.$.vnode.key.tag_list,
             reactions: this.$.vnode.key.reactions,
+            modal_id:'#ReactionsModal'+ this.$.vnode.key.data.post_id, 
         }
     },
     computed:{
@@ -111,17 +115,6 @@ export default {
     caret-color: transparent;
     font: var(--font_header);
 
-    .row_content_container {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-    
-        .leftside_container .post_img{
-            width: 150px;
-            height: 150px;
-            cursor: pointer;
-        }
-
         .rightside_container{
             display: flex;
             flex-direction: column;
@@ -142,6 +135,7 @@ export default {
                     width: 25px;
                     height: 25px;
                     border-radius: 50%;
+                    object-fit: contain;
                     background-color: #ffff;
                     cursor: pointer;
                 }
@@ -164,8 +158,15 @@ export default {
 
             .title_field{
                 display: inline-block; 
-                cursor:pointer;
                 color: var(--text_color_primary);
+                margin-bottom: 10px;
+                cursor: pointer;
+            }
+
+            .post_img{
+                width: 100%;
+                width: 100%;
+                cursor: pointer;
             }
 
             .description_field{
@@ -174,7 +175,7 @@ export default {
 
             }
         }
-    }
+    
 
     .bottom_container{
         display: flex;
@@ -187,6 +188,13 @@ export default {
         .reactions_container{
             display: flex;
             flex-direction: row;
+            position: relative;
+
+            img{
+                position: absolute;
+                height: 25px;
+                width: 25px;
+            }
         }
 
         .user_activities_rightside_container{
