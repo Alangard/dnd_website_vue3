@@ -2,17 +2,17 @@
 
     <div class="main_container">
 
-        <div class="accordion" id="personal_emots_sections">
+        <div class="accordion" :id='"personal_emots_sections" + this.post_id'>
             <div class="recent accordion-item">
-                <h2 class="accordion-header" id="recent">
+                <h2 class="accordion-header" :id='"recent" + this.post_id'>
                     <button 
                         class="accordion-button" 
                         type="button" 
                         data-bs-toggle="collapse" 
-                        data-bs-target="#recent_body" 
+                        :data-bs-target='"#recent_body" + this.post_id' 
                         aria-expanded="false" 
-                        aria-controls="recent_body"  
-                        @click='isClicked'>
+                        :aria-controls='"recent_body" + this.post_id' 
+                        >
                     
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10"></circle>
@@ -22,21 +22,21 @@
                         <span>Recent</span>
                     </button>
                 </h2>
-                <div id="recent_body" class="accordion-collapse collapse show" aria-labelledby="recent" data-bs-parent="#personal_emots_sections">
+                <div :id='"recent_body"+ this.post_id' class="accordion-collapse collapse show" :aria-labelledby='"recent" + this.post_id' :data-bs-parent='"#personal_emots_sections" + this.post_id'>
                     <div class="accordion-body">
-                        <emoticon-btn></emoticon-btn>
+                        <emoticon-btn :post_id='this.post_id'></emoticon-btn>
                     </div>
                 </div>
             </div>
 
-            <div class="favorites accordion-item">
-                <h2 class="accordion-header" id="favorites">
+            <div class='favorites accordion-item'>
+                <h2 class="accordion-header" :id='"favorites"+this.post_id'>
                     <button class="accordion-button collapsed" 
                             type="button" data-bs-toggle="collapse" 
-                            data-bs-target="#favorites_body" 
+                            :data-bs-target='"#favorites_body"+this.post_id' 
                             aria-expanded="false" 
-                            aria-controls="favorites_body" 
-                            @click='isClicked'>
+                            :aria-controls='"favorites_body"+this.post_id' 
+                            >
                         
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
@@ -46,7 +46,7 @@
 
                     </button>
                 </h2>
-                <div id="favorites_body" class="accordion-collapse collapse" aria-labelledby="favorites" data-bs-parent="#personal_emots_sections">
+                <div :id='"favorites_body"+this.post_id' class="accordion-collapse collapse" :aria-labelledby='"favorites"+this.post_id' :data-bs-parent='"#personal_emots_sections"+this.post_id'>
                     <div class="accordion-body">
                         <strong>This is the second item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
                     </div>
@@ -54,15 +54,15 @@
             </div>
 
             <div class="most_popular accordion-item">
-                <h2 class="accordion-header" id="most_popular">
+                <h2 class="accordion-header" :id='"most_popular"+this.post_id'>
                     <button 
                         class="accordion-button collapsed" 
                         type="button" 
                         data-bs-toggle="collapse" 
-                        data-bs-target="#most_popular_body" 
+                        :data-bs-target='"#most_popular_body"+this.post_id' 
                         aria-expanded="false" 
-                        aria-controls="most_popular_body"
-                        @click='isClicked'>
+                        :aria-controls='"most_popular_body"+this.post_id'
+                        >
                         
                         <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-flame" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
@@ -73,7 +73,7 @@
 
                     </button>
                 </h2>
-                <div id="most_popular_body" class="accordion-collapse collapse" aria-labelledby="most_popular" data-bs-parent="#personal_emots_sections">
+                <div :id='"most_popular_body"+this.post_id' class="accordion-collapse collapse" :aria-labelledby='"most_popular"+this.post_id' :data-bs-parent='"#personal_emots_sections"+this.post_id'>
                     <div class="accordion-body">
                         <strong>This is the third item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
                     </div>
@@ -90,24 +90,12 @@ import EmoticonBtn from './EmoticonBtn.vue';
 export default {
   components: { EmoticonBtn },
     data(){return{}},
+    props:['post_id'],
     methods:{
-        isClicked(event){
-            const id = event.target.attributes['data-bs-target'].value.slice(1).split('_body')[0];
-
-            for(const element of document.querySelectorAll('.accordion-item')){
-                if(element.className.includes(id)){
-                    if(event.target.attributes['aria-expanded'].value == 'true'){
-                        element.classList.add('show');
-                    }
-                    else{element.classList.remove('show');}
-                    break;
-                }
-            }
-        },
     },
     mounted(){
-        document.querySelector('#recent_body').classList.remove('show');
-    }
+        document.querySelector(`#recent_body${this.post_id}`).classList.remove('show');
+    },
 
 }
 </script>
@@ -131,6 +119,7 @@ export default {
         border-radius: 5px;
         color: var(--text_color_secondary);
         padding: 5px 10px;
+        height: 35px;
         background-color: var(--bg_button_color);
         border-left: 4px solid var(--bg_button_color);
 

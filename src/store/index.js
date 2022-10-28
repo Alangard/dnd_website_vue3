@@ -4,6 +4,7 @@ export default createStore({
   state(){
     return{
       isMobile: true,
+      is_favorite: true,
       theme: '',
       postData: {
         '1985':{
@@ -27,26 +28,9 @@ export default createStore({
                 reactions: [],
                 tag_list: [1], comments:{'counter': 27, data:{}}
             },
-      }
-      /*  '1':{
-                post_id:'1',
-                reactions: [["12.gif", 10]],
-                post_img : 'dsd',
-                data: {creator_nickname: 'User4', post_date: '1 August 2021 19:10', title: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Reiciendis velit quas quasi perspiciatis.3', description:'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Accusantium asperiores repudiandae obcaecati perspiciatis, voluptatem hic, in rerum accusamus maiores molestias inventore nisi ratione ea! Iste aperiam sit itaque consequuntur nemo.', tag_list: [1], comments:{}}
-                },
-        '27':{
-                post_id:'27',
-                reactions: [["12.gif", 1],["15.gif",3], [ "19.gif", 9]],
-                post_img : 'sd',
-                data: {creator_nickname: 'User3', post_date: '3 October 2022 09:18', title: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Reiciendis velit quas quasi perspiciatis.4', description:'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Accusantium asperiores repudiandae obcaecati perspiciatis, voluptatem hic, in rerum accusamus maiores molestias inventore nisi ratione ea! Iste aperiam sit itaque consequuntur nemo.', tag_list: [1, 2, 3, 4, 5], comments:{}}
-                },
-        '397':{
-                post_id:'397',
-                reactions: [["9.gif",19]],
-                post_img : '',
-                data: {creator_nickname: 'User10', post_date: '1 September 2022 06:32', title: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Reiciendis velit quas quasi perspiciatis.5', description:'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Accusantium asperiores repudiandae obcaecati perspiciatis, voluptatem hic, in rerum accusamus maiores molestias inventore nisi ratione ea! Iste aperiam sit itaque consequuntur nemo.', tag_list: [1, 2, 5], comments:{}}
-                },
-       */
+      },
+
+      
       
      
     }
@@ -67,6 +51,10 @@ export default createStore({
 
     getReactionByPostId: state => post_id =>{
       return state.reactions[post_id];
+    },
+
+    getStatus(state){
+      return state.is_favorite;
     }
   },
 
@@ -82,6 +70,11 @@ export default createStore({
 
     printData (state, post_id){
       console.log(state.postData[post_id])
+    },
+
+    changeStatus(state){
+      state.is_favorite = !state.is_favorite;
+      console.log(state.is_favorite)
     }
 
   /*  changePostData (state, post_id, new_postData){

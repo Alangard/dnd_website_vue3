@@ -32,7 +32,7 @@
 
                     <search-bar v-if='all_emoticon_checked == true'></search-bar>
 
-                    <accordion-emoticon-sections v-if='all_emoticon_checked == true'></accordion-emoticon-sections>
+                    <accordion-emoticon-sections v-if='all_emoticon_checked == true' :post_id='this.post_id'></accordion-emoticon-sections>
                     
                 </div>
             </div>
