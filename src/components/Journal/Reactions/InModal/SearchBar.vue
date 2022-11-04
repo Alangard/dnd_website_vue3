@@ -21,15 +21,16 @@
 
         <div class="search_results_container" 
             v-if='search_query.length > 0' 
-            :class="{mobile: this.$store.getters.getIsMobileState == true}">
-
-            <img :src="emot.url" alt="" 
-                v-for="emot in FilterEmotByName" :key="emot.id"
+            :class="{mobile: this.$store.getters.getIsMobileState == true, empty: this.FilterEmotByName.length == 0}">
             
-            >
+            <div class="img_container" v-for="emot in FilterEmotByName" :key="emot.id">
+                <img :src="emot.url" alt="">
+            </div>
+   
             
             <span v-if='this.FilterEmotByName.length == 0'>Nothing was found</span>
         </div>
+        
 
     </div>
 </template>
@@ -44,26 +45,48 @@ export default {
         }
     },
 
-    computed:{
-         FilterEmotByName(){
-            return this.emoticons_list.filter(emoticon => emoticon.title.indexOf(this.search_query) !== -1)
-         }
+    watch:{
+        search_query(newValue, oldValue){
+            if(newValue != ''){
+                this.$emit('searchStart', false);
+            }
+            else{
+                this.$emit('searchStart', true)
+            }
+        }
     },
 
     beforeMount(){
-        fetch('https://jsonplaceholder.typicode.com/photos')
-        .then(response => response.json())
-        .then(json => {this.emoticons_list = json;})
+       this.getEmotsFromServer();
+       this.$emit('searchStart', true);
     },
+
+    methods:{
+        async getEmotsFromServer(){
+            await fetch('https://jsonplaceholder.typicode.com/photos')
+                .then(response => response.json())
+                .then(json => {this.emoticons_list = json;})
+        }
+    },
+
+    computed:{
+        FilterEmotByName(){
+            return this.emoticons_list.filter(emoticon => emoticon.title.indexOf(this.search_query) !== -1)
+        }
+    },
+
+    
 }
 </script>
 
 <style lang="scss" scoped>
 .main_container{
+    width: 100%;
+    margin-top: 10px;
+
     .searchbar{
         display: flex;
         align-items: center;
-        width: 100%;
         
         input{
             width: 100%;
@@ -107,9 +130,9 @@ export default {
         flex-direction: row;
         flex-wrap: wrap;
         margin-top: 10px;
-        padding: 10px 0;
+        padding: 10px 0 10px 10px;
         border-radius: 5px;
-        height: 250px;
+        max-height: 300px;
         background-color: var(--bg_button_color);
         color: var(--text_color_secondary);
         overflow-y: hidden;
@@ -135,22 +158,32 @@ export default {
             overflow-y: scroll;
         }
 
+        &.empty{
+            height: max-content;
+            overflow-y: hidden;
+        }
+
         span{
             width: 100%;
             text-align: center;
         }
               
-        img{
-            height: 45px;
-            width: 45px;
-            margin: 3px 5px;
-            border-radius: 50%;
-            object-fit: contain;
-            background-color: #ffff;
-            cursor: pointer;
+        .img_container{
+            padding: 5px 5px;
+            border-radius: 5px;
+
+            img{
+                height: 40px;
+                width: 40px;
+                border-radius: 50%;
+                object-fit: contain;
+                background-color: #ffff;
+                cursor: pointer;
+            }
 
             &:hover{
-                transform: scale(1.2);
+                background-color: var(--active_section_color);
+                transform: scale(1.1);
             }
         }
     }

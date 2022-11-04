@@ -13,11 +13,20 @@
 import TopNav from "./components/TopNav.vue";
 
 export default {
+    components: { TopNav },
     data() {
-      return {}
+      return {
+        windowWidth: null,
+        mobile_limit: 750, // 750px is the limit value. If the width is larger, it means that you are viewing from desktop
+      }
     },
 
-    mounted() {
+    created(){
+      window.addEventListener('resize', this.checkScreen);
+      this.checkScreen();
+    },
+
+    mounted(){
         if (localStorage.theme) {
             this.$store.commit('changeTheme', localStorage.theme);
         }
@@ -27,13 +36,26 @@ export default {
         }
     },
 
+    unmounted(){window.removeEventListener('resize', this.checkScreen);},
+
     watch: {
       '$store.state.theme': function() {
         localStorage.theme = this.$store.state.theme;
       }
     },
 
-    components: { TopNav },
+    methods:{
+      // Function to get the screen width and change the global variable isMobile
+      checkScreen(){
+        this.windowWidth = window.innerWidth;
+        if (this.windowWidth <= this.mobile_limit){
+            this.$store.commit('changeIsMobileFlag', true);
+            return;
+        }
+        this.$store.commit('changeIsMobileFlag', false);
+        return; 
+      }
+    }
 }
 </script>
 
@@ -55,6 +77,7 @@ export default {
   --font_header: 700 normal 17px/1.3em 'Oswald', sans-serif;
   --drop_shadow_color: #535C70;
   --gradien_to_transparent_color:#ababaf;
+  --active_section_color: #cfcfd3;
 
 
 
@@ -75,6 +98,7 @@ export default {
   --font_header: 700 normal 17px/1.3em 'Oswald', sans-serif;
   --drop_shadow_color: #5B58F7;
   --gradien_to_transparent_color:#4c4b4b;
+  --active_section_color: #222121;
 
 
 }

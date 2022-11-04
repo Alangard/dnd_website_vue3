@@ -11,10 +11,10 @@
 </template>
 
 <script>
+
 export default {
     data(){
         return{
-            base_url:'../../assets/emoticons', 
             isHover: null,
         }
     },
@@ -25,8 +25,8 @@ export default {
         },   
         
         getImg(img_name){
-            const url = this.base_url + '/' + img_name;
-            var image = (require.context('../../assets/emoticons', false, /\.gif$/));
+            const url = '../../../assets/emoticons' + '/' + img_name;
+            var image = (require.context('../../../assets/emoticons', false, /\.gif$/));
         
             if(img_name && img_name.includes('.gif')){
                 // взять первый фрейм

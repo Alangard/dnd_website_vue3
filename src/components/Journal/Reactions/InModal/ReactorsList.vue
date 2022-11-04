@@ -3,7 +3,7 @@
 
         <div class='reactor_element' v-for='reactor in this.reactors_list' :key='reactor.username'>
 
-            <img class="profile_img" src="../../assets/test_blog_photo.png" alt="" 
+            <img class="profile_img" src="../../../../assets/test_blog_photo.png" alt="" 
                 @click="$router.push({ name: 'user', params: {id: reactor.username} })"
             >
 
@@ -20,6 +20,7 @@
 </template>
 
 <script>
+
 export default {
     props: ['reactors_list'],
     data(){return{}},
@@ -60,7 +61,7 @@ export default {
                 margin-right: 10px;
                 cursor: pointer;
                 background-color: #ffff;
-                object-fit: contain;
+                object-fit: cover;
             }
 
             .user_info{

@@ -10,31 +10,45 @@
         <div ref='emot_container' class="emot_container" @mousewheel="scrollX">
 
             <div class="emoticon_element all_emoticons_btn" @click="isClicked">
-                <input type="radio" name="emoticonGroup" :value="`all_emoticons_p_${this.post_id}`" :id="`all_emoticons_p_${this.post_id}`">
-                <label :for="`all_emoticons_p_${this.post_id}`">
+                <input type="radio" name="emoticonGroup" value="all_emoticons" id="all_emoticons">
+                <label for="all_emoticons">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                     </svg>
                 </label>
             </div>
 
-            <div class="emoticon_element" @click="isClicked">
+            <div class="emoticon_element total_reaction" @click="isClicked">
                 <input type="radio" name="emoticonGroup" :value="`totalReaction_p_${this.post_id}`" :id="`totalReaction_p_${this.post_id}`">
                 <label :for="`totalReaction_p_${this.post_id}`">
                     <span>Reacted {{totalReactionsCount()}}</span>
                 </label>
             </div>
 
-            <div class="emoticon_element" 
+            <long-press-btn class='emoticon_element'
                 v-for='reaction in sortedReaction' :key='reaction' 
+                @LongPressEvent="react"
                 @click="isClicked">
+                
+                <input type="radio" name="emoticonGroup" :value="`${reaction.name.split(/[.]/)[0]}_p_${this.post_id}`" :id="`${reaction.name.split(/[.]/)[0]}_p_${this.post_id}`">
+                <label :for="`${reaction.name.split(/[.]/)[0]}_p_${this.post_id}`">
+                    <img :src="getImg(reaction.name)" alt="">
+                    <span>{{reaction.data.length}}</span>
+                </label>
+                
+            </long-press-btn>
+
+
+            <!-- <div class="emoticon_element" 
+                v-for='reaction in sortedReaction' :key='reaction' 
+                @click="react">
 
                     <input type="radio" name="emoticonGroup" :value="`${reaction.name.split(/[.]/)[0]}_p_${this.post_id}`" :id="`${reaction.name.split(/[.]/)[0]}_p_${this.post_id}`">
-                    <label :for="`${reaction.name.split(/[.]/)[0]}_p_${this.post_id}`">
+                    <label :for="`${reaction.name.split(/[.]/)[0]}_p_${this.post_id}`" @click="isClicked">
                         <img :src="getImg(reaction.name)" alt="">
                         <span>{{reaction.data.length}}</span>
                     </label>
-            </div>
+            </div> -->
         </div>
 
         <div class="btn_right" @click="scroll_right">
@@ -47,7 +61,9 @@
 </template>
 
 <script>
+import LongPressBtn from '@/components/Templates_components/LongPressBtn.vue';
 export default {
+  components: { LongPressBtn },
     props:['post_id','sortedReaction'],
     data(){return{}},
     methods:{
@@ -58,8 +74,8 @@ export default {
         },
 
         getImg(img_name){
-            const url = this.base_url + '/' + img_name;
-            var image = (require.context('../../assets/emoticons', false, /\.gif$/));
+            const url = '../../../../assets/emoticons' + '/' + img_name;
+            var image = (require.context('../../../../assets/emoticons', false, /\.gif$/));
         
             if(img_name && img_name.includes('.gif')){
                 // взять первый фрейм
@@ -68,10 +84,27 @@ export default {
         },
 
         isClicked(event){
-            if (event.target.tagName == 'INPUT'){
+            if(event.target.tagName == 'INPUT'){
                 const element_id = event.target.id;
                 this.$emit('reactIsClicked', element_id);
-            }  
+            }
+            // var element_id = event.target.querySelector('input').id;
+            // console.log(element_id)
+            
+        },
+
+        react(btn_element_target){
+            console.log(btn_element_target.tagName )
+            if (btn_element_target.tagName == 'LABEL'){
+                const element_id = btn_element_target.getAttribute('for');;
+                const post_id = this.post_id;
+                const reaction_id = element_id.split('_p_')[0] + '.gif';
+
+                // запрашиваем эти данные их localstorage или coockie
+                const user_info = {'username': 'usert2.804357', 'profile_img': '', 'date': '1995-12-17T09:24:00'}; 
+
+                this.$store.dispatch("changeReactionStatus", {post_id, reaction_id, user_info}); 
+            }          
         },
 
         totalReactionsCount(){
@@ -163,11 +196,13 @@ export default {
         }
 
         .emoticon_element{
+            cursor: pointer;
 
-            svg{stroke: var(--text_color_secondary);}
+            svg{stroke: var(--text_color_secondary); pointer-events: none;}
             input{display: none;}
 
             input:checked + label{
+                background-color: var(--active_section_color);
                 border-bottom: 3px solid var(--bg_button_active_color);
                 color: var(--bg_button_active_color);
             }
@@ -197,9 +232,10 @@ export default {
                     border-radius: 50%;
                     object-fit: contain;
                     margin-right: 10px;
+                    pointer-events: none;
                 }
 
-                &:hover > img {transform: scale(1.2);}
+                
                 &:hover > svg {stroke: var(--bg_button_active_color);}
                 &:hover {color: var(--bg_button_active_color);}
             }

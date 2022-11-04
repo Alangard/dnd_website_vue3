@@ -33,16 +33,22 @@
 
         <div class="bottom_container">
 
-            <EmoticonContainer
-                data-bs-toggle="modal" :data-bs-target="this.modal_id"
+            <EmoticonContainer 
+                @click="this.modalIsOpen = !this.modalIsOpen"
                 :sortedReactions = 'sortedReactions()' 
                 :post_id='this.id'>
             </EmoticonContainer>
 
-            <ReactionsModal 
-                :post_id='this.id'
-                :sortedReaction='this.sortedReactions()'>
-            </ReactionsModal>
+            <Transition name='modal'>
+
+                <Modal
+                    v-if="this.modalIsOpen"
+                    @close_modal='this.modalIsOpen = false'
+                    :post_id='this.id'
+                    :sortedReactions='this.sortedReactions()'>
+                </Modal>
+
+            </Transition>
 
             <div class="user_activities_rightside_container">
                 <div class="comments_container"
@@ -63,11 +69,12 @@
 </template>
 
 <script>
-import EmoticonContainer from './EmoticonContainer.vue'
-import ReactionsModal from './ReactionsModal.vue';
-import WebShare from './WebShare.vue';
+import Modal from '@/components/Journal/Reactions/ReactionModal.vue'
+import EmoticonContainer from './Reactions/EmoticonContainer.vue'
+import WebShare from './Share/WebShare.vue';
+
 export default {
-  components: { EmoticonContainer, WebShare, ReactionsModal},
+  components: { EmoticonContainer, WebShare, Modal},
     data(){
         return{
             id: this.$.vnode.key.data.post_id,
@@ -80,23 +87,37 @@ export default {
             tag_list: this.$.vnode.key.tag_list,
             reactions: this.$.vnode.key.reactions,
             modal_id:'#ReactionsModal'+ this.$.vnode.key.data.post_id, 
+            modalIsOpen: false
         }
     },
-    computed:{
-    },
+
     methods:{
         sortedReactions(){
             if(this.reactions.length > 0){ 
                 return this.reactions.sort((a, b) => b.data.length - a.data.length);
             }
             else{return [];}
-        }
-    }
+        },
+    },
+
+
 }
 
 </script>
 
 <style lang="scss" scoped>
+
+.modal-enter-active,
+.modal-leave-active{
+    transition: all 0.25s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to{
+    opacity: 0;
+    transform: scale(1.1);
+}
+
 .main-container{
     display: flex;
     flex-direction: column;
@@ -135,7 +156,7 @@ export default {
                     width: 25px;
                     height: 25px;
                     border-radius: 50%;
-                    object-fit: contain;
+                    object-fit: cover;
                     background-color: #ffff;
                     cursor: pointer;
                 }
@@ -164,9 +185,16 @@ export default {
             }
 
             .post_img{
-                width: 100%;
-                width: 100%;
+                display: block;
+                height: auto;
+                max-height: 420px;
+                width: 604px;
+                max-width: 100%;
+                border-radius: 5px;
+                object-fit: contain;
+                overflow: hidden;
                 cursor: pointer;
+
             }
 
             .description_field{
