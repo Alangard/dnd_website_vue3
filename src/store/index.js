@@ -3,10 +3,10 @@ import { createStore } from 'vuex'
 export default createStore({
   state(){
     return{
-      isMobile: true,
+      isMobile: null,
       modalIsOpen: false,
       is_favorite: true,
-      theme: '',
+      theme: 'light',
       // reactions[{ id, img_url, data }]
       postData: {
         '1985':{

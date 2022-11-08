@@ -22,11 +22,17 @@
                     :reactors_list='this.reactors_list'>
                 </reactors-list>
             </div>
-        
+
+            <!-- <div class="test">
+                n
+            </div> -->
 
 
             <!-- <Accordion v-if='all_emoticon_checked && this.searchStart'></Accordion> -->
-            <scroll-spy v-if='all_emoticon_checked && this.searchStart'></scroll-spy>
+            <scroll-spy 
+                v-if='this.all_emoticon_checked && this.searchStart'
+                :isMobile='this.$store.getters.getIsMobileState'>
+            </scroll-spy>
         </template>
     </modal>
 
@@ -38,7 +44,7 @@ import ReactionMore from './InModal/ReactionMore.vue';
 import ReactorsList from './InModal/ReactorsList.vue';
 import SearchBar from './InModal/SearchBar.vue';
 import Accordion from './InModal/Accordion/Accordion.vue'
-import ScrollSpy from '@/components/Templates_components/ScrollSpy.vue';
+import ScrollSpy from './InModal/ReactionScrollSpy.vue';
 
 export default {
     components:{Modal, ReactionMore, ReactorsList, SearchBar, Accordion, ScrollSpy},
@@ -96,6 +102,12 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+
+.test{
+    background-color: red;
+    height: 300px;
+    max-width: 600px;
+}
 
 .reactions_more_container{
     display: flex;

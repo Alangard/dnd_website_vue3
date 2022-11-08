@@ -90,10 +90,9 @@ export default {
         
         input{
             width: 100%;
-            height: 100%;
             border: 2px solid var(--bg_button_color);
             border-radius: 5px;
-            padding: 0 25px;
+            padding: 5px 25px;
             background-color: var(--bg_button_color);
             color: var(--text_color_secondary);
             font-weight: 300;

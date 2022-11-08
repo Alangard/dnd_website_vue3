@@ -56,7 +56,7 @@ export default {
     .modal_container{
         position: relative;
         width: 90%;
-        max-width: 600px;
+        max-width: 500px;
         border-radius: 5px;
         max-height: 80%;
         padding: 0px 10px 10px 10px;
