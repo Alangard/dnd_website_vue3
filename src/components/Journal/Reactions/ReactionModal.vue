@@ -19,20 +19,18 @@
             <div class="reactors_container" :class="{mobile: this.$store.getters.getIsMobileState == true}">
                 <reactors-list 
                     v-if="all_emoticon_checked == false"
-                    :reactors_list='this.reactors_list'>
+                    :reactors_list='this.reactors_list'
+                    :post_id='this.post_id'>
                 </reactors-list>
             </div>
 
-            <!-- <div class="test">
-                n
-            </div> -->
 
-
-            <!-- <Accordion v-if='all_emoticon_checked && this.searchStart'></Accordion> -->
-            <scroll-spy 
+            <reaction-accordion v-if='all_emoticon_checked && this.searchStart'></reaction-accordion>
+            <!-- <scroll-spy 
                 v-if='this.all_emoticon_checked && this.searchStart'
                 :isMobile='this.$store.getters.getIsMobileState'>
-            </scroll-spy>
+            </scroll-spy> -->
+
         </template>
     </modal>
 
@@ -43,11 +41,11 @@ import Modal from '@/components/Templates_components/Modal.vue';
 import ReactionMore from './InModal/ReactionMore.vue';
 import ReactorsList from './InModal/ReactorsList.vue';
 import SearchBar from './InModal/SearchBar.vue';
-import Accordion from './InModal/Accordion/Accordion.vue'
 import ScrollSpy from './InModal/ReactionScrollSpy.vue';
+import ReactionAccordion from './InModal/ReactionAccordion.vue'
 
 export default {
-    components:{Modal, ReactionMore, ReactorsList, SearchBar, Accordion, ScrollSpy},
+    components:{Modal, ReactionMore, ReactorsList, SearchBar, ReactionAccordion, ScrollSpy},
     props:['post_id','sortedReactions'],
     data(){
         return{
@@ -81,7 +79,7 @@ export default {
             else{
                 const emoticon_id = emoticon_info.split('_p_')[0];
                 for(const reaction of this.sortedReactions){
-                    if(reaction.name.split('.')[0] == emoticon_id){
+                    if(reaction.reaction_id == emoticon_id){
                         const reactors_list = reaction.data;
                         this.sortReactorsbyDate(reactors_list);
                         this.reactors_list = reactors_list;
@@ -103,11 +101,6 @@ export default {
 
 <style lang="scss" scoped>
 
-.test{
-    background-color: red;
-    height: 300px;
-    max-width: 600px;
-}
 
 .reactions_more_container{
     display: flex;

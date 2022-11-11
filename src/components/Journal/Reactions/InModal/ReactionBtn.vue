@@ -1,5 +1,7 @@
 <template>
-    <long-press-btn @LongPressEvent="this.onLongPress" class='btn_container'>
+    <long-press-btn class='btn_container'
+        @LongPressEvent="this.onLongPress">
+
         <img src="@/assets/test_blog_photo.png" alt="" >
 
         <div class="favorites_btn_desktop" 
@@ -23,7 +25,8 @@
 <script>
 import LongPressBtn from '@/components/Templates_components/LongPressBtn.vue'
 export default {
-  components: { LongPressBtn },
+    components: { LongPressBtn },
+    props:['post_id', 'img_url'],
     data(){return{}},
     methods:{
         onLongPress(btn_element){
@@ -48,6 +51,24 @@ export default {
                 }
             }
             
+        },
+
+        getUserData(){
+            // запрашиваем эти данные их localstorage или coockie
+            const user_info = {'username': 'usert2.804357', 'profile_img': '', 'date': '1995-12-17T09:24:00'}; 
+            return user_info;
+        },
+
+        react(btn_element_target){
+            if (btn_element_target.tagName == 'LABEL'){
+                const element_id = btn_element_target.getAttribute('for');
+                const post_id = this.post_id;
+                const reaction_id = element_id.split('_p_')[0] + '.gif';
+
+                const user_info = this.getUserData();
+
+                this.$store.dispatch("changeReactionStatus", {post_id, reaction_id, user_info}); 
+            }          
         },
     },
 

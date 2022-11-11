@@ -21,7 +21,7 @@ export default {
             // The code that will be run only after
             // all views are rendered
 
-            const section = document.querySelectorAll('.section');
+            const sections = document.querySelectorAll('.section');
             const links_list = document.querySelectorAll('.aside_link');
 
             var options = {
@@ -34,17 +34,22 @@ export default {
                 entries.forEach(entry => {
                     if(entry.isIntersecting ){
                         links_list.forEach((link) => link.classList.remove('active'));
+                        sections.forEach((section) => section.querySelector('.section_header').classList.remove('active'));
+
 
                         const activeId = entry.target.id;
                         const activeLink = document.querySelector(`.aside_link[id="${activeId}"]`);
+                        const activeSection = document.querySelector(`.section[id="${activeId}"]`);
+                        
                         if(activeLink){activeLink.classList.add('active');}
+                        if(activeSection){activeSection.querySelector('.section_header').classList.add('active')};
                     }
 
                 });
             };
 
             const sectionObserver = new IntersectionObserver(cb, options);
-            section.forEach((s) => sectionObserver.observe(s));
+            sections.forEach((s) => sectionObserver.observe(s));
         })  
 
     }

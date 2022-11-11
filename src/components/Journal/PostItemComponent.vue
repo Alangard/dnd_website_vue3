@@ -4,9 +4,19 @@
         
         <div class="rightside_container">
             <div class="autor_data_container">
-                    <img class="profile_img" src="../../assets/test_blog_photo.png" alt="" 
+                    <img class="profile_img" :src="this.creator_profile_img" alt="" 
+                        v-if="this.creator_profile_img != ''"
                         @click="$router.push({ name: 'user', params: {id: this.creator_nickname} })"
                     >
+
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        v-else
+                        class="profile_img" 
+                        @click="$router.push({ name: 'user', params: {id: this.creator_nickname} })">
+                            <path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/>
+                            <circle cx="12" cy="10" r="3"/>
+                            <circle cx="12" cy="12" r="10"/>
+                    </svg>
 
                     <span class="profile_name"
                         @click="$router.push({ name: 'user', params: {id: this.creator_nickname} })">
@@ -14,7 +24,7 @@
                     </span> 
 
                     <span class="dot_divider">•</span>
-                    <span class="post_date">{{this.post_date}}</span>
+                    <span class="post_date">Posted {{this.dateTimeFormat(this.post_date)}}</span>
             </div>
 
             <div class="title_field"
@@ -22,8 +32,8 @@
                 {{this.title}}
             </div>
 
-            <img class="post_img" src="../../assets/test_blog_photo.png" alt='post_img'
-                v-if="post_image"
+            <img class="post_img" :src="this.post_image" alt='post_img'
+                v-if="this.post_image"
                 @click="$router.push({ name: 'postitem', params: {id: this.id} })"
             >
 
@@ -78,8 +88,9 @@ export default {
     data(){
         return{
             id: this.$.vnode.key.data.post_id,
-            post_image: this.$.vnode.key.data.post_img || false,
+            post_image: this.$.vnode.key.data.img_url || false,
             creator_nickname: this.$.vnode.key.data.creator_nickname,
+            creator_profile_img: this.$.vnode.key.data.profile_img_url,
             post_date: this.$.vnode.key.data.post_date,
             title: this.$.vnode.key.data.title,
             description: this.$.vnode.key.data.description,
@@ -98,6 +109,51 @@ export default {
             }
             else{return [];}
         },
+        
+        dateTimeFormat(datetime_string){
+            const datetime = new Date(datetime_string);
+            const now_datetime = new Date();
+            const diff_in_seconds = Math.floor((now_datetime - datetime) / 1000);
+
+            if(diff_in_seconds >= 3600){
+                if(Math.floor(diff_in_seconds / 3600) == 1){
+                    return `more than ${Math.floor(diff_in_seconds / 3600)} hour ago`;
+                }
+
+                else if(Math.floor(diff_in_seconds / 3600) == 2 || Math.floor(diff_in_seconds / 3600) == 3){
+                    return `more than ${Math.floor(diff_in_seconds / 3600)} hours ago`;
+                }
+
+                else{
+                    //getMonth returns an integer number, between 0 and 11
+                    const [month, day, year] = [datetime.getMonth() + 1, datetime.getDate(), datetime.getFullYear()];
+                    const [hour, minutes] = [datetime.getHours(), datetime.getMinutes()];
+                    return `${day}/${month}/${year} at ${hour}:${minutes}`;
+                }
+            }
+
+            else if (diff_in_seconds < 3600 && diff_in_seconds >= 60){
+                if(Math.floor(diff_in_seconds/60) == 1){
+                    return `more than ${Math.floor(diff_in_seconds/60)} minute ago`;
+                }
+
+                else if((Math.floor(diff_in_seconds / 60) == 5)){
+                    return `more than ${Math.floor(diff_in_seconds/60)} minutes ago`;
+                }
+
+                else if(Math.floor(diff_in_seconds / 60) >= 5){
+                    return `more than ${Math.floor(diff_in_seconds/60)} minutes ago`;
+                }
+
+                else{
+                    return 'recently';
+                }
+            }
+
+            else {
+                return 'now';
+            }
+        }
     },
 
 
@@ -158,6 +214,7 @@ export default {
                     border-radius: 50%;
                     object-fit: cover;
                     background-color: #ffff;
+                    stroke: var(--text_color_secondary);
                     cursor: pointer;
                 }
 

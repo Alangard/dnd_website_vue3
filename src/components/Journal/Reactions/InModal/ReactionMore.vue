@@ -26,29 +26,21 @@
             </div>
 
             <long-press-btn class='emoticon_element'
-                v-for='reaction in sortedReaction' :key='reaction' 
+                v-for='reaction in sortedReaction' :key='reaction.reaction_id' 
                 @LongPressEvent="react"
                 @click="isClicked">
                 
-                <input type="radio" name="emoticonGroup" :value="`${reaction.name.split(/[.]/)[0]}_p_${this.post_id}`" :id="`${reaction.name.split(/[.]/)[0]}_p_${this.post_id}`">
-                <label :for="`${reaction.name.split(/[.]/)[0]}_p_${this.post_id}`">
-                    <img :src="getImg(reaction.name)" alt="">
+                <input type="radio" name="emoticonGroup" :value="`${reaction.reaction_id}_p_${this.post_id}`" :id="`${reaction.reaction_id}_p_${this.post_id}`">
+                <label :for="`${reaction.reaction_id}_p_${this.post_id}`">
+                    <img :src="reaction.img_url" alt="">
                     <span>{{reaction.data.length}}</span>
                 </label>
                 
             </long-press-btn>
 
+            <!-- <reaction-btn></reaction-btn> -->
 
-            <!-- <div class="emoticon_element" 
-                v-for='reaction in sortedReaction' :key='reaction' 
-                @click="react">
 
-                    <input type="radio" name="emoticonGroup" :value="`${reaction.name.split(/[.]/)[0]}_p_${this.post_id}`" :id="`${reaction.name.split(/[.]/)[0]}_p_${this.post_id}`">
-                    <label :for="`${reaction.name.split(/[.]/)[0]}_p_${this.post_id}`" @click="isClicked">
-                        <img :src="getImg(reaction.name)" alt="">
-                        <span>{{reaction.data.length}}</span>
-                    </label>
-            </div> -->
         </div>
 
         <div class="btn_right" @click="scroll_right">
@@ -62,8 +54,9 @@
 
 <script>
 import LongPressBtn from '@/components/Templates_components/LongPressBtn.vue';
+import ReactionBtn from './ReactionBtn.vue';
 export default {
-  components: { LongPressBtn },
+  components: { LongPressBtn, ReactionBtn },
     props:['post_id','sortedReaction'],
     data(){return{}},
     methods:{
@@ -71,16 +64,6 @@ export default {
             var sum = 0;
             for(const element of this.sortedReaction){sum += element.data.length;}
             return sum;
-        },
-
-        getImg(img_name){
-            const url = '../../../../assets/emoticons' + '/' + img_name;
-            var image = (require.context('../../../../assets/emoticons', false, /\.gif$/));
-        
-            if(img_name && img_name.includes('.gif')){
-                // взять первый фрейм
-                return image('./' + img_name);
-            }
         },
 
         isClicked(event){
@@ -94,16 +77,12 @@ export default {
         },
 
         react(btn_element_target){
-            console.log(btn_element_target.tagName )
             if (btn_element_target.tagName == 'LABEL'){
-                const element_id = btn_element_target.getAttribute('for');;
+                const element_id = btn_element_target.getAttribute('for');
                 const post_id = this.post_id;
-                const reaction_id = element_id.split('_p_')[0] + '.gif';
+                const reaction_id = element_id.split('_p_')[0]; 
 
-                // запрашиваем эти данные их localstorage или coockie
-                const user_info = {'username': 'usert2.804357', 'profile_img': '', 'date': '1995-12-17T09:24:00'}; 
-
-                this.$store.dispatch("changeReactionStatus", {post_id, reaction_id, user_info}); 
+                this.$store.dispatch("changeReactionStatus", {post_id, reaction_id}); 
             }          
         },
 

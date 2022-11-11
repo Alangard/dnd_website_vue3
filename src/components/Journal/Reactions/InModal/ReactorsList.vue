@@ -3,15 +3,25 @@
 
         <div class='reactor_element' v-for='reactor in this.reactors_list' :key='reactor.username'>
 
-            <img class="profile_img" src="../../../../assets/test_blog_photo.png" alt="" 
+            <img class="profile_img"  v-if='reactor.profile_img_url != ""' :src="reactor.profile_img_url" alt="" 
                 @click="$router.push({ name: 'user', params: {id: reactor.username} })"
             >
+
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                v-else
+                class="profile_img" 
+                @click="$router.push({ name: 'user', params: {id: reactor.username} })">
+                    <path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/>
+                    <circle cx="12" cy="10" r="3"/>
+                    <circle cx="12" cy="12" r="10"/>
+            </svg>
+
 
             <div class="user_info">
                 <span class='username' @click="$router.push({ name: 'user', params: {id: reactor.username} })">
                     {{capitalizeFirstLetter(reactor.username.split('.')[0])}}
                 </span>
-                <span class='datetime'>Reacted on {{}}</span>
+                <span class='datetime'>Reacted {{this.dateTimeFormat(reactor.date)}}</span>
             </div>
 
         </div>
@@ -22,11 +32,55 @@
 <script>
 
 export default {
-    props: ['reactors_list'],
-    data(){return{}},
+    props: ['reactors_list', 'post_id'],
+    data(){
+        return{
+        }
+    },
     methods:{
         capitalizeFirstLetter(string) {
             return string.charAt(0).toUpperCase() + string.slice(1);
+        },
+
+        dateTimeFormat(datetime_string){
+            const datetime = new Date(datetime_string);
+            const now_datetime = new Date();
+            const diff_in_seconds = Math.floor((now_datetime - datetime) / 1000);
+
+            if(diff_in_seconds >= 3600){
+                if(Math.floor(diff_in_seconds / 3600) == 1){
+                    return `more than ${Math.floor(diff_in_seconds / 3600)} hour ago`;
+                }
+
+                else if(Math.floor(diff_in_seconds / 3600) == 2 || Math.floor(diff_in_seconds / 3600) == 3){
+                    return `more than ${Math.floor(diff_in_seconds / 3600)} hours ago`;
+                }
+
+                else{
+                    //getMonth returns an integer number, between 0 and 11
+                    const [month, day, year] = [datetime.getMonth() + 1, datetime.getDate(), datetime.getFullYear()];
+                    const [hour, minutes] = [datetime.getHours(), datetime.getMinutes()];
+                    return `${day}/${month}/${year} at ${hour}:${minutes}`;
+                }
+            }
+
+            else if (diff_in_seconds < 3600 && diff_in_seconds >= 60){
+                if(Math.floor(diff_in_seconds / 60) == 1){
+                    return `more than ${Math.floor(diff_in_seconds/60)} minute ago`;
+                }
+
+                else if((Math.floor(diff_in_seconds / 60) == 5)){
+                    return `more than ${Math.floor(diff_in_seconds/60)} minutes ago`;
+                }
+
+                else if(Math.floor(diff_in_seconds / 60) >= 5){
+                    return `more than ${Math.floor(diff_in_seconds/60)} minutes ago`;
+                }
+            }
+
+            else {
+                return 'now';
+            }
         }
     }
     
@@ -50,17 +104,22 @@ export default {
             padding: 10px 5px;
             margin-bottom: 5px;
 
-            &:hover > img {
+            &:hover > .profile_img {
                 transform: scale(1.2);
             }
 
-            img{
+            svg.profile_img{
+                background-color: var(--active_section_color);
+            }
+
+            .profile_img{
                 height: 45px;
                 width: 45px;
                 border-radius: 50%;
                 margin-right: 10px;
                 cursor: pointer;
                 background-color: #ffff;
+                stroke: var(--text_color_secondary);
                 object-fit: cover;
             }
 
