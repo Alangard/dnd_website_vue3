@@ -8,15 +8,19 @@ export default createStore({
       modalIsOpen: false,
       is_favorite: true,
       theme: 'light',
-      user_info: {username: 'usert2.804357', profile_img_url: '', date: '1995-12-17T09:24:00'},
+      user_info: {username: 'usert2.804357', profile_img_url: '', date: '1995-12-17T09:24:00',
+                  emoticons:{favorites:[{id:'d2_dealwithit_ES', url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bd/Emoticon_dealwithit.gif'},], 
+                             recent:[{id:'d2_facepalm_WR', url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif'},{id:'d2_stunned_Rosh', url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif'}]
+                            }
+                  },
       postData: {
         '1985':{
                 data: {post_id:'1985', img_url: 'https://thumbs.dreamstime.com/b/blog-information-website-concept-workplace-background-text-view-above-127465079.jpg', creator_nickname: 'User1.804838', profile_img_url:'https://cs9.pikabu.ru/post_img/big/2019/10/30/10/1572455476123442192.jpg', post_date: '2022-11-11T17:38:00', title: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Reiciendis velit quas quasi perspiciatis.1', description:'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Accusantium asperiores repudiandae obcaecati perspiciatis, voluptatem hic, in rerum accusamus maiores molestias inventore nisi ratione ea! Iste aperiam sit itaque consequuntur nemo.'},
                 reactions: [ {reaction_id:"d2_dealwithit_ES", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bd/Emoticon_dealwithit.gif', data: [{username: 'user1.804838', profile_img_url: '', date: '1995-12-17T03:24:00'}]},
-                            {reaction_id:"d2_evil_NS", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif', data: [{username: 'user19.804856', profile_img_url: '', date: '1997-12-17T03:24:00'}, {username: 'user122.804737', profile_img_url: '', date: '1995-12-21T03:24:00'}, {username: 'user299.804802', profile_img_url: '', date: '1995-12-17T03:24:00'}]},
+                            {reaction_id:"d2_evil_NS", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif', data: [{username: 'user19.804856', profile_img_url: '', date: '1997-12-17T03:24:00'}, {username: 'user122.804737', profile_img_url: '', date: '1995-12-21T03:24:00'}, {username: 'user299.804802', profile_img_url: '', date: '1995-12-17T03:24:00'},]},
                             {reaction_id:"d2_facepalm_WR", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', data: [{username: 'user32.804871', profile_img_url: '', date: '1995-12-17T09:24:00'}, {username: 'user33.804708', profile_img_url: '', date: '1995-12-17T07:24:00'}, {username: 'user35.804254', profile_img_url: '', date: '2022-11-11T16:35:00'}, {username: 'user24.804824', profile_img_url: '', date: '1995-12-17T21:24:00'}, {username: 'user11.804816', profile_img_url: '', date: '1995-12-17T23:12:00'}, {username: 'user65.804811', profile_img_url: '', date: '1995-12-17T21:25:00'}]},
                             {reaction_id:"d2_smile_QOP", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/6/6e/Emoticon_relieved.gif', data: [{username: 'user42.804835', profile_img_url: '', date: '2009-12-17T03:24:00'}, {username: 'user44.804844', profile_img_url: '', date: '2009-12-18T03:24:00'}]},
-                            {reaction_id:"d2_stunned_Rosh", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif', data: [{username: 'user12.804833', profile_img_url: '', date: '2009-12-17T03:25:00'}]}
+                            {reaction_id:"d2_stunned_Rosh", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif', data: [{username: 'user12.804833', profile_img_url: '', date: '2009-12-17T03:25:00'},]}
                           ],
                 tag_list: [1, 2, 4], comments:{'counter': 290, data:{}}
                 },
@@ -65,24 +69,38 @@ export default createStore({
       return state.is_favorite;
     },
 
-    findUserReaction: (state) => (payload) => {
-      try{
-        var {post_id, reaction_id, user_info} = payload;
-        var data = state.postData[post_id].reactions.find(reaction => reaction.reaction_id == reaction_id).data
-        var index = 0;
-        for(const element of data){
-          if(element.username == user_info.username){
-            return [index, data];
-          }
-          index ++;
-        }
-        return [null, data];
-      }
-      catch(err){console.log(err);}
-    },
-
     getUserInfo(state){
       return state.user_info;
+    },
+
+    findAllUserReactionsByPostId: (state) => (payload) =>{
+      try{
+        var reactionsList = [];
+        var chosenReaction = [];
+        var {post_id, reaction_id, user_info} = payload;
+        var reactions_el = state.postData[post_id].reactions;
+
+        for(var reaction of reactions_el){
+          var index = 0;
+          for(var user_data of reaction.data){
+            if(user_data.username == user_info.username){
+              if(reaction.reaction_id == reaction_id){
+                chosenReaction.push(...[reaction.data, index]);
+              }
+              else{
+                reactionsList.push([reaction.data, index]);
+              }
+            }
+            index ++;
+          }
+        }
+        return [chosenReaction, reactionsList];
+      }
+
+      catch(err){
+        console.log(err);
+      }
+      
     },
   },
 
@@ -116,7 +134,7 @@ export default createStore({
 // Reactions mutations 
     addNewReaction(state, payload){
       try{
-        var {data, user_info} = payload;
+        const [data, user_info] = payload;
         data.push(user_info);
         //console.log(data);
       }
@@ -125,7 +143,7 @@ export default createStore({
 
     removeReaction(state, payload){
       try{
-        var {data, index} = payload;
+        const [data, index] = payload;
         data.splice(index, 1);
         //console.log(data);
       }
@@ -137,10 +155,32 @@ export default createStore({
     changeReactionStatus(context, payload){
       var {post_id, reaction_id} = payload;
       var user_info = context.getters.getUserInfo;
-      const [index, data] = context.getters.findUserReaction({post_id, reaction_id, user_info});
+      const [chosenReaction, reactionsList] = context.getters.findAllUserReactionsByPostId({post_id, reaction_id, user_info});
 
-      if(index == null){context.commit('addNewReaction', {data, user_info});}
-      else{context.commit('removeReaction', {data, index});}
+      if(reactionsList.length == 0){
+        if(chosenReaction.length == 0){
+          const data = context.state.postData[post_id].reactions.find(reaction => reaction.reaction_id == reaction_id).data;
+          context.commit('addNewReaction', [data, user_info]);
+        }
+        else{
+          const [chosen_reaction_data, chosen_reaction_user_index] = chosenReaction;
+          context.commit('removeReaction', [chosen_reaction_data, chosen_reaction_user_index]); 
+        }
+      }
+      else{
+        for(var reaction of reactionsList){
+          const [data, user_index_in_data] = reaction;
+          context.commit('removeReaction', [data, user_index_in_data]);
+        }
+        if(chosenReaction.length == 0){
+          const data = context.state.postData[post_id].reactions.find(reaction => reaction.reaction_id == reaction_id).data;
+          context.commit('addNewReaction', [data, user_info]);
+        }
+        else{
+          const chosen_reaction_data = chosenReaction[0];
+          context.commit('addNewReaction', [chosen_reaction_data, user_info]);
+        }
+      }
     }
   },
 

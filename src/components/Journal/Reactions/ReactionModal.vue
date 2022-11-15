@@ -25,11 +25,11 @@
             </div>
 
 
-            <reaction-accordion v-if='all_emoticon_checked && this.searchStart'></reaction-accordion>
-            <!-- <scroll-spy 
+            <!-- <reaction-accordion v-if='all_emoticon_checked && this.searchStart'></reaction-accordion> -->
+            <scroll-spy 
                 v-if='this.all_emoticon_checked && this.searchStart'
                 :isMobile='this.$store.getters.getIsMobileState'>
-            </scroll-spy> -->
+            </scroll-spy>
 
         </template>
     </modal>
@@ -63,10 +63,10 @@ export default {
                     case 'totalReaction':
                         const reactors_list = [];
                         for(const reaction of this.sortedReactions){
-                            reactors_list.push(...reaction.data);
+                            reactors_list.push([{url: reaction.img_url, id: reaction.reaction_id}, reaction.data]);
                         }
-                        this.sortReactorsbyDate(reactors_list);
                         this.reactors_list = reactors_list;
+                        this.sortReactorsbyDate(this.reactors_list);
                         this.all_emoticon_checked = false;
                         break;
 
@@ -80,15 +80,15 @@ export default {
                 const emoticon_id = emoticon_info.split('_p_')[0];
                 for(const reaction of this.sortedReactions){
                     if(reaction.reaction_id == emoticon_id){
-                        const reactors_list = reaction.data;
-                        this.sortReactorsbyDate(reactors_list);
+                        const reactors_list = [reaction.reaction_id, reaction.data];
                         this.reactors_list = reactors_list;
+                        this.sortReactorsbyDate(this.reactors_list);
+                        
                         this.all_emoticon_checked = false;
                         break;
                     }
                 }
             }
-
         },
 
         sortReactorsbyDate(reactors_list){

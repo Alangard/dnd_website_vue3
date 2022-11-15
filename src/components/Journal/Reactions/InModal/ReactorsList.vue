@@ -1,30 +1,39 @@
 <template>
     <div class='main_container'>
 
-        <div class='reactor_element' v-for='reactor in this.reactors_list' :key='reactor.username'>
+        <div v-for='(reactors_data, index) in this.reactors_list' :key='index'>
 
-            <img class="profile_img"  v-if='reactor.profile_img_url != ""' :src="reactor.profile_img_url" alt="" 
-                @click="$router.push({ name: 'user', params: {id: reactor.username} })"
-            >
+            <div class='reactor_element' v-for='reactor in reactors_data[1]' :key='reactor.username'>
+                <div class="leftside_container">
+                    <img class="profile_img"  v-if='reactor.profile_img_url != ""' :src="reactor.profile_img_url" alt="" 
+                        @click="$router.push({ name: 'user', params: {id: reactor.username} })"
+                    >
 
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                v-else
-                class="profile_img" 
-                @click="$router.push({ name: 'user', params: {id: reactor.username} })">
-                    <path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/>
-                    <circle cx="12" cy="10" r="3"/>
-                    <circle cx="12" cy="12" r="10"/>
-            </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        v-else
+                        class="profile_img" 
+                        @click="$router.push({ name: 'user', params: {id: reactor.username} })">
+                            <path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/>
+                            <circle cx="12" cy="10" r="3"/>
+                            <circle cx="12" cy="12" r="10"/>
+                    </svg>
 
 
-            <div class="user_info">
-                <span class='username' @click="$router.push({ name: 'user', params: {id: reactor.username} })">
-                    {{capitalizeFirstLetter(reactor.username.split('.')[0])}}
-                </span>
-                <span class='datetime'>Reacted {{this.dateTimeFormat(reactor.date)}}</span>
+                    <div class="user_info">
+                        <span class='username' @click="$router.push({ name: 'user', params: {id: reactor.username} })">
+                            {{capitalizeFirstLetter(reactor.username.split('.')[0])}}
+                        </span>
+                        <span class='datetime'>Reacted {{this.dateTimeFormat(reactor.date)}}</span>
+                    </div>
+                </div>
+                
+                <div class="rightside_container">
+                    <img :src="reactors_data[0].url" alt="">
+                </div>
+
             </div>
-
         </div>
+        
     </div>
 
 </template>
@@ -99,45 +108,60 @@ export default {
             display: flex;
             flex-direction: row;
             align-items: center;
+            justify-content: space-between;
             background-color: var(--bg_button_color);
             border-radius: 5px;
             padding: 10px 5px;
             margin-bottom: 5px;
 
-            &:hover > .profile_img {
+            &:hover > .rightside_container img{
                 transform: scale(1.2);
             }
 
-            svg.profile_img{
-                background-color: var(--active_section_color);
-            }
-
-            .profile_img{
-                height: 45px;
-                width: 45px;
-                border-radius: 50%;
-                margin-right: 10px;
-                cursor: pointer;
-                background-color: #ffff;
-                stroke: var(--text_color_secondary);
-                object-fit: cover;
-            }
-
-            .user_info{
+            .leftside_container{
                 display: flex;
-                flex-direction: column;
+                flex-direction: row;
 
-                span:hover{
-                    color: var(--bg_button_active_color);
+                &:hover > .profile_img {
+                    transform: scale(1.2);
+                }
+
+                svg.profile_img{
+                    background-color: var(--active_section_color);
+                }
+
+                .profile_img{
+                    height: 45px;
+                    width: 45px;
+                    border-radius: 50%;
+                    margin-right: 10px;
                     cursor: pointer;
+                    background-color: #ffff;
+                    stroke: var(--text_color_secondary);
+                    object-fit: cover;
                 }
 
-                .datetime{
-                    font-weight: 300;
-                    font-size: 14px;
-                }
+                .user_info{
+                    display: flex;
+                    flex-direction: column;
 
-                
+                    span:hover{
+                        color: var(--bg_button_active_color);
+                        cursor: pointer;
+                    }
+
+                    .datetime{
+                        font-weight: 300;
+                        font-size: 14px;
+                    }
+                }
+            }
+
+            .rightside_container img{
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                object-fit: contain;
             }
         }
         
