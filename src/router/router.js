@@ -13,7 +13,7 @@ const routes = [
     path: '/',
     name: 'home',
     redirect: to => {
-      return {path: '/map'}
+      return {path: '/journal'}
     },
   },
   {

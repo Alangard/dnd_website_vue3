@@ -43,8 +43,8 @@
 
         <div class="bottom_container">
 
-            <EmoticonContainer 
-                @click="this.modalIsOpen = !this.modalIsOpen"
+            <EmoticonContainer
+                @click="this.modalIsOpen =! this.modalIsOpen"
                 :sortedReactions = 'sortedReactions()' 
                 :post_id='this.id'>
             </EmoticonContainer>
@@ -84,7 +84,7 @@ import EmoticonContainer from './Reactions/EmoticonContainer.vue'
 import WebShare from './Share/WebShare.vue';
 
 export default {
-  components: { EmoticonContainer, WebShare, Modal},
+    components: { EmoticonContainer, WebShare, Modal},
     data(){
         return{
             id: this.$.vnode.key.data.post_id,
@@ -98,7 +98,7 @@ export default {
             tag_list: this.$.vnode.key.tag_list,
             reactions: this.$.vnode.key.reactions,
             modal_id:'#ReactionsModal'+ this.$.vnode.key.data.post_id, 
-            modalIsOpen: false
+            modalIsOpen: false,
         }
     },
 

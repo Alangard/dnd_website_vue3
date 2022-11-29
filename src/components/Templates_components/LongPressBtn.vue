@@ -2,7 +2,7 @@
 <!-- Компонент для кнопки с длительным нажатием -->
 
 <template>
-    <div class="btn_container" ref='btn_container'>
+    <div class="long_press__btn_container" ref='btn_container'>
         <slot></slot>
     </div>
 </template>
@@ -22,24 +22,23 @@ export default {
     },
     methods:{
         onLongPress(event){
-            const btn_element = event.target;
-            this.$emit('LongPressEvent', btn_element);
+            this.$emit('LongPressEvent', event);
         },
     }
 }
 </script>
 
 <style lang="scss" scoped>
-    .btn_container{
+    .long_press__btn_container{
         position: relative;
         cursor: pointer;
         width: max-content;
         height: max-content;
         z-index: 2;
 
-        &:slotted(img){
-            height: 40px;
-            width: 40px;
+        :slotted(img){
+            height: 30px;
+            width: 30px;
             border-radius: 50%;
             object-fit: contain;
             pointer-events: none;

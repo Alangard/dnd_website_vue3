@@ -4,14 +4,36 @@
             <scroll-spy-item :item_id='"recent"'>
                 <template #scrollspy_section__header>Recent</template>
                 <template #scrollspy_section__body>
-                    Lorem, ipsum dolor sit amet consectetur adipisicing elit. Ab numquam voluptate dignissimos qui consequatur, vero exercitationem rerum nobis asperiores maxime quibusdam alias repudiandae incidunt, dolor ad architecto. Totam, accusantium nam!
+                    
+                    <emoticon-btn
+                        :post_id="this.post_id"
+                        :section_type="'all_emots'" 
+                        v-for="reaction in this.$store.getters.getUserEmoticon.recent" :key='reaction'
+                        :isMobile="this.$store.getters.getIsMobileState">
+                    </emoticon-btn>
+
+                    <!-- <reaction-btn class='reaction_btn_container' 
+                        v-for="reaction in this.$store.getters.getUserEmoticon.recent" :key='reaction'
+                        :post_id="this.post_id"
+                        :reaction_data='reaction'
+                        :section_type='"recent"'>
+                    </reaction-btn> -->
+
                 </template>
             </scroll-spy-item>
 
             <scroll-spy-item :item_id='"favorites"'>
                 <template #scrollspy_section__header>Favorites</template>
-                <template #scrollspy_section__body>
-                    Lorem, ipsum dolor sit amet consectetur adipisicing elit. Ab numquam voluptate dignissimos qui consequatur, vero exercitationem rerum nobis asperiores maxime quibusdam alias repudiandae incidunt, dolor ad architecto. Totam, accusantium nam!
+                <template #scrollspy_section__body v-if="this.$store.getters.getUserEmoticon.favorites.length > 0">
+                    <reaction-btn class='reaction_btn_container' 
+                        v-for="reaction in this.$store.getters.getUserEmoticon.favorites" :key='reaction'
+                        :post_id="this.post_id"
+                        :reaction_data='reaction'
+                        :section_type='"favorites"'>
+                    </reaction-btn>
+                </template>
+                <template #scrollspy_section__body v-else>
+                    There is nothing ¯\_(ツ)_/¯
                 </template>
             </scroll-spy-item>
 
@@ -80,13 +102,18 @@
 import ScrollSpy from '@/components/Templates_components/ScrollSpy/ScrollSpy.vue'
 import ScrollSpyItem from '@/components/Templates_components/ScrollSpy/ScrollSpyItem.vue'
 import ScrollSpyAsideItem from '@/components/Templates_components/ScrollSpy/ScrollSpyAsideItem.vue'
+import EmoticonBtn from './EmoticonBtn.vue';
+
 export default {
-    components: { ScrollSpy,ScrollSpyItem,ScrollSpyAsideItem},
-    props:['isMobile'],
-    data(){return{}}
+    components: { ScrollSpy,ScrollSpyItem,ScrollSpyAsideItem, EmoticonBtn},
+    props:['isMobile', 'post_id'],
+    data(){return{
+    }}
 }
 </script>
 
 <style lang="scss" scoped>
-
+    .reaction_btn_container{
+        margin-right: 10px;
+    }
 </style>

@@ -28,6 +28,7 @@ export default {
 
     .section_header{
         position: sticky;
+        z-index: 9999;
         top: -2px;
         padding: 5px 5px 5px 15px;
         font-weight: 400;
@@ -38,11 +39,17 @@ export default {
         &.active{
             border-bottom: 3px solid var(--bg_button_active_color);
             color: var(--bg_button_active_color);
+            background-color: var(--active_section_color);
         }
 
     }
 
-    .section_body{padding: 5px 10px 0 15px;}
+    .section_body{
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 5px 10px 0 15px;
+    }
 }
 
 

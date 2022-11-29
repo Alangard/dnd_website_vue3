@@ -1,9 +1,13 @@
 <template>
     <div class='main_container'>
 
-        <div v-for='(reactors_data, index) in this.reactors_list' :key='index'>
+        <div v-for='reactor in this.reactors_list' :key='reactor.username'>
 
-            <div class='reactor_element' v-for='reactor in reactors_data[1]' :key='reactor.username'>
+            <div class='reactor_element'
+                
+                :class="{reacted: reactor.username == this.user_info.username}">
+                <!-- :class="{reacted: this.dataOfUserReaction}"> -->
+
                 <div class="leftside_container">
                     <img class="profile_img"  v-if='reactor.profile_img_url != ""' :src="reactor.profile_img_url" alt="" 
                         @click="$router.push({ name: 'user', params: {id: reactor.username} })"
@@ -27,8 +31,8 @@
                     </div>
                 </div>
                 
-                <div class="rightside_container">
-                    <img :src="reactors_data[0].url" alt="">
+                <div class="rightside_container" v-if="this.btn_type =='totalReaction'">
+                    <img :src="reactor.emot_url" alt="" :title="':'+ reactor.emot_id">
                 </div>
 
             </div>
@@ -41,16 +45,20 @@
 <script>
 
 export default {
-    props: ['reactors_list', 'post_id'],
+    props: ['reactors_list', 'post_id', 'btn_type'],
+    inject:['user_info'],
     data(){
         return{
         }
     },
     methods:{
+
+        //Method replacing the first character with an uppercase character
         capitalizeFirstLetter(string) {
             return string.charAt(0).toUpperCase() + string.slice(1);
         },
 
+        //A method describing verbally the time from a completed event
         dateTimeFormat(datetime_string){
             const datetime = new Date(datetime_string);
             const now_datetime = new Date();
@@ -110,12 +118,25 @@ export default {
             align-items: center;
             justify-content: space-between;
             background-color: var(--bg_button_color);
+            border: 2px solid var(--bg_button_color);
             border-radius: 5px;
-            padding: 10px 5px;
+            padding: 10px;
             margin-bottom: 5px;
 
             &:hover > .rightside_container img{
                 transform: scale(1.2);
+            }
+
+            &.reacted > .leftside_container .profile_img, .rightside_container img{
+                transform: scale(1.2);
+            }
+
+            &.reacted{
+                border: 2px solid var(--bg_button_active_color);
+            }
+
+            &.reacted > .leftside_container .username{
+                color: var(--bg_button_active_color);
             }
 
             .leftside_container{
@@ -144,8 +165,7 @@ export default {
                 .user_info{
                     display: flex;
                     flex-direction: column;
-
-                    span:hover{
+                    .username:hover{
                         color: var(--bg_button_active_color);
                         cursor: pointer;
                     }

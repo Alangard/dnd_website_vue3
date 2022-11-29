@@ -25,21 +25,13 @@
                 </label>
             </div>
 
-            <long-press-btn class='emoticon_element'
-                v-for='reaction in sortedReaction' :key='reaction.reaction_id' 
-                @LongPressEvent="react"
-                @click="isClicked">
-                
-                <input type="radio" name="emoticonGroup" :value="`${reaction.reaction_id}_p_${this.post_id}`" :id="`${reaction.reaction_id}_p_${this.post_id}`">
-                <label :for="`${reaction.reaction_id}_p_${this.post_id}`">
-                    <img :src="reaction.img_url" alt="">
-                    <span>{{reaction.data.length}}</span>
-                </label>
-                
-            </long-press-btn>
-
-            <!-- <reaction-btn></reaction-btn> -->
-
+            <emoticon-btn
+                @renderReactorsList="(element_id) => this.$emit('renderReactorsList', element_id)"
+                :post_id="this.post_id"
+                :section_type="'reacted_emots'" 
+                :isMobile="this.$store.getters.getIsMobileState"
+                v-for='reaction in sortedReaction' :key='reaction'>
+            </emoticon-btn>
 
         </div>
 
@@ -53,37 +45,18 @@
 </template>
 
 <script>
-import LongPressBtn from '@/components/Templates_components/LongPressBtn.vue';
-import ReactionBtn from './ReactionBtn.vue';
+import EmoticonBtn from './EmoticonBtn.vue';
 export default {
-  components: { LongPressBtn, ReactionBtn },
+    components: { EmoticonBtn },
     props:['post_id','sortedReaction'],
-    data(){return{}},
+    data(){return{
+    }},
     methods:{
-        totalReactions(){
-            var sum = 0;
-            for(const element of this.sortedReaction){sum += element.data.length;}
-            return sum;
-        },
-
         isClicked(event){
             if(event.target.tagName == 'INPUT'){
                 const element_id = event.target.id;
-                this.$emit('reactIsClicked', element_id);
+                this.$emit('renderReactorsList', element_id);
             }
-            // var element_id = event.target.querySelector('input').id;
-            // console.log(element_id)
-            
-        },
-
-        react(btn_element_target){
-            if (btn_element_target.tagName == 'LABEL'){
-                const element_id = btn_element_target.getAttribute('for');
-                const post_id = this.post_id;
-                const reaction_id = element_id.split('_p_')[0]; 
-
-                this.$store.dispatch("changeReactionStatus", {post_id, reaction_id}); 
-            }          
         },
 
         totalReactionsCount(){
@@ -201,6 +174,7 @@ export default {
                 color: var(--text_color_secondary);
                 padding: 8px 12px 5px 12px;
                 height: 100%;
+                border: 2px solid transparent;
                 border-bottom: 3px solid var(--bg_button_color);
                 cursor: pointer;
                 white-space: nowrap;

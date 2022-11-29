@@ -1,7 +1,8 @@
 <template>
-    <div class="main_emot_container" @mouseover="this.isHover = true" @mouseleave="this.isHover = false">
+    <div class="main_emot_container"
+        :class="{reacted: this.dataOfUserReaction()[1] != undefined}">
         <div class="img_container" v-for='reaction in sortedReactions.slice(0,3)' :key='reaction'>
-            <img :src='getImg(reaction.name)' alt="">
+            <img :src='reaction.img_url' alt="">
         </div>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -13,32 +14,15 @@
 <script>
 
 export default {
-    data(){
-        return{
-            isHover: null,
-        }
-    },
     props:['post_id', 'sortedReactions'],
-
+    data(){return{}},
     methods:{
-        getFirstFrame(path){
-        },   
-        
-        getImg(img_name){
-            const url = '../../../assets/emoticons' + '/' + img_name;
-            var image = (require.context('../../../assets/emoticons', false, /\.gif$/));
-        
-            if(img_name && img_name.includes('.gif')){
-                // взять первый фрейм
-                this.getFirstFrame(url);
-                return image('./' + img_name);
-            }
-            
-        },
-        
-    
+        //Getter to help determine if the user has left a reaction and its index in reaction.data by post_id
+        dataOfUserReaction(){
+            const userInfo = this.$store.getters.getUserInfo;
+            return this.$store.getters.getDataOfUserReaction([this.post_id, userInfo]);
+        }
     }
-
 }
 </script>
 
@@ -61,6 +45,19 @@ export default {
             background-color: var(--bg_button_active_color);
             color: #ffff;
             stroke: #ffff;
+        }
+
+        &.reacted{
+            border: 1px solid var(--bg_button_active_color);
+
+            svg{
+                stroke: var(--bg_button_active_color);
+                fill: var(--bg_button_active_color);
+            }
+
+            &:hover > svg{
+                stroke: #ffff;
+            }  
         }
 
         svg{

@@ -5,7 +5,7 @@
                 <reaction-more 
                     :post_id='this.post_id' 
                     :sortedReaction="this.sortedReactions"
-                    @reactIsClicked="getCheckedEmoticonData">
+                    @renderReactorsList="renderReactorsList">
                 </reaction-more>
             </div>
 
@@ -20,7 +20,8 @@
                 <reactors-list 
                     v-if="all_emoticon_checked == false"
                     :reactors_list='this.reactors_list'
-                    :post_id='this.post_id'>
+                    :post_id='this.post_id'
+                    :btn_type="this.btn_type">
                 </reactors-list>
             </div>
 
@@ -28,7 +29,8 @@
             <!-- <reaction-accordion v-if='all_emoticon_checked && this.searchStart'></reaction-accordion> -->
             <scroll-spy 
                 v-if='this.all_emoticon_checked && this.searchStart'
-                :isMobile='this.$store.getters.getIsMobileState'>
+                :isMobile='this.$store.getters.getIsMobileState'
+                :post_id="this.post_id">
             </scroll-spy>
 
         </template>
@@ -52,21 +54,26 @@ export default {
             reactors_list: null,
             all_emoticon_checked: null,
             searchStart: null,
+            btn_type: null,
         }
     },
     methods:{
-        getCheckedEmoticonData(emoticon_info){
+        renderReactorsList(emoticon_info){
             if(emoticon_info.includes('totalReaction') || emoticon_info.includes('all_emoticons')){
-                const btn_type = emoticon_info.split('_p_')[0];
+                this.btn_type = emoticon_info.split('_p_')[0];
 
-                switch(btn_type){
+                switch(this.btn_type){
                     case 'totalReaction':
-                        const reactors_list = [];
+                        const reactors = [];
+
                         for(const reaction of this.sortedReactions){
-                            reactors_list.push([{url: reaction.img_url, id: reaction.reaction_id}, reaction.data]);
+                            for(const reaction_data of reaction.data){
+                                const data = {...reaction_data,...{'emot_id': reaction.reaction_id, 'emot_url': reaction.img_url}}
+                                reactors.push(data);
+                            }
                         }
-                        this.reactors_list = reactors_list;
-                        this.sortReactorsbyDate(this.reactors_list);
+
+                        this.reactors_list = this.sortReactorsbyDate(reactors);
                         this.all_emoticon_checked = false;
                         break;
 
@@ -77,13 +84,20 @@ export default {
             }
 
             else{
+                this.btn_type = 'emot';
                 const emoticon_id = emoticon_info.split('_p_')[0];
+                const reactors = [];
+
                 for(const reaction of this.sortedReactions){
                     if(reaction.reaction_id == emoticon_id){
-                        const reactors_list = [reaction.reaction_id, reaction.data];
-                        this.reactors_list = reactors_list;
-                        this.sortReactorsbyDate(this.reactors_list);
-                        
+                        for(const reaction_data of reaction.data){
+                            const emot_data_obj = {'emot_id': reaction.reaction_id, 'emot_url': reaction.img_url, 
+                                                    'username': reaction_data.username,'profile_img_url': reaction_data.profile_img_url, 
+                                                    'date': reaction_data.date};
+                            reactors.push(emot_data_obj);
+                        }
+
+                        this.reactors_list = this.sortReactorsbyDate(reactors);
                         this.all_emoticon_checked = false;
                         break;
                     }
