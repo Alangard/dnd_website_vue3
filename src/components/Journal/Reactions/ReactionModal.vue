@@ -11,6 +11,7 @@
 
             <search-bar 
                 v-if='all_emoticon_checked == true'
+                :post_id='this.post_id'
                 @searchStart='(bool_trigger) => this.searchStart = bool_trigger'>
             </search-bar>
         </template>

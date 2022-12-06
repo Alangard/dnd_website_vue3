@@ -48,7 +48,7 @@ export default {
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
-        padding: 5px 10px 0 15px;
+        padding: 5px 10px 0 10px;
     }
 }
 

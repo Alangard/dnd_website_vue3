@@ -25,13 +25,12 @@
                 </label>
             </div>
 
-            <emoticon-btn
+            <reaction-more-btn
                 @renderReactorsList="(element_id) => this.$emit('renderReactorsList', element_id)"
                 :post_id="this.post_id"
-                :section_type="'reacted_emots'" 
                 :isMobile="this.$store.getters.getIsMobileState"
                 v-for='reaction in sortedReaction' :key='reaction'>
-            </emoticon-btn>
+            </reaction-more-btn>
 
         </div>
 
@@ -45,9 +44,10 @@
 </template>
 
 <script>
-import EmoticonBtn from './EmoticonBtn.vue';
+import ReactionMoreBtn from './ReactionMoreBtn.vue';
+
 export default {
-    components: { EmoticonBtn },
+    components: { ReactionMoreBtn },
     props:['post_id','sortedReaction'],
     data(){return{
     }},

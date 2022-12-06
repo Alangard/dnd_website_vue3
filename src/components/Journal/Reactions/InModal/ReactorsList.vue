@@ -5,7 +5,7 @@
 
             <div class='reactor_element'
                 
-                :class="{reacted: reactor.username == this.user_info.username}">
+                :class="{reacted: reactor.username == this.$store.getters.getUserInfo.username}">
                 <!-- :class="{reacted: this.dataOfUserReaction}"> -->
 
                 <div class="leftside_container">
@@ -46,7 +46,6 @@
 
 export default {
     props: ['reactors_list', 'post_id', 'btn_type'],
-    inject:['user_info'],
     data(){
         return{
         }

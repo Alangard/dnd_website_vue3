@@ -21,14 +21,16 @@
 
         <div class="search_results_container" 
             v-if='search_query.length > 0' 
-            :class="{mobile: this.$store.getters.getIsMobileState == true, empty: this.FilterEmotByName.length == 0}">
-            
-            <div class="img_container" v-for="emot in FilterEmotByName" :key="emot.id">
-                <img :src="emot.url" alt="">
-            </div>
-   
-            
-            <span v-if='this.FilterEmotByName.length == 0'>Nothing was found</span>
+            :class="{mobile: this.$store.getters.getIsMobileState == true, empty: this.FilterReactionsById.length == 0}">
+
+            <in-favorites-btn
+                v-for="reaction in FilterReactionsById" :key='reaction'
+                :post_id="this.post_id"
+                :isMobile="this.$store.getters.getIsMobileState">
+            </in-favorites-btn>
+        
+        
+            <span v-if='this.FilterReactionsById.length == 0'>Nothing was found</span>
         </div>
         
 
@@ -36,12 +38,15 @@
 </template>
 
 <script>
+import InFavoritesBtn from './InFavoritesBtn.vue';
+
 export default {
-    props:[],
+  components: { InFavoritesBtn },
+    props:['post_id'],
     data(){
         return{
            search_query: '',
-           emoticons_list: [],
+           emoticons_list: this.$store.getters.getAllEmoticons,
         }
     },
 
@@ -57,21 +62,21 @@ export default {
     },
 
     beforeMount(){
-       this.getEmotsFromServer();
+    //    this.getEmotsFromServer();
        this.$emit('searchStart', true);
     },
 
     methods:{
-        async getEmotsFromServer(){
-            await fetch('https://jsonplaceholder.typicode.com/photos')
-                .then(response => response.json())
-                .then(json => {this.emoticons_list = json;})
-        }
+        // async getEmotsFromServer(){
+        //     await fetch('https://jsonplaceholder.typicode.com/photos')
+        //         .then(response => response.json())
+        //         .then(json => {this.emoticons_list = json;})
+        // }
     },
 
     computed:{
-        FilterEmotByName(){
-            return this.emoticons_list.filter(emoticon => emoticon.title.indexOf(this.search_query) !== -1)
+        FilterReactionsById(){
+            return this.emoticons_list.filter(reaction => reaction.reaction_id.indexOf(this.search_query) !== -1)
         }
     },
 
