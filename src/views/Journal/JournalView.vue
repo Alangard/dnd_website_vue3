@@ -1,6 +1,6 @@
 <template>
 
-    <div class="main-content"
+    <div class="main-content_journal"
         :class="{'light-theme': this.$store.state.theme =='light', 'dark-theme': this.$store.state.theme =='dark'}">
 
         <PostItemComponent
@@ -32,13 +32,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-    .main-content{
+    .main-content_journal{
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding-top: 20px;
-
-        background-color: var(--bg_color);
-
     }
 </style>

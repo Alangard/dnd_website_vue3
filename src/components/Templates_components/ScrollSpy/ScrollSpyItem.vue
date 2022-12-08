@@ -32,9 +32,10 @@ export default {
         top: -2px;
         padding: 5px 5px 5px 15px;
         font-weight: 400;
-        border-bottom: 3px solid transparent;
         border-radius: 5px;
         background-color: var(--bg_button_color);
+        border-bottom: 3px solid transparent;
+        //border-bottom: 3px solid var(--text_color_secondary);
 
         &.active{
             border-bottom: 3px solid var(--bg_button_active_color);

@@ -1,10 +1,16 @@
 <template>
   <TopNav v-if="!$route.meta.hideNavbar"/>
     
-  <div 
-    class="content"
-    :class="{'navBarHide': $route.meta.hideNavbar}">
-    <router-view></router-view>
+  <div class="main_content_wrapper"
+    :class="{'navBarHide': $route.meta.hideNavbar,
+             'light-theme': this.$store.state.theme =='light', 
+             'dark-theme': this.$store.state.theme =='dark'
+            }">
+
+    <div class="content">
+      <router-view></router-view>
+    </div>
+
   </div>
 
 </template>
@@ -104,8 +110,18 @@ export default {
 
 }
 
-  .content{
-    padding-top: 50px;
+  .main_content_wrapper{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    padding-top: 70px;
+    background-color: var(--bg_block_color);
+
+    .content{
+      width: 90%;
+      max-width: 640px;
+    }
 
     &.navBarHide{
       padding: 0;

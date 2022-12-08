@@ -178,8 +178,6 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 90%;
-    max-width: 640px;
     height: max-content;
     margin-bottom: 15px;
     padding: 10px 10px 5px 10px;
@@ -211,7 +209,7 @@ export default {
                 .profile_img{
                     width: 25px;
                     height: 25px;
-                    border-radius: 50%;
+                    border-radius: 5px;
                     object-fit: cover;
                     background-color: #ffff;
                     stroke: var(--text_color_secondary);

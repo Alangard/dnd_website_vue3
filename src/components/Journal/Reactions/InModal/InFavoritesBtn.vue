@@ -71,7 +71,7 @@ export default {
 
  // style for favorites_block_section
 .favorites_block_section{
-    margin: 0px 10px;
+    margin: 0px 5px;
 
     cursor: pointer;
 
