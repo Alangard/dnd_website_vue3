@@ -25,9 +25,9 @@
 
                     <div class="user_info">
                         <span class='username' @click="$router.push({ name: 'user', params: {id: reactor.username} })">
-                            {{capitalizeFirstLetter(reactor.username.split('.')[0])}}
+                            {{this.$store.getters.capitalizeFirstLetter(reactor.username.split('.')[0])}}
                         </span>
-                        <span class='datetime'>Reacted {{this.dateTimeFormat(reactor.date)}}</span>
+                        <span class='datetime'>Reacted {{this.$store.getters.dateTimeFormat(reactor.date)}}</span>
                     </div>
                 </div>
                 
@@ -46,60 +46,7 @@
 
 export default {
     props: ['reactors_list', 'post_id', 'btn_type'],
-    data(){
-        return{
-        }
-    },
-    methods:{
-
-        //Method replacing the first character with an uppercase character
-        capitalizeFirstLetter(string) {
-            return string.charAt(0).toUpperCase() + string.slice(1);
-        },
-
-        //A method describing verbally the time from a completed event
-        dateTimeFormat(datetime_string){
-            const datetime = new Date(datetime_string);
-            const now_datetime = new Date();
-            const diff_in_seconds = Math.floor((now_datetime - datetime) / 1000);
-
-            if(diff_in_seconds >= 3600){
-                if(Math.floor(diff_in_seconds / 3600) == 1){
-                    return `more than ${Math.floor(diff_in_seconds / 3600)} hour ago`;
-                }
-
-                else if(Math.floor(diff_in_seconds / 3600) == 2 || Math.floor(diff_in_seconds / 3600) == 3){
-                    return `more than ${Math.floor(diff_in_seconds / 3600)} hours ago`;
-                }
-
-                else{
-                    //getMonth returns an integer number, between 0 and 11
-                    const [month, day, year] = [datetime.getMonth() + 1, datetime.getDate(), datetime.getFullYear()];
-                    const [hour, minutes] = [datetime.getHours(), datetime.getMinutes()];
-                    return `${day}/${month}/${year} at ${hour}:${minutes}`;
-                }
-            }
-
-            else if (diff_in_seconds < 3600 && diff_in_seconds >= 60){
-                if(Math.floor(diff_in_seconds / 60) == 1){
-                    return `more than ${Math.floor(diff_in_seconds/60)} minute ago`;
-                }
-
-                else if((Math.floor(diff_in_seconds / 60) == 5)){
-                    return `more than ${Math.floor(diff_in_seconds/60)} minutes ago`;
-                }
-
-                else if(Math.floor(diff_in_seconds / 60) >= 5){
-                    return `more than ${Math.floor(diff_in_seconds/60)} minutes ago`;
-                }
-            }
-
-            else {
-                return 'now';
-            }
-        }
-    }
-    
+    data(){return{}},
 }
 </script>
 

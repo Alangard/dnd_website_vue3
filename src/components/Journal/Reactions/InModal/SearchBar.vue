@@ -146,7 +146,10 @@ export default {
             overflow-y: scroll;
         }
         
-        &::-webkit-scrollbar{width: 0.7vw;}
+        &::-webkit-scrollbar{
+            width: 0.7vw;
+            max-width: 5px;
+        }
 
         &::-webkit-scrollbar-track{
             background-color: var(--bg_button_color);

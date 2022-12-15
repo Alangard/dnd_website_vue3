@@ -1,6 +1,8 @@
 <template>
-  <div class="accordion_item" :class="{active: visible}">
-    <div class="accordion_trigger" :class="{active: visible}"
+  <div class="accordion__item">
+    <div 
+      class="accordion__trigger"
+      :class="{'accordion__trigger_active': visible}"
       @click="open">
 
       <!-- This slot will handle the title/header of the accordion and is the part you click on -->
@@ -14,10 +16,12 @@
       @before-leave="start"
       @after-leave="end">
 
-      <div class="accordion_content"
+      <div class="accordion__content"
         v-show="visible">
+        <div>
           <!-- This slot will handle all the content that is passed to the accordion -->
           <slot name="accordion-content"></slot>
+        </div>
       </div>
     </transition>
   </div>
@@ -60,52 +64,34 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.accordion_item {
-    position: relative;
-    width: 100%;
-    border-left: 4px solid var(--bg_button_color);
-    margin: 10px 0;
-    border-radius: 5px;
-    background-color: var(--bg_button_color);
-    font-weight: 400;
-    font-size: 18px;
-    color: var(--text_color_secondary);
-    cursor: pointer; 
-
-    &:hover, &.active{
-        border-left: 4px solid var(--bg_button_active_color);
-    }
-
-    .accordion_trigger {
-        display: flex;
-        justify-content: space-between;
-        width: 100%;
-        padding: 5px 5px;
-
-        &.active{
-            border-bottom: 2px solid var(--bg_button_active_color);
-        }
-    }
+.accordion__item {
+  cursor: pointer;
+  padding: 10px 20px 10px 40px;
+  border-bottom: 1px solid #ebebeb;
+  position: relative;
 }
 
-.accordion_content{
-    padding: 10px 5px;
-    border-radius: 5px;
-    background-color: var(--bg_button_color);
-    font-weight: 300;
+.accordion__trigger {
+  display: flex;
+  justify-content: space-between;
 }
 
+.accordion__content{
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
 
 .accordion-enter-active,
 .accordion-leave-active {
-    will-change: height, opacity;
-    transition: height 0.3s ease, opacity 0.3s ease;
-    overflow: hidden;
+  will-change: height, opacity;
+  transition: height 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
 }
 
 .accordion-enter,
 .accordion-leave-to {
-    height: 0 !important;
-    opacity: 0;
+  height: 0 !important;
+  opacity: 0;
 }
 </style>

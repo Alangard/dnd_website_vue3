@@ -26,8 +26,6 @@
                 </reactors-list>
             </div>
 
-
-            <!-- <reaction-accordion v-if='all_emoticon_checked && this.searchStart'></reaction-accordion> -->
             <scroll-spy 
                 v-if='this.all_emoticon_checked && this.searchStart'
                 :isMobile='this.$store.getters.getIsMobileState'
@@ -45,10 +43,9 @@ import ReactionMore from './InModal/ReactionMore.vue';
 import ReactorsList from './InModal/ReactorsList.vue';
 import SearchBar from './InModal/SearchBar.vue';
 import ScrollSpy from './InModal/ReactionScrollSpy.vue';
-import ReactionAccordion from './InModal/ReactionAccordion.vue'
 
 export default {
-    components:{Modal, ReactionMore, ReactorsList, SearchBar, ReactionAccordion, ScrollSpy},
+    components:{Modal, ReactionMore, ReactorsList, SearchBar, ScrollSpy},
     props:['post_id','sortedReactions'],
     data(){
         return{
@@ -135,7 +132,10 @@ export default {
         overflow-y: scroll;
     }
     
-    &::-webkit-scrollbar{width: 0.7vw;}
+    &::-webkit-scrollbar{
+        width: 0.7vw;
+        max-width: 5px;
+    }
 
     &::-webkit-scrollbar-track{
         background-color: var(--bg_button_color);

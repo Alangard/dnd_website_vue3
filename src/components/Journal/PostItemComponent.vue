@@ -20,16 +20,16 @@
 
                     <span class="profile_name"
                         @click="$router.push({ name: 'user', params: {id: this.creator_nickname} })">
-                        {{this.creator_nickname.split('.')[0]}}
+                        {{this.$store.getters.capitalizeFirstLetter(this.creator_nickname.split('.')[0])}}
                     </span> 
 
                     <span class="dot_divider">•</span>
-                    <span class="post_date">Posted {{this.dateTimeFormat(this.post_date)}}</span>
+                    <span class="post_date">Posted {{this.$store.getters.dateTimeFormat(this.post_date)}}</span>
             </div>
 
             <div class="title_field"
                 @click="$router.push({ name: 'postitem', params: {id: this.id} })">
-                {{this.title}}
+                {{this.$store.getters.capitalizeFirstLetter(this.title)}}
             </div>
 
             <img class="post_img" :src="this.post_image" alt='post_img'
@@ -37,7 +37,7 @@
                 @click="$router.push({ name: 'postitem', params: {id: this.id} })"
             >
 
-            <div class="description_field">{{this.description}}</div>
+            <div class="description_field">{{this.$store.getters.capitalizeFirstLetter(this.description)}}</div>
 
         </div>
 
@@ -109,51 +109,6 @@ export default {
             }
             else{return [];}
         },
-        
-        dateTimeFormat(datetime_string){
-            const datetime = new Date(datetime_string);
-            const now_datetime = new Date();
-            const diff_in_seconds = Math.floor((now_datetime - datetime) / 1000);
-
-            if(diff_in_seconds >= 3600){
-                if(Math.floor(diff_in_seconds / 3600) == 1){
-                    return `more than ${Math.floor(diff_in_seconds / 3600)} hour ago`;
-                }
-
-                else if(Math.floor(diff_in_seconds / 3600) == 2 || Math.floor(diff_in_seconds / 3600) == 3){
-                    return `more than ${Math.floor(diff_in_seconds / 3600)} hours ago`;
-                }
-
-                else{
-                    //getMonth returns an integer number, between 0 and 11
-                    const [month, day, year] = [datetime.getMonth() + 1, datetime.getDate(), datetime.getFullYear()];
-                    const [hour, minutes] = [datetime.getHours(), datetime.getMinutes()];
-                    return `${day}/${month}/${year} at ${hour}:${minutes}`;
-                }
-            }
-
-            else if (diff_in_seconds < 3600 && diff_in_seconds >= 60){
-                if(Math.floor(diff_in_seconds/60) == 1){
-                    return `more than ${Math.floor(diff_in_seconds/60)} minute ago`;
-                }
-
-                else if((Math.floor(diff_in_seconds / 60) == 5)){
-                    return `more than ${Math.floor(diff_in_seconds/60)} minutes ago`;
-                }
-
-                else if(Math.floor(diff_in_seconds / 60) >= 5){
-                    return `more than ${Math.floor(diff_in_seconds/60)} minutes ago`;
-                }
-
-                else{
-                    return 'recently';
-                }
-            }
-
-            else {
-                return 'now';
-            }
-        }
     },
 
 

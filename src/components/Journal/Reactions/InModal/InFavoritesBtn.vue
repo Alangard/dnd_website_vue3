@@ -83,6 +83,7 @@ export default {
         align-items: center;
         color: var(--text_color_secondary);
         padding: 5px 5px;
+        margin-top: 3px;
         height: 100%;
         border: 2px solid var(--bg_button_active_color);
         border-radius: 50%;
@@ -97,7 +98,10 @@ export default {
         }
 
         &:hover > svg {stroke: var(--bg_button_active_color);}
-        &:hover {color: var(--bg_button_active_color);}
+        &:hover {
+            color: var(--bg_button_active_color);
+            background-color: var(--active_section_color);
+        }
         &:hover > .favorites_btn{
             display: flex;
             flex-direction: row;

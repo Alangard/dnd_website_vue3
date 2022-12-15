@@ -12,9 +12,8 @@
 <script>
 export default {
     props:['isMobile'],
-    data() {
-        return {}
-    },
+
+    data() {return {}},
 
     mounted(){
         this.$nextTick(function () {
@@ -52,7 +51,7 @@ export default {
             sections.forEach((s) => sectionObserver.observe(s));
         })  
 
-    }
+    },
 }
 </script>
 
@@ -65,6 +64,7 @@ export default {
 .article{
     position: relative;
     max-height: 300px;
+    width: 100%;
     overflow-y: hidden;
     scroll-behavior: smooth;
     border-radius: 5px;

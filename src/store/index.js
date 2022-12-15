@@ -172,6 +172,54 @@ export default createStore({
     getDatetimeNow(state){
       return new Date().toISOString();
     },
+
+    //Method replacing the first character with an uppercase character
+    capitalizeFirstLetter: (state) => (string) => {
+      return string.charAt(0).toUpperCase() + string.slice(1);
+    },
+
+    //A method describing verbally the time from a completed event
+    dateTimeFormat: (state) => (datetime_string) => {
+        const datetime = new Date(datetime_string);
+        const now_datetime = new Date();
+        const diff_in_seconds = Math.floor((now_datetime - datetime) / 1000);
+
+        if(diff_in_seconds >= 3600){
+            if(Math.floor(diff_in_seconds / 3600) == 1){
+                return `more than ${Math.floor(diff_in_seconds / 3600)} hour ago`;
+            }
+
+            else if(Math.floor(diff_in_seconds / 3600) == 2 || Math.floor(diff_in_seconds / 3600) == 3){
+                return `more than ${Math.floor(diff_in_seconds / 3600)} hours ago`;
+            }
+
+            else{
+                //getMonth returns an integer number, between 0 and 11
+                const [month, day, year] = [datetime.getMonth() + 1, datetime.getDate(), datetime.getFullYear()];
+                const [hour, minutes] = [datetime.getHours(), datetime.getMinutes()];
+                return `${day}/${month}/${year} at ${hour}:${minutes}`;
+            }
+        }
+
+        else if (diff_in_seconds < 3600 && diff_in_seconds >= 60){
+            if(Math.floor(diff_in_seconds / 60) == 1){
+                return `more than ${Math.floor(diff_in_seconds/60)} minute ago`;
+            }
+
+            else if((Math.floor(diff_in_seconds / 60) == 5)){
+                return `more than ${Math.floor(diff_in_seconds/60)} minutes ago`;
+            }
+
+            else if(Math.floor(diff_in_seconds / 60) >= 5){
+                return `more than ${Math.floor(diff_in_seconds/60)} minutes ago`;
+            }
+        }
+
+        else {
+            return 'now';
+        }
+    }
+
   },
 
   mutations: {

@@ -84,7 +84,7 @@ export default {
   --font_header: 700 normal 17px/1.3em 'Oswald', sans-serif;
   --drop_shadow_color: #535C70;
   --gradien_to_transparent_color:#ababaf;
-  --active_section_color: #cfcfd3;
+  --active_section_color: #bbbbc1;
 
 
 
