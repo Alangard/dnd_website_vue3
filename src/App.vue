@@ -1,5 +1,5 @@
 <template>
-  <TopNav v-if="!$route.meta.hideNavbar"/>
+  <TopNav/>
     
   <div class="main_content_wrapper"
     :class="{'navBarHide': $route.meta.hideNavbar,
@@ -30,7 +30,6 @@ export default {
     created(){
       window.addEventListener('resize', this.checkScreen);
       this.checkScreen();
-
     },
 
     mounted(){
@@ -43,16 +42,10 @@ export default {
         }
     },
 
-    unmounted(){window.removeEventListener('resize', this.checkScreen);},
-
-    watch: {
-      '$store.state.theme': function() {
-        localStorage.theme = this.$store.state.theme;
-      }
-    },
+    unmounted(){window.removeEventListener('resize',  this.checkScreen);},
 
     methods:{
-      // Function to get the screen width and change the global variable isMobile
+      // Method to get the screen width and change the global store variable 'isMobile'
       checkScreen(){
         this.windowWidth = window.innerWidth;
         if (this.windowWidth <= this.mobile_limit){
@@ -114,7 +107,6 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: center;
-    height: 100vh;
     padding-top: 70px;
     background-color: var(--bg_block_color);
 

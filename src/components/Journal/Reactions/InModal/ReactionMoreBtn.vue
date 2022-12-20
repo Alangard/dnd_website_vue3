@@ -2,7 +2,7 @@
     <long-press-btn class='reaction_more_block_section' 
         v-if="this.reaction.data.length != 0"
         :title="':'+this.reaction.reaction_id"
-        :class="{reacted: this.reaction.data.find(data => data.username == this.getUserInfo().username)}"
+        :class="{reacted: this.reaction.data.get(this.getUserInfo().username) != undefined}"
         @LongPressEvent="react"
         @click="(event) => this.$emit('renderReactorsList', event.target.id)">
                 

@@ -45,7 +45,7 @@
 
             <EmoticonContainer
                 @click="this.modalIsOpen =! this.modalIsOpen"
-                :sortedReactions = 'sortedReactions()' 
+                :sortedReactions = 'sortedReactions' 
                 :post_id='this.id'>
             </EmoticonContainer>
 
@@ -55,7 +55,7 @@
                     v-if="this.modalIsOpen"
                     @close_modal='this.modalIsOpen = false'
                     :post_id='this.id'
-                    :sortedReactions='this.sortedReactions()'>
+                    :sortedReactions='sortedReactions'>
                 </Modal>
 
             </Transition>
@@ -102,9 +102,12 @@ export default {
         }
     },
 
-    methods:{
+    computed:{ // подумать о динамическом измнении
         sortedReactions(){
             if(this.reactions.length > 0){ 
+                debugger
+                console.log(this.reactions)
+                const c = this.reactions.sort((a, b) => b.data.length - a.data.length);
                 return this.reactions.sort((a, b) => b.data.length - a.data.length);
             }
             else{return [];}

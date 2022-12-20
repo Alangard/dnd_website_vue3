@@ -3,10 +3,10 @@
         <template #scrollspy_articles>
             <scroll-spy-item :item_id='"recent"' :visible=true>
                 <template #scrollspy_section__header>Recent</template>
-                <template #scrollspy_section__body v-if="(this.$store.getters.getUserEmoticon.recent.length > 0)">
+                <template #scrollspy_section__body v-if="(this.$store.getters.getUserEmoticonRecent.length > 0)">
 
                     <in-favorites-btn
-                        v-for="reaction in this.$store.getters.getUserEmoticon.recent" :key='reaction'
+                        v-for="reaction in this.$store.getters.getUserEmoticonRecent" :key='reaction'
                         :post_id="this.post_id"
                         :isMobile="this.$store.getters.getIsMobileState">
                     </in-favorites-btn>
@@ -19,10 +19,10 @@
 
             <scroll-spy-item :item_id='"favorites"' :visible=true>
                 <template #scrollspy_section__header>Favorites</template>
-                <template #scrollspy_section__body v-if="(this.$store.getters.getUserEmoticon.favorites.length > 0)">
+                <template #scrollspy_section__body v-if="(this.$store.getters.getUserEmoticonFavorites.length > 0)">
 
                     <in-favorites-btn
-                        v-for="reaction in this.$store.getters.getUserEmoticon.favorites" :key='reaction'
+                        v-for="reaction in this.$store.getters.getUserEmoticonFavorites" :key='reaction'
                         :post_id="this.post_id"
                         :isMobile="this.$store.getters.getIsMobileState">
                     </in-favorites-btn>

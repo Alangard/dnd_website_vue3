@@ -103,6 +103,8 @@ export default {
             }
         },
 
+        // Can be deleted cuse users can not leave the reaction from past and object
+
         sortReactorsbyDate(reactors_list){
             reactors_list.sort((a,b) => {return new Date(b.date) - new Date(a.date);});
             return reactors_list;
