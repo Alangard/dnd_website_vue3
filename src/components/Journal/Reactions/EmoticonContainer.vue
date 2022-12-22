@@ -1,6 +1,6 @@
 <template>
     <div class="main_emot_container"
-        :class="{reacted: this.dataOfUserReaction() != undefined}">
+        :class="{reacted: this.dataOfUserReaction() != -1}">
         <div class="img_container" v-for='reaction in sortedReactions.slice(0,3)' :key='reaction'>
             <img :src='reaction.img_url' alt="">
         </div>

@@ -2,14 +2,14 @@
     <long-press-btn class='reaction_more_block_section' 
         v-if="this.reaction.data.length != 0"
         :title="':'+this.reaction.reaction_id"
-        :class="{reacted: this.reaction.data.get(this.getUserInfo().username) != undefined}"
+        :class="{reacted: this.test() == reaction}"
         @LongPressEvent="react"
         @click="(event) => this.$emit('renderReactorsList', event.target.id)">
                 
         <input type="radio" name="emoticonGroup" :value="`${this.reaction.reaction_id}_p_${this.post_id}`" :id="`${this.reaction.reaction_id}_p_${this.post_id}`">
         <label :for="`${this.reaction.reaction_id}_p_${this.post_id}`">
             <img :src="this.reaction.img_url" :alt="`:${this.reaction.reaction_id}`">
-            <span>{{this.reaction.data.length}}</span>
+            <span>{{Object.keys(this.reaction.data).length}}</span>
         </label>
     </long-press-btn>
 </template>
@@ -26,8 +26,9 @@ export default {
 
     methods:{
 
-        getUserInfo(){
-            return this.$store.getters.getUserInfo;
+        test(){
+            const user_info = this.$store.getters.getUserInfo;
+            return this.$store.getters.getDataOfUserReaction([this.post_id, user_info]);
         },
 
         //A method that leaves a user reaction

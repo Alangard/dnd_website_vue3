@@ -105,10 +105,7 @@ export default {
     computed:{ // подумать о динамическом измнении
         sortedReactions(){
             if(this.reactions.length > 0){ 
-                debugger
-                console.log(this.reactions)
-                const c = this.reactions.sort((a, b) => b.data.length - a.data.length);
-                return this.reactions.sort((a, b) => b.data.length - a.data.length);
+                return this.reactions.sort((a, b) => Object.keys(b).length - Object.keys(a).length);
             }
             else{return [];}
         },

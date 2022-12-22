@@ -13,13 +13,13 @@ export default createStore({
                       {reaction_id: "d2_facepalm_WR", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif'},
                       {reaction_id: "d2_smile_QOP", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/6/6e/Emoticon_relieved.gif'},
                       {reaction_id: "d2_stunned_Rosh", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif'},
-                      {reaction_id:"d2_cool_NP", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/e/ec/Emoticon_cool.gif'},
-                      {reaction_id:"d2_happytear_lich", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/d/d9/Emoticon_happytears.gif'},
-                      {reaction_id:"d2_highfive_sniper", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/d/d9/Emoticon_highfive.gif'},
-                      {reaction_id:"d2_rage_axe", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/e/e4/Emoticon_rage.gif'},
-                      {reaction_id:"d2_surprise_mipo", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/d/d9/Emoticon_surprise.gif'},
-                      {reaction_id:"d2_smile_CM", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/f/f2/Emoticon_smile.gif'},
-                      {reaction_id:"d2_thinking_ember", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/f/f5/Emoticon_thinking.gif'}
+                      {reaction_id: "d2_cool_NP", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/e/ec/Emoticon_cool.gif'},
+                      {reaction_id: "d2_happytear_lich", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/d/d9/Emoticon_happytears.gif'},
+                      {reaction_id: "d2_highfive_sniper", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/d/d9/Emoticon_highfive.gif'},
+                      {reaction_id: "d2_rage_axe", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/e/e4/Emoticon_rage.gif'},
+                      {reaction_id: "d2_surprise_mipo", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/d/d9/Emoticon_surprise.gif'},
+                      {reaction_id: "d2_smile_CM", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/f/f2/Emoticon_smile.gif'},
+                      {reaction_id: "d2_thinking_ember", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/f/f5/Emoticon_thinking.gif'}
                     ],
                   most_popular:
                     [
@@ -28,34 +28,59 @@ export default createStore({
                       {reaction_id:"d2_highfive_sniper", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/d/d9/Emoticon_highfive.gif'},
                     ]
                 },
-      user_info: {username: 'usert2.804357', profile_img_url: '',
-                  emoticons:{favorites:[{reaction_id:'d2_dealwithit_ES', img_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bd/Emoticon_dealwithit.gif'},{reaction_id:'d2_facepalm_WR', img_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif'}], 
-                             recent:[{reaction_id:'d2_facepalm_WR', img_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif'},{reaction_id:'d2_stunned_Rosh', img_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif'}]
+      user_info: {
+                  username: 'usert2.804357', profile_img_url: '',
+                  emoticons:{
+                              favorites:[{reaction_id:'d2_dealwithit_ES', img_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bd/Emoticon_dealwithit.gif'},{reaction_id:'d2_facepalm_WR', img_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif'}], 
+                              recent:[{reaction_id:'d2_facepalm_WR', img_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif'},{reaction_id:'d2_stunned_Rosh', img_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif'}]
                             }
                   },
-      postData: {
+      short_post_data: {
         '1985':{
-                data: {post_id:'1985', img_url: 'https://thumbs.dreamstime.com/b/blog-information-website-concept-workplace-background-text-view-above-127465079.jpg', creator_nickname: 'User1.804838', profile_img_url:'https://cs9.pikabu.ru/post_img/big/2019/10/30/10/1572455476123442192.jpg', post_date: '2022-11-11T17:38:00.379Z', title: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Reiciendis velit quas quasi perspiciatis.1', description:'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Accusantium asperiores repudiandae obcaecati perspiciatis, voluptatem hic, in rerum accusamus maiores molestias inventore nisi ratione ea! Iste aperiam sit itaque consequuntur nemo.'},
-                reactions: [ {reaction_id:"d2_dealwithit_ES", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bd/Emoticon_dealwithit.gif', data:{'user1.804838':{username: 'user1.804838', profile_img_url: '', date: '1995-12-17T03:24:00.379Z'}}},
-                            {reaction_id:"d2_evil_NS", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif', data: {'user19.804856':{username: 'user19.804856', profile_img_url: '', date: '1997-12-17T03:24:00.379Z'},'user122.804737':{username: 'user122.804737', profile_img_url: '', date: '1995-12-21T03:24:00.379Z'}, 'user299.804802': {username: 'user299.804802', profile_img_url: '', date: '1995-12-17T03:24:00.379Z'}}},
-                            {reaction_id:"d2_facepalm_WR", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', data: {'user32.804871':{username: 'user32.804871', profile_img_url: '', date: '1995-12-17T09:24:00.379Z'}, 'user33.804708':{username: 'user33.804708', profile_img_url: '', date: '1995-12-17T07:24:00.379Z'}, 'user35.804254':{username: 'user35.804254', profile_img_url: '', date: '2022-11-11T16:35:00.379Z'}, 'user24.804824':{username: 'user24.804824', profile_img_url: '', date: '1995-12-17T21:24:00.379Z'}, 'user11.804816':{username: 'user11.804816', profile_img_url: '', date: '1995-12-17T23:12:00.379Z'}, 'user65.804811':{username: 'user65.804811', profile_img_url: '', date: '1995-12-17T21:25:00.379Z'}}},
-                            {reaction_id:"d2_smile_QOP", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/6/6e/Emoticon_relieved.gif', data: {'user42.804835':{username: 'user42.804835', profile_img_url: '', date: '2009-12-17T03:24:00.379Z'},'user44.804844':{username: 'user44.804844', profile_img_url: '', date: '2009-12-18T03:24:00.379Z'}}},
-                            {reaction_id:"d2_stunned_Rosh", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif', data: {'user12.804833':{username: 'user12.804833', profile_img_url: '', date: '2009-12-17T03:25:00.379Z'},'usert2.804357': {username: 'usert2.804357', profile_img_url: '', date: '2022-12-06T16:35:39.379Z'}}}
-                          ],
-                tag_list: [1, 2, 4], comments:{'counter': 290, data:{}}
+                data: {
+                        post_id:'1985', post_date: '2022-11-11T17:38:00.379Z', 
+                        creator_nickname: 'User1.804838', creator_profile_img_url:'https://cs9.pikabu.ru/post_img/big/2019/10/30/10/1572455476123442192.jpg', 
+                        title: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Reiciendis velit quas quasi perspiciatis.1', 
+                        post_img_url: 'https://thumbs.dreamstime.com/b/blog-information-website-concept-workplace-background-text-view-above-127465079.jpg', 
+                        description:'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Accusantium asperiores repudiandae obcaecati perspiciatis, voluptatem hic, in rerum accusamus maiores molestias inventore nisi ratione ea! Iste aperiam sit itaque consequuntur nemo.'
+                      },
+                reactions: {"top3_reactions__list":["d2_facepalm_WR", "d2_smile_QOP","d2_evil_NS"], "selected": true},
+                tags: {"tag_list": [1, 2, 4]}, 
+                comments:{"counter": 290, "commented": false}
                 },
         '2009':{
-                data: {post_id:'2009', img_url : '', creator_nickname: 'User2.804839', profile_img_url:'', post_date: '2021-11-11T17:38:00', title: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Reiciendis velit quas quasi perspiciatis.2', description:'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Accusantium asperiores repudiandae obcaecati perspiciatis, voluptatem hic, in rerum accusamus maiores molestias inventore nisi ratione ea! Iste aperiam sit itaque consequuntur nemo.'},
-                reactions: [ {reaction_id:"d2_stunned_Rosh", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif', data: {'user12.804833':{username: 'user12.804833', profile_img_url: '', date: '2002-12-17T03:24:00.379Z'}, 'user9.804899':{username: 'user9.804899', profile_img_url: '', date: '2002-12-17T03:27:00.379Z'}}}
-                           ],
-                tag_list: [1, 2, 3], comments:{'counter': 11, data:{}}
+                data: {
+                        post_id:'2009', post_date: '2021-11-11T17:38:00', 
+                        creator_nickname: 'User2.804839', creator_profile_img_url:'', 
+                        title: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Reiciendis velit quas quasi perspiciatis.2',
+                        post_img_url : '', 
+                        description:'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Accusantium asperiores repudiandae obcaecati perspiciatis, voluptatem hic, in rerum accusamus maiores molestias inventore nisi ratione ea! Iste aperiam sit itaque consequuntur nemo.'
+                      },
+                reactions: {"top3_reactions__list":["d2_stunned_Rosh"], "selected": false},
+                tags: {"tag_list": [1, 2, 3]},
+                comments:{"counter": 20, "commented": true}
                 },
         '1':{
-                data: {post_id:'1', img_url : '',creator_nickname: 'User4.804841', profile_img_url:'https://avatars.mds.yandex.net/i?id=850f39a77c8c28ab157103493cf178df-4079986-images-thumbs&n=13', post_date: '2022-11-11T17:48:00.379Z', title: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Reiciendis velit quas quasi perspiciatis.3', description:'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Accusantium asperiores repudiandae obcaecati perspiciatis, voluptatem hic, in rerum accusamus maiores molestias inventore nisi ratione ea! Iste aperiam sit itaque consequuntur nemo.'},
-                reactions: [],
-                tag_list: [1], comments:{'counter': 27, data:{}}
+                data: {
+                        post_id:'1', post_date: '2022-11-11T17:48:00.379Z', 
+                        creator_nickname: 'User4.804841', creator_profile_img_url:'https://avatars.mds.yandex.net/i?id=850f39a77c8c28ab157103493cf178df-4079986-images-thumbs&n=13',
+                        post_img_url : '',
+                        title: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Reiciendis velit quas quasi perspiciatis.3',   
+                        description:'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Accusantium asperiores repudiandae obcaecati perspiciatis, voluptatem hic, in rerum accusamus maiores molestias inventore nisi ratione ea! Iste aperiam sit itaque consequuntur nemo.'
+                      },
+                reactions: {"top3_reactions__list":[], "selected": false},
+                tags: {"tag_list": []}, 
+                comments:{"counter": 0, "commented": false}
             },
       },
+      postData: {
+      },
+
+      reactions:{
+        
+      }
+
+
 
       
       
@@ -166,7 +191,7 @@ export default createStore({
             return reaction;
           }
         }
-        return undefined;
+        return -1;
       }
       catch(err){console.log(err);}
     },
