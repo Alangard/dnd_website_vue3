@@ -4,8 +4,8 @@
         
         <div class="rightside_container">
             <div class="autor_data_container">
-                    <img class="profile_img" :src="this.creator_profile_img" alt="" 
-                        v-if="this.creator_profile_img != ''"
+                    <img class="profile_img" :src="this.creator_profile_img_url" alt="" 
+                        v-if="this.creator_profile_img_url != ''"
                         @click="$router.push({ name: 'user', params: {id: this.creator_nickname} })"
                     >
 
@@ -32,10 +32,9 @@
                 {{this.$store.getters.capitalizeFirstLetter(this.title)}}
             </div>
 
-            <img class="post_img" :src="this.post_image" alt='post_img'
-                v-if="this.post_image"
-                @click="$router.push({ name: 'postitem', params: {id: this.id} })"
-            >
+            <img class="post_img" :src="this.post_img_url" alt='post_img'
+                v-if="this.post_img_url"
+                @click="$router.push({ name: 'postitem', params: {id: this.id} })">
 
             <div class="description_field">{{this.$store.getters.capitalizeFirstLetter(this.description)}}</div>
 
@@ -45,7 +44,7 @@
 
             <EmoticonContainer
                 @click="this.modalIsOpen =! this.modalIsOpen"
-                :sortedReactions = 'sortedReactions' 
+                :sortedReactions = 'this.reactions_list' 
                 :post_id='this.id'>
             </EmoticonContainer>
 
@@ -55,7 +54,7 @@
                     v-if="this.modalIsOpen"
                     @close_modal='this.modalIsOpen = false'
                     :post_id='this.id'
-                    :sortedReactions='sortedReactions'>
+                    :sortedReactions='this.reactions_list'>
                 </Modal>
 
             </Transition>
@@ -67,7 +66,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                         </svg>
-                        <span>{{this.comments.counter}}</span>
+                        <span>{{this.comments_counter}}</span>
                 </div>
             
                 <WebShare></WebShare>
@@ -88,30 +87,20 @@ export default {
     data(){
         return{
             id: this.$.vnode.key.data.post_id,
-            post_image: this.$.vnode.key.data.img_url || false,
-            creator_nickname: this.$.vnode.key.data.creator_nickname,
-            creator_profile_img: this.$.vnode.key.data.profile_img_url,
             post_date: this.$.vnode.key.data.post_date,
+            creator_nickname: this.$.vnode.key.data.creator_nickname,
+            creator_profile_img_url: this.$.vnode.key.data.creator_profile_img_url,
             title: this.$.vnode.key.data.title,
+            post_img_url: this.$.vnode.key.data.post_img_url,
             description: this.$.vnode.key.data.description,
-            comments: this.$.vnode.key.comments, 
-            tag_list: this.$.vnode.key.tag_list,
-            reactions: this.$.vnode.key.reactions,
-            modal_id:'#ReactionsModal'+ this.$.vnode.key.data.post_id, 
+            reactions_list: this.$.vnode.key.reactions.top3_reactions__list,
+            selected_reaction: this.$.vnode.key.reactions.selected,
+            tag_list: this.$.vnode.key.tags.tags_list,
+            comments_counter: this.$.vnode.key.comments.counter,
+            commented: this.$.vnode.key.comments.commented,
             modalIsOpen: false,
         }
     },
-
-    computed:{ // подумать о динамическом измнении
-        sortedReactions(){
-            if(this.reactions.length > 0){ 
-                return this.reactions.sort((a, b) => Object.keys(b).length - Object.keys(a).length);
-            }
-            else{return [];}
-        },
-    },
-
-
 }
 
 </script>

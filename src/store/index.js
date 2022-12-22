@@ -8,31 +8,31 @@ export default createStore({
       theme: 'light',
       emoticons: {all:
                     [
-                      {reaction_id: "d2_dealwithit_ES", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bd/Emoticon_dealwithit.gif'},
-                      {reaction_id: "d2_evil_NS", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif'},
-                      {reaction_id: "d2_facepalm_WR", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif'},
-                      {reaction_id: "d2_smile_QOP", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/6/6e/Emoticon_relieved.gif'},
-                      {reaction_id: "d2_stunned_Rosh", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif'},
-                      {reaction_id: "d2_cool_NP", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/e/ec/Emoticon_cool.gif'},
-                      {reaction_id: "d2_happytear_lich", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/d/d9/Emoticon_happytears.gif'},
-                      {reaction_id: "d2_highfive_sniper", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/d/d9/Emoticon_highfive.gif'},
-                      {reaction_id: "d2_rage_axe", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/e/e4/Emoticon_rage.gif'},
-                      {reaction_id: "d2_surprise_mipo", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/d/d9/Emoticon_surprise.gif'},
-                      {reaction_id: "d2_smile_CM", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/f/f2/Emoticon_smile.gif'},
-                      {reaction_id: "d2_thinking_ember", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/f/f5/Emoticon_thinking.gif'}
+                      {emoticon_id: "d2_dealwithit_ES", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bd/Emoticon_dealwithit.gif'},
+                      {emoticon_id: "d2_evil_NS", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif'},
+                      {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif'},
+                      {emoticon_id: "d2_smile_QOP", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/6/6e/Emoticon_relieved.gif'},
+                      {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif'},
+                      {emoticon_id: "d2_cool_NP", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/e/ec/Emoticon_cool.gif'},
+                      {emoticon_id: "d2_happytear_lich", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/d/d9/Emoticon_happytears.gif'},
+                      {emoticon_id: "d2_highfive_sniper", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/d/d9/Emoticon_highfive.gif'},
+                      {emoticon_id: "d2_rage_axe", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/e/e4/Emoticon_rage.gif'},
+                      {emoticon_id: "d2_surprise_mipo", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/d/d9/Emoticon_surprise.gif'},
+                      {emoticon_id: "d2_smile_CM", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/f/f2/Emoticon_smile.gif'},
+                      {emoticon_id: "d2_thinking_ember", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/f/f5/Emoticon_thinking.gif'}
                     ],
                   most_popular:
                     [
-                      {reaction_id:"d2_cool_NP", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/e/ec/Emoticon_cool.gif'},
-                      {reaction_id:"d2_happytear_lich", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/d/d9/Emoticon_happytears.gif'},
-                      {reaction_id:"d2_highfive_sniper", img_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/d/d9/Emoticon_highfive.gif'},
+                      {emoticon_id:"d2_cool_NP", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/e/ec/Emoticon_cool.gif'},
+                      {emoticon_id:"d2_happytear_lich", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/d/d9/Emoticon_happytears.gif'},
+                      {emoticon_id:"d2_highfive_sniper", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/d/d9/Emoticon_highfive.gif'},
                     ]
                 },
       user_info: {
                   username: 'usert2.804357', profile_img_url: '',
                   emoticons:{
-                              favorites:[{reaction_id:'d2_dealwithit_ES', img_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bd/Emoticon_dealwithit.gif'},{reaction_id:'d2_facepalm_WR', img_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif'}], 
-                              recent:[{reaction_id:'d2_facepalm_WR', img_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif'},{reaction_id:'d2_stunned_Rosh', img_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif'}]
+                              favorites:[{emoticon_id:'d2_dealwithit_ES', emoticon_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bd/Emoticon_dealwithit.gif'},{emoticon_id:'d2_facepalm_WR', emoticon_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif'}], 
+                              recent:[{emoticon_id:'d2_facepalm_WR', emoticon_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif'},{emoticon_id:'d2_stunned_Rosh', emoticon_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif'}]
                             }
                   },
       short_post_data: {
@@ -44,8 +44,14 @@ export default createStore({
                         post_img_url: 'https://thumbs.dreamstime.com/b/blog-information-website-concept-workplace-background-text-view-above-127465079.jpg', 
                         description:'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Accusantium asperiores repudiandae obcaecati perspiciatis, voluptatem hic, in rerum accusamus maiores molestias inventore nisi ratione ea! Iste aperiam sit itaque consequuntur nemo.'
                       },
-                reactions: {"top3_reactions__list":["d2_facepalm_WR", "d2_smile_QOP","d2_evil_NS"], "selected": true},
-                tags: {"tag_list": [1, 2, 4]}, 
+                reactions: {"top3_reactions__list":[ 
+                                                      {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif'},
+                                                      {emoticon_id: "d2_smile_QOP", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/6/6e/Emoticon_relieved.gif'},
+                                                      {emoticon_id: "d2_evil_NS", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif'},
+                                                    ], 
+                            "selected": true
+                          },
+                tags: {"tags_list": [1, 2, 4]}, 
                 comments:{"counter": 290, "commented": false}
                 },
         '2009':{
@@ -56,8 +62,12 @@ export default createStore({
                         post_img_url : '', 
                         description:'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Accusantium asperiores repudiandae obcaecati perspiciatis, voluptatem hic, in rerum accusamus maiores molestias inventore nisi ratione ea! Iste aperiam sit itaque consequuntur nemo.'
                       },
-                reactions: {"top3_reactions__list":["d2_stunned_Rosh"], "selected": false},
-                tags: {"tag_list": [1, 2, 3]},
+                reactions: {"top3_reactions__list":[
+                                                      {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif'},
+                                                    ], 
+                            "selected": false
+                          },
+                tags: {"tags_list": [1, 2, 3]},
                 comments:{"counter": 20, "commented": true}
                 },
         '1':{
@@ -69,7 +79,7 @@ export default createStore({
                         description:'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Accusantium asperiores repudiandae obcaecati perspiciatis, voluptatem hic, in rerum accusamus maiores molestias inventore nisi ratione ea! Iste aperiam sit itaque consequuntur nemo.'
                       },
                 reactions: {"top3_reactions__list":[], "selected": false},
-                tags: {"tag_list": []}, 
+                tags: {"tags_list": []}, 
                 comments:{"counter": 0, "commented": false}
             },
       },
@@ -101,6 +111,18 @@ export default createStore({
     getTheme (state){
         return state.theme;
     },
+
+    // new getters
+    getShrotPostData(state){
+      return state.short_post_data;
+    },
+
+
+
+
+
+
+
 
     getPostData (state){
       return state.postData;

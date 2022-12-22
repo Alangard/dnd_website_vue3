@@ -4,7 +4,7 @@
         :class="{'light-theme': this.$store.state.theme =='light', 'dark-theme': this.$store.state.theme =='dark'}">
 
         <PostItemComponent
-            v-for="post_id in getPostData" :key="post_id">
+            v-for="post_id in this.posts_list_data" :key="post_id">
         </PostItemComponent>
 
     </div>
@@ -17,17 +17,21 @@
 <script>
 import PostItemComponent from '@/components/Journal/PostItemComponent.vue';
 export default {
+    components: { PostItemComponent },
     data(){
         return{
-            access_level: true,
+            posts_list_data: null,
         }
     },
-    computed:{
-        getPostData(){
-            return this.$store.getters.getPostData;
-        }
+
+    mounted (){
+        // Step 1. Query the server for minimal post data
+        // Step 2. Save the data to VueX
+        // Step 3. Modelling data handling with VueX
+        
+        this.posts_list_data = this.$store.getters.getShrotPostData;
     },
-    components: { PostItemComponent }
+
 }
 </script>
 
