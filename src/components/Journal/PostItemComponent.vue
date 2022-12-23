@@ -44,7 +44,7 @@
 
             <EmoticonContainer
                 @click="this.modalIsOpen =! this.modalIsOpen"
-                :sortedReactions = 'this.reactions_list' 
+                :reactions_object = 'this.reactions' 
                 :post_id='this.id'>
             </EmoticonContainer>
 
@@ -53,14 +53,14 @@
                 <Modal
                     v-if="this.modalIsOpen"
                     @close_modal='this.modalIsOpen = false'
-                    :post_id='this.id'
-                    :sortedReactions='this.reactions_list'>
+                    :post_id='this.id'>
                 </Modal>
 
             </Transition>
 
             <div class="user_activities_rightside_container">
                 <div class="comments_container"
+                    :class="{commented: this.commented}"
                     @click="$router.push({ name: 'postitem', params: {id: this.id} })">
 
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -93,8 +93,9 @@ export default {
             title: this.$.vnode.key.data.title,
             post_img_url: this.$.vnode.key.data.post_img_url,
             description: this.$.vnode.key.data.description,
+            reactions: this.$.vnode.key.reactions,
             reactions_list: this.$.vnode.key.reactions.top3_reactions__list,
-            selected_reaction: this.$.vnode.key.reactions.selected,
+            reacted_reaction: this.$.vnode.key.reactions.reacted,
             tag_list: this.$.vnode.key.tags.tags_list,
             comments_counter: this.$.vnode.key.comments.counter,
             commented: this.$.vnode.key.comments.commented,
@@ -241,7 +242,7 @@ export default {
             background-color: var(--bg_button_color);
             color: var(--text_color_secondary);
 
-            & svg{
+            svg{
                stroke: var(--text_color_secondary); 
                width: 25px;
                height: 25px; 
@@ -251,6 +252,12 @@ export default {
                 margin: 0 4px 3px 4px;
                 font-weight: 300;
                 font-size: 14px;
+            }
+
+            &.commented{
+                border-color: var(--bg_button_active_color);
+                color: var(--bg_button_active_color);
+                svg{stroke: var(--bg_button_active_color);}
             }
 
             &:hover{

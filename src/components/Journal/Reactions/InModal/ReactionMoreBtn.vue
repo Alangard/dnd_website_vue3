@@ -1,15 +1,15 @@
 <template>
     <long-press-btn class='reaction_more_block_section' 
-        v-if="this.reaction.data.length != 0"
-        :title="':'+this.reaction.reaction_id"
+        v-if="this.reaction.users_data.length != 0"
+        :title="':'+this.reaction.emoticon_id"
         :class="{reacted: this.test() == reaction}"
-        @LongPressEvent="react"
-        @click="(event) => this.$emit('renderReactorsList', event.target.id)">
+        @LongPressEvent="react">
+        <!-- @click="(event) => this.$emit('renderReactorsList', event.target.id)"> -->
                 
-        <input type="radio" name="emoticonGroup" :value="`${this.reaction.reaction_id}_p_${this.post_id}`" :id="`${this.reaction.reaction_id}_p_${this.post_id}`">
-        <label :for="`${this.reaction.reaction_id}_p_${this.post_id}`">
-            <img :src="this.reaction.img_url" :alt="`:${this.reaction.reaction_id}`">
-            <span>{{Object.keys(this.reaction.data).length}}</span>
+        <input type="radio" name="emoticonGroup" :value="`${this.reaction.emoticon_id}`" :id="`${this.reaction.emoticon_id}`">
+        <label :for="`${this.reaction.emoticon_id}`">
+            <img :src="this.reaction.emoticon_url" :alt="`:${this.reaction.emoticon_id}`">
+            <span>{{Object.keys(this.reaction.users_data).length}}</span>
         </label>
     </long-press-btn>
 </template>
@@ -19,7 +19,7 @@
 import LongPressBtn from '@/components/Templates_components/LongPressBtn.vue'
 export default {
     components: { LongPressBtn },
-    props:['post_id', 'isMobile'],
+    props:['isMobile'],
     data(){return{
         reaction: this.$.vnode.key,
     }},

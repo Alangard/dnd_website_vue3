@@ -19,17 +19,16 @@
             </div>
 
             <div class="emoticon_element total_reaction" @click="isClicked">
-                <input type="radio" name="emoticonGroup" :value="`totalReaction_p_${this.post_id}`" :id="`totalReaction_p_${this.post_id}`">
-                <label :for="`totalReaction_p_${this.post_id}`">
-                    <span>Reacted {{totalReactionsCount()}}</span>
+                <input type="radio" name="emoticonGroup" value="totalReaction" id="totalReaction">
+                <label for="totalReaction">
+                    <span>Reacted {{totalReactionsCount}}</span>
                 </label>
             </div>
 
             <reaction-more-btn
                 @renderReactorsList="(element_id) => this.$emit('renderReactorsList', element_id)"
-                :post_id="this.post_id"
                 :isMobile="this.$store.getters.getIsMobileState"
-                v-for='reaction in sortedReaction' :key='reaction'>
+                v-for='reaction in this.reactions_object' :key='reaction'>
             </reaction-more-btn>
 
         </div>
@@ -48,9 +47,18 @@ import ReactionMoreBtn from './ReactionMoreBtn.vue';
 
 export default {
     components: { ReactionMoreBtn },
-    props:['post_id','sortedReaction'],
+    props:['reactions_object'],
     data(){return{
     }},
+
+    computed:{
+        totalReactionsCount(){
+            var sum = 0;
+            for(const reaction of this.reactions_object){sum += reaction.users_data.length;}
+            return sum;
+        }
+    },
+
     methods:{
         isClicked(event){
             if(event.target.tagName == 'INPUT'){
@@ -59,11 +67,11 @@ export default {
             }
         },
 
-        totalReactionsCount(){
-            var sum = 0;
-            for(const element of this.sortedReaction){sum += element.data.length;}
-            return sum;
-        },
+        // totalReactionsCount(){
+        //     var sum = 0;
+        //     for(const element of this.reactions_object){sum += element.data.length;}
+        //     return sum;
+        // },
 
         scrollX(e) {
             this.$refs['emot_container'].scrollLeft += e.deltaY;

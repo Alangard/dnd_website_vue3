@@ -35,6 +35,8 @@ export default createStore({
                               recent:[{emoticon_id:'d2_facepalm_WR', emoticon_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif'},{emoticon_id:'d2_stunned_Rosh', emoticon_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif'}]
                             }
                   },
+
+      // The order of reactions in short_post_data is determined by backend. Array can saves the order of element
       short_post_data: {
         '1985':{
                 data: {
@@ -49,7 +51,7 @@ export default createStore({
                                                       {emoticon_id: "d2_smile_QOP", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/6/6e/Emoticon_relieved.gif'},
                                                       {emoticon_id: "d2_evil_NS", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif'},
                                                     ], 
-                            "selected": true
+                            "reacted": true
                           },
                 tags: {"tags_list": [1, 2, 4]}, 
                 comments:{"counter": 290, "commented": false}
@@ -65,7 +67,7 @@ export default createStore({
                 reactions: {"top3_reactions__list":[
                                                       {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif'},
                                                     ], 
-                            "selected": false
+                            "reacted": false
                           },
                 tags: {"tags_list": [1, 2, 3]},
                 comments:{"counter": 20, "commented": true}
@@ -78,27 +80,85 @@ export default createStore({
                         title: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Reiciendis velit quas quasi perspiciatis.3',   
                         description:'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Accusantium asperiores repudiandae obcaecati perspiciatis, voluptatem hic, in rerum accusamus maiores molestias inventore nisi ratione ea! Iste aperiam sit itaque consequuntur nemo.'
                       },
-                reactions: {"top3_reactions__list":[], "selected": false},
+                reactions: {"top3_reactions__list":[], "reacted": false},
                 tags: {"tags_list": []}, 
                 comments:{"counter": 0, "commented": false}
             },
       },
+
+
       postData: {
       },
 
+      // The order of reactions is determined by backend. Array can saves the order of element
       reactions:{
+        '1985':
+          [
+            {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', 
+              users_data: [
+                {username: 'user35.804254', user_profile_img_url: '', date: '2022-11-11T16:35:00.379Z'},
+                {username: 'user11.804816', user_profile_img_url: '', date: '1995-12-17T23:12:00.379Z'}, 
+                {username: 'user65.804811', user_profile_img_url: '', date: '1995-12-17T21:25:00.379Z'},
+                {username: 'user24.804824', user_profile_img_url: '', date: '1995-12-17T21:24:00.379Z'}, 
+                {username: 'user32.804871', user_profile_img_url: '', date: '1995-12-17T09:24:00.379Z'}, 
+                {username: 'user33.804708', user_profile_img_url: '', date: '1995-12-17T07:24:00.379Z'},
+              ]
+            },
+            
+            {emoticon_id: "d2_evil_NS", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif', 
+              users_data: [
+                {username: 'user19.804856', user_profile_img_url: '', date: '1997-12-17T03:24:00.379Z'},
+                {username: 'user122.804737', user_profile_img_url: '', date: '1995-12-21T03:24:00.379Z'}, 
+                {username: 'user299.804802', user_profile_img_url: '', date: '1995-12-17T03:24:00.379Z'},
+              ]
+            },
+            
+            {emoticon_id: "d2_smile_QOP", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/6/6e/Emoticon_relieved.gif',
+              users_data: [
+                {username: 'user44.804844', user_profile_img_url: '', date: '2009-12-18T03:24:00.379Z'},
+                {username: 'user42.804835', user_profile_img_url: '', date: '2009-12-17T03:24:00.379Z'}
+              ]
+            },
+
+            {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif',
+              users_data: [
+                {username: 'usert2.804357', profile_img_url: '', date: '2022-12-06T16:35:39.379Z'},
+                {username: 'user12.804833', profile_img_url: '', date: '2009-12-17T03:25:00.379Z'}
+              ]
+            },
+
+            {emoticon_id: "d2_dealwithit_ES", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bd/Emoticon_dealwithit.gif', 
+              users_data: [
+                {username: 'user1.804838', user_profile_img_url: '', reaction_date: '1995-12-17T03:24:00.379Z'}
+              ]
+            }
+          ],
+
+        '2009': 
+          [
+            {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.giff', 
+              users_data: [              
+                {username: 'user9.804899', user_profile_img_url: '', date: '2002-12-17T03:27:00.379Z'},
+                {username: 'user12.804833', user_profile_img_url: '', date: '2002-12-17T03:24:00.379Z'}, 
+              ]
+            }
+          ],
         
+        '1': [],
       }
+
+    }
+
 
 
 
       
       
      
-    }
+    
 
 
-    // reactions:[{reaction_id:..., img:...., data:{username:{}}}] to ensure linear search complexity.Test changes with list filtering by date.Use map for reaction.data to keep the order of the elements 
+    
   },
   getters: {
 

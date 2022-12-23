@@ -1,8 +1,8 @@
 <template>
     <div class="main_emot_container"
-        :class="{reacted: this.dataOfUserReaction() != -1}">
-        <div class="img_container" v-for='reaction in sortedReactions.slice(0,3)' :key='reaction'>
-            <img :src='reaction.img_url' alt="">
+        :class="{reacted: reactions_object.reacted}">
+        <div class="img_container" v-for='reaction in reactions_object.top3_reactions__list' :key='reaction'>
+            <img :src='reaction.emoticon_url' alt="">
         </div>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -14,15 +14,9 @@
 <script>
 
 export default {
-    props:['post_id', 'sortedReactions'],
+    props:['reactions_object'],
     data(){return{}},
-    methods:{
-        //Getter to help determine if the user has left a reaction and its index in reaction.data by post_id
-        dataOfUserReaction(){
-            const userInfo = this.$store.getters.getUserInfo;
-            return this.$store.getters.getDataOfUserReaction([this.post_id, userInfo]);
-        }
-    }
+    methods:{}
 }
 </script>
 
