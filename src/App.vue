@@ -22,6 +22,7 @@ export default {
     components: { TopNav },
     data() {
       return {
+        user_info: null,
         windowWidth: null,
         mobile_limit: 750, // 750px is the limit value. If the width is larger, it means that you are viewing from desktop
       }
@@ -30,6 +31,10 @@ export default {
     created(){
       window.addEventListener('resize', this.checkScreen);
       this.checkScreen();
+      
+      
+      // Making a request to retrieve user data and save it into vuex store
+      
     },
 
     mounted(){
@@ -40,6 +45,8 @@ export default {
             this.$store.commit('changeTheme', 'light'); 
             localStorage.theme = 'light';
         }
+
+ 
     },
 
     unmounted(){window.removeEventListener('resize',  this.checkScreen);},

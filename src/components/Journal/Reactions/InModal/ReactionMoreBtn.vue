@@ -2,9 +2,9 @@
     <long-press-btn class='reaction_more_block_section' 
         v-if="this.reaction.users_data.length != 0"
         :title="':'+this.reaction.emoticon_id"
-        :class="{reacted: this.test() == reaction}"
-        @LongPressEvent="react">
-        <!-- @click="(event) => this.$emit('renderReactorsList', event.target.id)"> -->
+        :class="{reacted: this.reaction_is_checked}"
+        @LongPressEvent="react"
+        @click="(event) => this.$emit('renderReactorsList', event.target.id)">
                 
         <input type="radio" name="emoticonGroup" :value="`${this.reaction.emoticon_id}`" :id="`${this.reaction.emoticon_id}`">
         <label :for="`${this.reaction.emoticon_id}`">
@@ -17,31 +17,43 @@
 
 <script>
 import LongPressBtn from '@/components/Templates_components/LongPressBtn.vue'
+
 export default {
     components: { LongPressBtn },
-    props:['isMobile'],
-    data(){return{
-        reaction: this.$.vnode.key,
-    }},
+
+    props:['isMobile', 'user_info'],
+
+    data(){
+        return{
+            reaction: this.$.vnode.key,
+            user_index_in_reaction: null,
+        }
+    },
+
+    computed:{
+
+        //Get the object index of the user of the current session who left this response. Use to set the styles
+        reaction_is_checked(){
+            const user_index = this.reaction.users_data.findIndex(element => element.username == this.user_info.username);
+            this.user_index_in_reaction = user_index;
+
+            if(user_index != -1){
+
+                //If the reaction has been selected, update the information in checked_emoticon_object inside the ReactionMore component
+                this.$emit('FindReactedEmoticon', {'emoticon_id': this.reaction.emoticon_id, 'user_index': this.user_index_in_reaction});
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+    },
 
     methods:{
 
-        test(){
-            const user_info = this.$store.getters.getUserInfo;
-            return this.$store.getters.getDataOfUserReaction([this.post_id, user_info]);
-        },
-
-        //A method that leaves a user reaction
-        react(btn_element){
-            const element_id = btn_element.target.getAttribute('for');
-
-            const post_id = this.post_id;
-            const userInfo = this.$store.getters.getUserInfo;
-            const dataOfUserReaction = this.$store.getters.getDataOfUserReaction([post_id, userInfo]);
-
-            this.$store.dispatch("changeReactionStatus", [...dataOfUserReaction, post_id, {'reaction_id': this.reaction.reaction_id, 'img_url': this.reaction.img_url}]); 
-            this.$store.dispatch("addReactionToRecent", [this.reaction.reaction_id, this.reaction.img_url]);
-            this.$emit('renderReactorsList', element_id);   
+        //A method that leaves a user reaction. Click handling proccessing in the ReactionMore component
+        react(){
+            this.$emit('react', this.reaction.emoticon_id);
         },
     }
 }

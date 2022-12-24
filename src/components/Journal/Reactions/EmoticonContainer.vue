@@ -1,9 +1,14 @@
 <template>
     <div class="main_emot_container"
-        :class="{reacted: reactions_object.reacted}">
-        <div class="img_container" v-for='reaction in reactions_object.top3_reactions__list' :key='reaction'>
+        :class="{reacted: this.reactions_object.reacted}">
+        <div class="img_container" v-for='reaction in this.reactions_object.top3_reactions__list' :key='reaction'>
             <img :src='reaction.emoticon_url' alt="">
         </div>
+        
+        <svg v-if='this.reactions_object.top3_reactions__list.length == 0' xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.508 13.941c-1.513 1.195-3.174 1.931-5.507 1.931-2.335 0-3.996-.736-5.509-1.931l-.492.493c1.127 1.72 3.2 3.566 6.001 3.566 2.8 0 4.872-1.846 5.999-3.566l-.492-.493zm.492-3.939l-.755.506s-.503-.948-1.746-.948c-1.207 0-1.745.948-1.745.948l-.754-.506c.281-.748 1.205-2.002 2.499-2.002 1.295 0 2.218 1.254 2.501 2.002zm-7 0l-.755.506s-.503-.948-1.746-.948c-1.207 0-1.745.948-1.745.948l-.754-.506c.281-.748 1.205-2.002 2.499-2.002 1.295 0 2.218 1.254 2.501 2.002z"/>
+        </svg>
+
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -39,6 +44,7 @@ export default {
             background-color: var(--bg_button_active_color);
             color: #ffff;
             stroke: #ffff;
+            fill: #ffff;
         }
 
         &.reacted{
@@ -51,11 +57,14 @@ export default {
 
             &:hover > svg{
                 stroke: #ffff;
+                fill: #ffff;
+
             }  
         }
 
         svg{
             stroke: var(--text_color_secondary);
+            fill: var(--text_color_secondary);
             height: 20px;
             width: 20px;
             margin: 0 3px;

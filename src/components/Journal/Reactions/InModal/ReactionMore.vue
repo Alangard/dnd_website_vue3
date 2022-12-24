@@ -26,8 +26,12 @@
             </div>
 
             <reaction-more-btn
+                @FindReactedEmoticon ="(checked_emoticon_object) => this.checked_emoticon_object = checked_emoticon_object"
+                @react="this.reaction_clicked"
                 @renderReactorsList="(element_id) => this.$emit('renderReactorsList', element_id)"
                 :isMobile="this.$store.getters.getIsMobileState"
+                :user_info="this.user_info"
+
                 v-for='reaction in this.reactions_object' :key='reaction'>
             </reaction-more-btn>
 
@@ -47,8 +51,12 @@ import ReactionMoreBtn from './ReactionMoreBtn.vue';
 
 export default {
     components: { ReactionMoreBtn },
+
     props:['reactions_object'],
+
     data(){return{
+        checked_emoticon_object: null,
+        user_info: this.$store.state.user_info,
     }},
 
     computed:{
@@ -56,7 +64,7 @@ export default {
             var sum = 0;
             for(const reaction of this.reactions_object){sum += reaction.users_data.length;}
             return sum;
-        }
+        },
     },
 
     methods:{
@@ -64,6 +72,50 @@ export default {
             if(event.target.tagName == 'INPUT'){
                 const element_id = event.target.id;
                 this.$emit('renderReactorsList', element_id);
+            }
+        },
+
+        // Handle reaction button press event
+        reaction_clicked(pressed_emoticon_id){
+            const index_of_pressed_reaction = this.reactions_object.findIndex(element => element.emoticon_id == pressed_emoticon_id);
+
+            if(this.checked_emoticon_object != null){
+                const index_of_checked_reaction = this.reactions_object.findIndex(element => element.emoticon_id == this.checked_emoticon_object.emoticon_id);
+                
+
+                //If the emoticon_id of the pressed reaction matches the emoticon_id of the reaction selected up to that point
+                if(pressed_emoticon_id == this.checked_emoticon_object.emoticon_id){
+                    this.reactions_object[index_of_pressed_reaction].users_data.splice(this.checked_emoticon_object.user_index, 1);
+
+                    //* UPDATE this.reactions_object[index_of_pressed_reaction].users_data to backend*
+
+                    this.checked_emoticon_object = null;
+                }
+                else{
+                    this.reactions_object[index_of_checked_reaction].users_data.splice(this.checked_emoticon_object.user_index, 1);
+                    this.reactions_object[index_of_pressed_reaction].users_data.unshift(
+                        {
+                            'username': this.user_info.username, 
+                            'user_profile_img_url': this.user_info.user_profile_img_url, 
+                            'date': this.$store.getters.getDatetimeNow
+                        }
+                    );
+
+                    //*POST this.reactions_object[index_of_pressed_reaction].users_data to backend*
+
+                }
+            }
+
+            else{
+                this.reactions_object[index_of_pressed_reaction].users_data.unshift(
+                    {
+                        'username': this.user_info.username, 
+                        'user_profile_img_url': this.user_info.user_profile_img_url, 
+                        'date': this.$store.getters.getDatetimeNow
+                    }
+                );
+
+                //* UPDATE this.reactions_object[index_of_pressed_reaction].users_data to backend*
             }
         },
 

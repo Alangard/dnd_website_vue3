@@ -16,7 +16,7 @@
         </template>
 
         <template #modal_body>
-            <!-- <div class="reactors_container" :class="{mobile: this.$store.getters.getIsMobileState == true}">
+            <div class="reactors_container" :class="{mobile: this.$store.getters.getIsMobileState == true}">
                 <reactors-list 
                     v-if="all_emoticon_checked == false"
                     :reactors_list='this.reactors_list'
@@ -25,7 +25,7 @@
                 </reactors-list>
             </div>
 
-            <scroll-spy 
+            <!-- <scroll-spy 
                 v-if='this.all_emoticon_checked && this.searchStart'
                 :isMobile='this.$store.getters.getIsMobileState'
                 :post_id="this.post_id">
