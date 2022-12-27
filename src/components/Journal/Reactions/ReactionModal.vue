@@ -3,7 +3,7 @@
         <template #modal_header>
             <div class="reactions_more_container">
                 <reaction-more 
-                    :reactions_object="this.reactions_data_object"
+                    :reactions_obj_by_post_id="this.reactions_obj_by_post_id"
                     @renderReactorsList="renderReactorsList">
                 </reaction-more>
             </div>
@@ -48,11 +48,10 @@ export default {
     props:['post_id'],
     data(){
         return{
-            reactions_data_object: null,
+            reactions_obj_by_post_id: null,
             reactors_list: null,
-            all_emoticon_checked: null,
+            all_emoticon_checked: false,
             searchStart: null,
-            btn_type: null,
         }
     },
 
@@ -60,13 +59,39 @@ export default {
         // Create a request to the server to get reaction data for a specific post, using post_id
         // Modelling a request by retrieving data from VueX
 
-        this.reactions_data_object = this.$store.state.reactions[this.post_id];
-
-
-
+        this.reactions_obj_by_post_id = this.$store.state.reactions[this.post_id];
     },
 
-    // methods:{
+    methods:{
+        renderReactorsList(element_id){
+            // The method takes event.target.tagName (id) and generates a list of users who reacted with the selected emoticon 
+            // or a list of all reacted users (class='total_reactions_count_btn').
+
+            switch(element_id){
+                case 'total_reactions_count':
+                    let reactors_info = [];
+
+                    this.reactions_obj_by_post_id.forEach(element => {
+                        reactors_info.push(...element.users_data);
+                    });
+
+                    this.reactors_list = reactors_info.sort((a, b) => new Date(b.reaction_date) - new Date(a.reaction_date));
+
+                    return this.reactors_list;
+
+
+                
+                case 'all_emoticons':
+                    this.all_emoticon_checked = true;
+                    break
+                
+                default:
+                    console.log(element_id)
+                    this.reactors_list = this.reactions_obj_by_post_id.filter(element => element.emoticon_id == element_id);
+                    return this.reactors_list;
+            }
+        }
+    }
     //     renderReactorsList(emoticon_info){
     //         if(emoticon_info.includes('totalReaction') || emoticon_info.includes('all_emoticons')){
     //             this.btn_type = emoticon_info.split('_p_')[0];

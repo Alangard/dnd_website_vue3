@@ -1,15 +1,16 @@
 <template>
     <long-press-btn class='reaction_more_block_section' 
         v-if="this.reaction.users_data.length != 0"
-        :title="':'+this.reaction.emoticon_id"
+        :title="':' + this.reaction.emoticon_id"
         :class="{reacted: this.reaction_is_checked}"
         @LongPressEvent="react"
         @click="(event) => this.$emit('renderReactorsList', event.target.id)">
-                
+    
+        
         <input type="radio" name="emoticonGroup" :value="`${this.reaction.emoticon_id}`" :id="`${this.reaction.emoticon_id}`">
         <label :for="`${this.reaction.emoticon_id}`">
             <img :src="this.reaction.emoticon_url" :alt="`:${this.reaction.emoticon_id}`">
-            <span>{{Object.keys(this.reaction.users_data).length}}</span>
+            <span>{{this.reaction.users_data.length}}</span>
         </label>
     </long-press-btn>
 </template>

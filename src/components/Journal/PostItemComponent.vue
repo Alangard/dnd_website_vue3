@@ -44,17 +44,17 @@
 
             <EmoticonContainer
                 @click="this.modalIsOpen =! this.modalIsOpen"
-                :reactions_object = 'this.reactions' 
+                :short_post_data_reactions = 'this.reactions' 
                 :post_id='this.id'>
             </EmoticonContainer>
 
             <Transition name='modal'>
 
-                <Modal
+                <ReactionModal
                     v-if="this.modalIsOpen"
                     @close_modal='this.modalIsOpen = false'
                     :post_id='this.id'>
-                </Modal>
+                </ReactionModal>
 
             </Transition>
 
@@ -78,12 +78,12 @@
 </template>
 
 <script>
-import Modal from '@/components/Journal/Reactions/ReactionModal.vue'
+import ReactionModal from '@/components/Journal/Reactions/ReactionModal.vue'
 import EmoticonContainer from './Reactions/EmoticonContainer.vue'
 import WebShare from './Share/WebShare.vue';
 
 export default {
-    components: { EmoticonContainer, WebShare, Modal},
+    components: { EmoticonContainer, WebShare, ReactionModal},
     data(){
         return{
             id: this.$.vnode.key.data.post_id,

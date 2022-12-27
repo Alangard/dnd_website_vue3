@@ -96,40 +96,40 @@ export default createStore({
           [
             {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', 
               users_data: [
-                {username: 'user35.804254', user_profile_img_url: '', date: '2022-11-11T16:35:00.379Z'},
-                {username: 'user11.804816', user_profile_img_url: '', date: '1995-12-17T23:12:00.379Z'}, 
-                {username: 'user65.804811', user_profile_img_url: '', date: '1995-12-17T21:25:00.379Z'},
-                {username: 'user24.804824', user_profile_img_url: '', date: '1995-12-17T21:24:00.379Z'}, 
-                {username: 'user32.804871', user_profile_img_url: '', date: '1995-12-17T09:24:00.379Z'}, 
-                {username: 'user33.804708', user_profile_img_url: '', date: '1995-12-17T07:24:00.379Z'},
+                {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif',username: 'user35.804254', user_profile_img_url: '', reaction_date: '2022-11-11T16:35:00.379Z'},
+                {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif',username: 'user11.804816', user_profile_img_url: '', reaction_date: '1995-12-17T23:12:00.379Z'}, 
+                {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif',username: 'user65.804811', user_profile_img_url: '', reaction_date: '1995-12-17T21:25:00.379Z'},
+                {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif',username: 'user24.804824', user_profile_img_url: '', reaction_date: '1995-12-17T21:24:00.379Z'}, 
+                {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif',username: 'user32.804871', user_profile_img_url: '', reaction_date: '1995-12-17T09:24:00.379Z'}, 
+                {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif',username: 'user33.804708', user_profile_img_url: '', reaction_date: '1995-12-17T07:24:00.379Z'},
               ]
             },
             
             {emoticon_id: "d2_evil_NS", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif', 
               users_data: [
-                {username: 'user19.804856', user_profile_img_url: '', date: '1997-12-17T03:24:00.379Z'},
-                {username: 'user122.804737', user_profile_img_url: '', date: '1995-12-21T03:24:00.379Z'}, 
-                {username: 'user299.804802', user_profile_img_url: '', date: '1995-12-17T03:24:00.379Z'},
+                {emoticon_id: "d2_evil_NS", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif',username: 'user19.804856', user_profile_img_url: '', reaction_date: '1997-12-17T03:24:00.379Z'},
+                {emoticon_id: "d2_evil_NS", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif',username: 'user122.804737', user_profile_img_url: '', reaction_date: '1995-12-21T03:24:00.379Z'}, 
+                {emoticon_id: "d2_evil_NS", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif',username: 'user299.804802', user_profile_img_url: '', reaction_date: '1995-12-17T03:24:00.379Z'},
               ]
             },
             
             {emoticon_id: "d2_smile_QOP", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/6/6e/Emoticon_relieved.gif',
               users_data: [
-                {username: 'user44.804844', user_profile_img_url: '', date: '2009-12-18T03:24:00.379Z'},
-                {username: 'user42.804835', user_profile_img_url: '', date: '2009-12-17T03:24:00.379Z'}
+                {emoticon_id: "d2_smile_QOP", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/6/6e/Emoticon_relieved.gif',username: 'user44.804844', user_profile_img_url: '', reaction_date: '2009-12-18T03:24:00.379Z'},
+                {emoticon_id: "d2_smile_QOP", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/6/6e/Emoticon_relieved.gif',username: 'user42.804835', user_profile_img_url: '', reaction_date: '2009-12-17T03:24:00.379Z'}
               ]
             },
 
             {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif',
               users_data: [
-                {username: 'usert2.804357', profile_img_url: '', date: '2022-12-06T16:35:39.379Z'},
-                {username: 'user12.804833', profile_img_url: '', date: '2009-12-17T03:25:00.379Z'}
+                {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif',username: 'usert2.804357', profile_img_url: '', reaction_date: '2022-12-06T16:35:39.379Z'},
+                {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif',username: 'user12.804833', profile_img_url: '', reaction_date: '2009-12-17T03:25:00.379Z'}
               ]
             },
 
             {emoticon_id: "d2_dealwithit_ES", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bd/Emoticon_dealwithit.gif', 
               users_data: [
-                {username: 'user1.804838', user_profile_img_url: '', reaction_date: '1995-12-17T03:24:00.379Z'}
+                {emoticon_id: "d2_dealwithit_ES", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bd/Emoticon_dealwithit.gif', username: 'user1.804838', user_profile_img_url: '', reaction_date: '1995-12-17T03:24:00.379Z'}
               ]
             }
           ],
@@ -138,14 +138,40 @@ export default createStore({
           [
             {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.giff', 
               users_data: [              
-                {username: 'user9.804899', user_profile_img_url: '', date: '2002-12-17T03:27:00.379Z'},
-                {username: 'user12.804833', user_profile_img_url: '', date: '2002-12-17T03:24:00.379Z'}, 
+                {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.giff', username: 'user9.804899', user_profile_img_url: '', reaction_date: '2002-12-17T03:27:00.379Z'},
+                {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.giff', username: 'user12.804833', user_profile_img_url: '', reaction_date: '2002-12-17T03:24:00.379Z'}, 
               ]
             }
           ],
         
         '1': [],
-      }
+      },
+
+      // reactions: {
+      //   '1985':[
+      //     {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif', username: 'usert2.804357', profile_img_url: '', date: '2022-12-06T16:35:39.379Z'},
+      //     {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', username: 'user35.804254', user_profile_img_url: '', date: '2022-11-11T16:35:00.379Z'},
+      //     {emoticon_id: "d2_smile_QOP", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/6/6e/Emoticon_relieved.gif', username: 'user44.804844', user_profile_img_url: '', date: '2009-12-18T03:24:00.379Z'},
+      //     {emoticon_id: "d2_smile_QOP", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/6/6e/Emoticon_relieved.gif', username: 'user42.804835', user_profile_img_url: '', date: '2009-12-17T03:24:00.379Z'},
+      //     {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif', username: 'user12.804833', profile_img_url: '', date: '2009-12-17T03:25:00.379Z'},
+      //     {emoticon_id: "d2_evil_NS", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif', username: 'user19.804856', user_profile_img_url: '', date: '1997-12-17T03:24:00.379Z'},
+      //     {emoticon_id: "d2_evil_NS", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif', username: 'user122.804737', user_profile_img_url: '', date: '1995-12-21T03:24:00.379Z'}, 
+      //     {emoticon_id: "d2_evil_NS", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif', username: 'user299.804802', user_profile_img_url: '', date: '1995-12-17T03:24:00.379Z'},
+      //     {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', username: 'user11.804816', user_profile_img_url: '', date: '1995-12-17T23:12:00.379Z'}, 
+      //     {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', username: 'user65.804811', user_profile_img_url: '', date: '1995-12-17T21:25:00.379Z'},
+      //     {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', username: 'user24.804824', user_profile_img_url: '', date: '1995-12-17T21:24:00.379Z'}, 
+      //     {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', username: 'user32.804871', user_profile_img_url: '', date: '1995-12-17T09:24:00.379Z'}, 
+      //     {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', username: 'user33.804708', user_profile_img_url: '', date: '1995-12-17T07:24:00.379Z'},
+      //     {emoticon_id: "d2_dealwithit_ES", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bd/Emoticon_dealwithit.gif', username: 'user1.804838', user_profile_img_url: '', reaction_date: '1995-12-17T03:24:00.379Z'}
+      //   ],
+
+      //   '2009':[
+      //     {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.giff', username: 'user9.804899', user_profile_img_url: '', date: '2002-12-17T03:27:00.379Z'},
+      //     {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.giff', username: 'user12.804833', user_profile_img_url: '', date: '2002-12-17T03:24:00.379Z'}, 
+      //   ],
+
+      //   '1': [],
+      // }
 
     }
 

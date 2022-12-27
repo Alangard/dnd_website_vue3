@@ -18,9 +18,9 @@
                 </label>
             </div>
 
-            <div class="emoticon_element total_reaction" @click="isClicked">
-                <input type="radio" name="emoticonGroup" value="totalReaction" id="totalReaction">
-                <label for="totalReaction">
+            <div class="emoticon_element total_reactions_count_btn" @click="isClicked">
+                <input type="radio" name="emoticonGroup" value="total_reactions_count" id="total_reactions_count">
+                <label for="total_reactions_count">
                     <span>Reacted {{totalReactionsCount}}</span>
                 </label>
             </div>
@@ -30,9 +30,8 @@
                 @react="this.reaction_clicked"
                 @renderReactorsList="(element_id) => this.$emit('renderReactorsList', element_id)"
                 :isMobile="this.$store.getters.getIsMobileState"
-                :user_info="this.user_info"
-
-                v-for='reaction in this.reactions_object' :key='reaction'>
+                :user_info="getUserInfo"
+                v-for='reaction in this.reactions_obj_by_post_id' :key='reaction'>
             </reaction-more-btn>
 
         </div>
@@ -51,21 +50,43 @@ import ReactionMoreBtn from './ReactionMoreBtn.vue';
 
 export default {
     components: { ReactionMoreBtn },
-
-    props:['reactions_object'],
+    props:['reactions_obj_by_post_id'],
 
     data(){return{
         checked_emoticon_object: null,
-        user_info: this.$store.state.user_info,
     }},
 
     computed:{
+        getUserInfo(){
+            return this.$store.state.user_info;
+        },
+
         totalReactionsCount(){
             var sum = 0;
-            for(const reaction of this.reactions_object){sum += reaction.users_data.length;}
+            for(const reaction of this.reactions_obj_by_post_id){sum += reaction.users_data.length;}
             return sum;
         },
     },
+
+        // groupByEmoticonId(){
+        //     debugger
+        //     function groupBy(key) {
+        //         return function group(array) {
+        //             return array.reduce((acc, obj) => {
+        //                 const property = obj[key];
+        //                 acc[property] = acc[property] || [];
+        //                 acc[property].push(obj);
+        //                 return acc;
+        //             }, []);
+        //         };
+        //     }
+
+        //     const groupByField=groupBy("emoticon_id");
+        //     let result = groupByField(this.reactions_obj_by_post_id);
+
+        //     console.log(result)
+
+        // }
 
     methods:{
         isClicked(event){
@@ -118,12 +139,6 @@ export default {
                 //* UPDATE this.reactions_object[index_of_pressed_reaction].users_data to backend*
             }
         },
-
-        // totalReactionsCount(){
-        //     var sum = 0;
-        //     for(const element of this.reactions_object){sum += element.data.length;}
-        //     return sum;
-        // },
 
         scrollX(e) {
             this.$refs['emot_container'].scrollLeft += e.deltaY;
