@@ -46,7 +46,7 @@ export default {
     data(){
         return{
            search_query: '',
-           emoticons_list: this.$store.getters.getAllEmoticons,
+           emoticons_list: null,
         }
     },
 
@@ -63,7 +63,8 @@ export default {
 
     beforeMount(){
     //    this.getEmotsFromServer();
-       this.$emit('searchStart', true);
+       this.$emit('searchStart', true)
+       this.emoticons_list = this.getAllEmoticons
     },
 
     methods:{
@@ -75,8 +76,13 @@ export default {
     },
 
     computed:{
+        getAllEmoticons(){
+            //Request to the server to get all emoticons
+            return this.$store.state.emoticons.all;
+        },
+
         FilterReactionsById(){
-            return this.emoticons_list.filter(reaction => reaction.reaction_id.indexOf(this.search_query) !== -1)
+            return this.emoticons_list.filter(emoticon => emoticon.emoticon_id.indexOf(this.search_query) !== -1)
         }
     },
 

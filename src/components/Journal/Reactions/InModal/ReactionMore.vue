@@ -26,9 +26,8 @@
             </div>
 
             <reaction-more-btn
-                @FindReactedEmoticon ="(checked_emoticon_object) => this.checked_emoticon_object = checked_emoticon_object"
-                @react="this.reaction_clicked"
-                @renderReactorsList="(element_id) => this.$emit('renderReactorsList', element_id)"
+                @react="reacted"
+                @click="isClicked"
                 :isMobile="this.$store.getters.getIsMobileState"
                 :user_info="getUserInfo"
                 v-for='reaction in this.reactions_obj_by_post_id' :key='reaction'>
@@ -50,10 +49,9 @@ import ReactionMoreBtn from './ReactionMoreBtn.vue';
 
 export default {
     components: { ReactionMoreBtn },
-    props:['reactions_obj_by_post_id'],
+    props:['reactions_obj_by_post_id', 'post_id'],
 
     data(){return{
-        checked_emoticon_object: null,
     }},
 
     computed:{
@@ -68,26 +66,6 @@ export default {
         },
     },
 
-        // groupByEmoticonId(){
-        //     debugger
-        //     function groupBy(key) {
-        //         return function group(array) {
-        //             return array.reduce((acc, obj) => {
-        //                 const property = obj[key];
-        //                 acc[property] = acc[property] || [];
-        //                 acc[property].push(obj);
-        //                 return acc;
-        //             }, []);
-        //         };
-        //     }
-
-        //     const groupByField=groupBy("emoticon_id");
-        //     let result = groupByField(this.reactions_obj_by_post_id);
-
-        //     console.log(result)
-
-        // }
-
     methods:{
         isClicked(event){
             if(event.target.tagName == 'INPUT'){
@@ -96,48 +74,14 @@ export default {
             }
         },
 
-        // Handle reaction button press event
-        reaction_clicked(pressed_emoticon_id){
-            const index_of_pressed_reaction = this.reactions_object.findIndex(element => element.emoticon_id == pressed_emoticon_id);
+        // Handle reaction button press event *Need to divide to computed functions*
+        reacted(emoticon_data){
+            debugger
+            const {emoticon_id, emoticon_url} = emoticon_data;
 
-            if(this.checked_emoticon_object != null){
-                const index_of_checked_reaction = this.reactions_object.findIndex(element => element.emoticon_id == this.checked_emoticon_object.emoticon_id);
-                
-
-                //If the emoticon_id of the pressed reaction matches the emoticon_id of the reaction selected up to that point
-                if(pressed_emoticon_id == this.checked_emoticon_object.emoticon_id){
-                    this.reactions_object[index_of_pressed_reaction].users_data.splice(this.checked_emoticon_object.user_index, 1);
-
-                    //* UPDATE this.reactions_object[index_of_pressed_reaction].users_data to backend*
-
-                    this.checked_emoticon_object = null;
-                }
-                else{
-                    this.reactions_object[index_of_checked_reaction].users_data.splice(this.checked_emoticon_object.user_index, 1);
-                    this.reactions_object[index_of_pressed_reaction].users_data.unshift(
-                        {
-                            'username': this.user_info.username, 
-                            'user_profile_img_url': this.user_info.user_profile_img_url, 
-                            'date': this.$store.getters.getDatetimeNow
-                        }
-                    );
-
-                    //*POST this.reactions_object[index_of_pressed_reaction].users_data to backend*
-
-                }
-            }
-
-            else{
-                this.reactions_object[index_of_pressed_reaction].users_data.unshift(
-                    {
-                        'username': this.user_info.username, 
-                        'user_profile_img_url': this.user_info.user_profile_img_url, 
-                        'date': this.$store.getters.getDatetimeNow
-                    }
-                );
-
-                //* UPDATE this.reactions_object[index_of_pressed_reaction].users_data to backend*
-            }
+            this.$store.dispatch('changeReactionStatus', 
+                {'post_id': this.post_id, 'pressed_emoticon_id': emoticon_id, 'pressed_emoticon_url': emoticon_url}
+            )
         },
 
         scrollX(e) {

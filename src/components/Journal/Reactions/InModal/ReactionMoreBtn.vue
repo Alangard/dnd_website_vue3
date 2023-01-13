@@ -2,9 +2,8 @@
     <long-press-btn class='reaction_more_block_section' 
         v-if="this.reaction.users_data.length != 0"
         :title="':' + this.reaction.emoticon_id"
-        :class="{reacted: this.reaction_is_checked}"
-        @LongPressEvent="react"
-        @click="(event) => this.$emit('renderReactorsList', event.target.id)">
+        :class="{reacted: this.reaction_is_checked != -1}"
+        @LongPressEvent="react">
     
         
         <input type="radio" name="emoticonGroup" :value="`${this.reaction.emoticon_id}`" :id="`${this.reaction.emoticon_id}`">
@@ -27,7 +26,6 @@ export default {
     data(){
         return{
             reaction: this.$.vnode.key,
-            user_index_in_reaction: null,
         }
     },
 
@@ -36,17 +34,7 @@ export default {
         //Get the object index of the user of the current session who left this response. Use to set the styles
         reaction_is_checked(){
             const user_index = this.reaction.users_data.findIndex(element => element.username == this.user_info.username);
-            this.user_index_in_reaction = user_index;
-
-            if(user_index != -1){
-
-                //If the reaction has been selected, update the information in checked_emoticon_object inside the ReactionMore component
-                this.$emit('FindReactedEmoticon', {'emoticon_id': this.reaction.emoticon_id, 'user_index': this.user_index_in_reaction});
-                return true;
-            }
-            else{
-                return false;
-            }
+            return user_index;
         }
     },
 
@@ -54,7 +42,7 @@ export default {
 
         //A method that leaves a user reaction. Click handling proccessing in the ReactionMore component
         react(){
-            this.$emit('react', this.reaction.emoticon_id);
+            this.$emit('react', {"emoticon_id":this.reaction.emoticon_id, "emoticon_url":this.reaction.emoticon_url});
         },
     }
 }

@@ -1,40 +1,40 @@
 <template>
-    <div class='main_container'>
+    <div class='main_container' v-bind="containerProps">
+        <div class="wrapperProps" v-bind="wrapperProps"> 
+        
+            <div v-for="reactor in list" :key="reactor">
 
-        <div v-for='reactor in this.reactors_list' :key='reactor.username'>
+                <div class='reactor_element'
+                    :class="{reacted: reactor.data.username == this.$store.getters.getUserInfo.username}">
 
-            <div class='reactor_element'
-                
-                :class="{reacted: reactor.username == this.$store.getters.getUserInfo.username}">
-                <!-- :class="{reacted: this.dataOfUserReaction}"> -->
+                    <div class="leftside_container">
+                        <img class="profile_img"  v-if='reactor.data.user_profile_img_url != ""' :src="reactor.data.user_profile_img_url" alt="" 
+                            @click="$router.push({ name: 'user', params: {id: reactor.data.username} })"
+                        >
 
-                <div class="leftside_container">
-                    <img class="profile_img"  v-if='reactor.profile_img_url != ""' :src="reactor.profile_img_url" alt="" 
-                        @click="$router.push({ name: 'user', params: {id: reactor.username} })"
-                    >
-
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        v-else
-                        class="profile_img" 
-                        @click="$router.push({ name: 'user', params: {id: reactor.username} })">
-                            <path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/>
-                            <circle cx="12" cy="10" r="3"/>
-                            <circle cx="12" cy="12" r="10"/>
-                    </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            v-else
+                            class="profile_img" 
+                            @click="$router.push({ name: 'user', params: {id: reactor.data.username} })">
+                                <path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/>
+                                <circle cx="12" cy="10" r="3"/>
+                                <circle cx="12" cy="12" r="10"/>
+                        </svg>
 
 
-                    <div class="user_info">
-                        <span class='username' @click="$router.push({ name: 'user', params: {id: reactor.username} })">
-                            {{this.$store.getters.capitalizeFirstLetter(reactor.username.split('.')[0])}}
-                        </span>
-                        <span class='datetime'>Reacted {{this.$store.getters.dateTimeFormat(reactor.date)}}</span>
+                        <div class="user_info">
+                            <span class='username' @click="$router.push({ name: 'user', params: {id: reactor.data.username} })">
+                                {{this.$store.getters.capitalizeFirstLetter(reactor.data.username.split('.')[0])}}
+                            </span>
+                            <span class='datetime'>Reacted {{this.$store.getters.dateTimeFormat(reactor.data.reaction_date)}}</span>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="rightside_container" v-if="this.btn_type =='totalReaction'">
-                    <img :src="reactor.emot_url" alt="" :title="':'+ reactor.emot_id">
-                </div>
+                    
+                    <div class="rightside_container" v-if="chosen_section =='total_reactions_count'">
+                        <img :src="reactor.data.emoticon_url" alt="" :title="':'+ reactor.data.emoticon_id">
+                    </div>
 
+                </div>
             </div>
         </div>
         
@@ -42,21 +42,70 @@
 
 </template>
 
-<script>
 
-export default {
-    props: ['reactors_list', 'post_id', 'btn_type'],
-    data(){return{}},
-}
+<script setup>
+    import { defineProps, computed  } from 'vue'
+    import { useVirtualList, useInfiniteScroll } from '@vueuse/core';
+
+    const props = defineProps({
+        'reactors_list_prop': Array,
+        'chosen_section': String,
+    });
+
+    const reactors_list = computed(() => props.reactors_list_prop); //read docs https://vueuse.org/core/usevirtuallist/#reactive-list
+    const { list, containerProps, wrapperProps } = useVirtualList(reactors_list, {itemHeight: 74});
+
+    // useInfiniteScroll(
+    //     containerProps.ref, 
+    //     () => {
+    //         // load more
+    //         //take the data pack from the database, following the username and date of the last item in current reactors_list (identifier in the database)
+    //         const response_reactions_data = []
+    //         reactors_list.push(response_reactions_data);
+    //     },
+    //     {distance: 10} //in pixels
+    // )
+
+
 </script>
 
 <style lang="scss" scoped>
     .main_container{
         display: flex;
         flex-direction: column;
+        height: auto;
+        padding-right: 5px;
+        max-height: 350px;
+        overflow: hidden;
+        border-radius: 5px;
         color: var(--text_color_secondary);
         font-weight: 400;
-        border-radius: 5px;
+
+
+        &:hover, &:focus{
+            overflow-y: scroll;
+        }
+        
+        &::-webkit-scrollbar{
+            width: 0.7vw;
+            max-width: 5px;
+        }
+
+        &::-webkit-scrollbar-track{
+            background-color: var(--bg_button_color);
+            border-radius: 5px;
+        }
+        
+
+        &::-webkit-scrollbar-thumb{
+            background-color: var(--text_color_secondary);
+            border-radius: 5px;
+        }
+
+        &.mobile{
+            overflow-y: scroll;
+        }
+
 
         .reactor_element{
             display: flex;

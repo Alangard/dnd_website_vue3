@@ -3,10 +3,10 @@
         <template #scrollspy_articles>
             <scroll-spy-item :item_id='"recent"' :visible=true>
                 <template #scrollspy_section__header>Recent</template>
-                <template #scrollspy_section__body v-if="(this.$store.getters.getUserEmoticonRecent.length > 0)">
+                <template #scrollspy_section__body v-if="(getUserEmoticonRecent.length > 0)">
 
                     <in-favorites-btn
-                        v-for="reaction in this.$store.getters.getUserEmoticonRecent" :key='reaction'
+                        v-for="reaction in getUserEmoticonRecent" :key='reaction'
                         :post_id="this.post_id"
                         :isMobile="this.$store.getters.getIsMobileState">
                     </in-favorites-btn>
@@ -19,10 +19,10 @@
 
             <scroll-spy-item :item_id='"favorites"' :visible=true>
                 <template #scrollspy_section__header>Favorites</template>
-                <template #scrollspy_section__body v-if="(this.$store.getters.getUserEmoticonFavorites.length > 0)">
+                <template #scrollspy_section__body v-if="(getUserEmoticonFavorites.length > 0)">
 
                     <in-favorites-btn
-                        v-for="reaction in this.$store.getters.getUserEmoticonFavorites" :key='reaction'
+                        v-for="reaction in getUserEmoticonFavorites" :key='reaction'
                         :post_id="this.post_id"
                         :isMobile="this.$store.getters.getIsMobileState">
                     </in-favorites-btn>
@@ -38,7 +38,7 @@
                 <template #scrollspy_section__body>
 
                     <in-favorites-btn
-                        v-for="reaction in this.$store.getters.getMostPopularEmoticons" :key='reaction'
+                        v-for="reaction in getMostPopularEmoticons" :key='reaction'
                         :post_id="this.post_id"
                         :isMobile="this.$store.getters.getIsMobileState">
                     </in-favorites-btn>
@@ -51,7 +51,7 @@
                 <template #scrollspy_section__body>
 
                     <in-favorites-btn
-                        v-for="reaction in this.$store.getters.getAllEmoticons" :key='reaction'
+                        v-for="reaction in getAllEmoticons" :key='reaction'
                         :post_id="this.post_id"
                         :isMobile="this.$store.getters.getIsMobileState">
                     </in-favorites-btn>                    
@@ -112,5 +112,29 @@ export default {
     props:['isMobile', 'post_id'],
     data(){return{
     }},
+
+    computed:{
+        getUserInfo(){
+            return this.$store.state.user_info;
+        },  
+
+        getAllEmoticons(){
+            //Request to the server to get all emoticons
+            return this.$store.state.emoticons.all;
+        },
+
+        getMostPopularEmoticons(){
+            return this.$store.state.emoticons.most_popular;
+        },
+
+        getUserEmoticonRecent(){
+            return this.getUserInfo.emoticons.recent; 
+        },
+
+        getUserEmoticonFavorites(){
+            return this.getUserInfo.emoticons.favorites; 
+        },
+
+    }
 }
 </script>

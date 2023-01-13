@@ -1,3 +1,4 @@
+
 import { createStore } from 'vuex'
 
 
@@ -122,8 +123,8 @@ export default createStore({
 
             {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif',
               users_data: [
-                {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif',username: 'usert2.804357', profile_img_url: '', reaction_date: '2022-12-06T16:35:39.379Z'},
-                {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif',username: 'user12.804833', profile_img_url: '', reaction_date: '2009-12-17T03:25:00.379Z'}
+                {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif',username: 'usert2.804357', user_profile_img_url: '', reaction_date: '2022-12-06T16:35:39.379Z'},
+                {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif',username: 'user12.804833', user_profile_img_url: '', reaction_date: '2009-12-17T03:25:00.379Z'}
               ]
             },
 
@@ -149,20 +150,20 @@ export default createStore({
 
       // reactions: {
       //   '1985':[
-      //     {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif', username: 'usert2.804357', profile_img_url: '', date: '2022-12-06T16:35:39.379Z'},
-      //     {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', username: 'user35.804254', user_profile_img_url: '', date: '2022-11-11T16:35:00.379Z'},
-      //     {emoticon_id: "d2_smile_QOP", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/6/6e/Emoticon_relieved.gif', username: 'user44.804844', user_profile_img_url: '', date: '2009-12-18T03:24:00.379Z'},
-      //     {emoticon_id: "d2_smile_QOP", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/6/6e/Emoticon_relieved.gif', username: 'user42.804835', user_profile_img_url: '', date: '2009-12-17T03:24:00.379Z'},
-      //     {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif', username: 'user12.804833', profile_img_url: '', date: '2009-12-17T03:25:00.379Z'},
-      //     {emoticon_id: "d2_evil_NS", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif', username: 'user19.804856', user_profile_img_url: '', date: '1997-12-17T03:24:00.379Z'},
-      //     {emoticon_id: "d2_evil_NS", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif', username: 'user122.804737', user_profile_img_url: '', date: '1995-12-21T03:24:00.379Z'}, 
-      //     {emoticon_id: "d2_evil_NS", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif', username: 'user299.804802', user_profile_img_url: '', date: '1995-12-17T03:24:00.379Z'},
-      //     {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', username: 'user11.804816', user_profile_img_url: '', date: '1995-12-17T23:12:00.379Z'}, 
-      //     {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', username: 'user65.804811', user_profile_img_url: '', date: '1995-12-17T21:25:00.379Z'},
-      //     {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', username: 'user24.804824', user_profile_img_url: '', date: '1995-12-17T21:24:00.379Z'}, 
-      //     {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', username: 'user32.804871', user_profile_img_url: '', date: '1995-12-17T09:24:00.379Z'}, 
-      //     {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', username: 'user33.804708', user_profile_img_url: '', date: '1995-12-17T07:24:00.379Z'},
-      //     {emoticon_id: "d2_dealwithit_ES", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bd/Emoticon_dealwithit.gif', username: 'user1.804838', user_profile_img_url: '', reaction_date: '1995-12-17T03:24:00.379Z'}
+          // {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif', username: 'usert2.804357', profile_img_url: '', date: '2022-12-06T16:35:39.379Z'},
+          // {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', username: 'user35.804254', user_profile_img_url: '', date: '2022-11-11T16:35:00.379Z'},
+          // {emoticon_id: "d2_smile_QOP", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/6/6e/Emoticon_relieved.gif', username: 'user44.804844', user_profile_img_url: '', date: '2009-12-18T03:24:00.379Z'},
+          // {emoticon_id: "d2_smile_QOP", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/6/6e/Emoticon_relieved.gif', username: 'user42.804835', user_profile_img_url: '', date: '2009-12-17T03:24:00.379Z'},
+          // {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif', username: 'user12.804833', profile_img_url: '', date: '2009-12-17T03:25:00.379Z'},
+          // {emoticon_id: "d2_evil_NS", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif', username: 'user19.804856', user_profile_img_url: '', date: '1997-12-17T03:24:00.379Z'},
+          // {emoticon_id: "d2_evil_NS", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif', username: 'user122.804737', user_profile_img_url: '', date: '1995-12-21T03:24:00.379Z'}, 
+          // {emoticon_id: "d2_evil_NS", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/1/18/Emoticon_devil.gif', username: 'user299.804802', user_profile_img_url: '', date: '1995-12-17T03:24:00.379Z'},
+          // {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', username: 'user11.804816', user_profile_img_url: '', date: '1995-12-17T23:12:00.379Z'}, 
+          // {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', username: 'user65.804811', user_profile_img_url: '', date: '1995-12-17T21:25:00.379Z'},
+          // {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', username: 'user24.804824', user_profile_img_url: '', date: '1995-12-17T21:24:00.379Z'}, 
+          // {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', username: 'user32.804871', user_profile_img_url: '', date: '1995-12-17T09:24:00.379Z'}, 
+          // {emoticon_id: "d2_facepalm_WR", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif', username: 'user33.804708', user_profile_img_url: '', date: '1995-12-17T07:24:00.379Z'},
+          // {emoticon_id: "d2_dealwithit_ES", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bd/Emoticon_dealwithit.gif', username: 'user1.804838', user_profile_img_url: '', reaction_date: '1995-12-17T03:24:00.379Z'}
       //   ],
 
       //   '2009':[
@@ -204,6 +205,14 @@ export default createStore({
     },
 
 
+    //////////////////////////////////////////////////////////
+
+    getIndexOfReactionByID: (state) => (input_obj) =>{
+      const {reactions_obj, emoticon_id} = input_obj;
+      return reactions_obj.findIndex(element => element.emoticon_id == emoticon_id);
+    },
+
+    //////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -219,7 +228,7 @@ export default createStore({
     },
 
     getUserInfo(state){//
-      return {'username': state.user_info.username, 'profile_img_url': state.user_info.profile_img_url}
+      return {'username': state.user_info.username, 'user_profile_img_url': state.user_info.user_profile_img_url}
     },
 
     getUserEmoticonFavorites(state){ //getUserEmoticon
@@ -239,18 +248,18 @@ export default createStore({
     },
 
     // Returns the index of the emoticon in the Favorites section by reaction's id. If there is no emoticon, the getter will return -1
-    getIndexEmotInFavorites: (state) => (reaction_id) =>{
-      for(var [reaction_index, reaction] of state.user_info.emoticons.favorites.entries()){
-        if(reaction.reaction_id == reaction_id){
+    getIndexEmotInFavorites: (state) => (emoticon_id) =>{
+      for(var [reaction_index, emoticon] of state.user_info.emoticons.favorites.entries()){
+        if(emoticon.emoticon_id == emoticon_id){
           return reaction_index;
         }
       }
       return -1;      
     },
 
-    getIndexEmotInRecent: (state) => (reaction_id) =>{
-      for(var [reaction_index, reaction] of state.user_info.emoticons.recent.entries()){
-        if(reaction.reaction_id == reaction_id){
+    getIndexEmotInRecent: (state) => (emoticon_id) =>{
+      for(var [reaction_index, emoticon] of state.user_info.emoticons.recent.entries()){
+        if(emoticon.emoticon_id == emoticon_id){
           return reaction_index;
         }
       }
@@ -359,6 +368,11 @@ export default createStore({
   },
 
   mutations: {
+    /////////////////////////////////////////////////////////////
+    
+    ////////////////////////////////////////////////////////////
+
+
     //Change the state of page size (true - mobile, false - desktop)
     changeIsMobileFlag(state, flag_pos) {
         state.isMobile = flag_pos;
@@ -390,90 +404,116 @@ export default createStore({
       }
       catch(err){console.log(err);}
     },
-
-    addReactionInFavorites(state, emote_data){
-      try{
-        const [id, url] = emote_data;
-        state.user_info.emoticons.favorites.push({'reaction_id': id, 'img_url': url});
-        //console.log(state.user_info.emoticons.favorites);
-      }
-      catch(err){console.log(err);}
-    },
-
-    removeReactionFromFavorites(state, reaction_index){
-      try{
-        state.user_info.emoticons.favorites.splice(reaction_index, 1);
-        //console.log(data);
-      }
-      catch(err){console.log(err);}
-    },
   },
 
   actions: {
 
     changeReactionStatus(context, payload){
-      const [reaction_dict, reaction_index__of_reaction_data, post_id, chosen_reaction_data] = payload;
-      const datetime = context.getters.getDatetimeNow;
-      const user_info_obj = {'username': context.state.user_info.username, 'profile_img_url': context.state.user_info.profile_img_url, 'date': datetime};
+      debugger
+      const {post_id, pressed_emoticon_id, pressed_emoticon_url} = payload;
+      let reaction_obj = null;
 
-      //Checking whether the user has left this reaction to the post before
-      if(reaction_index__of_reaction_data != undefined){
+      for(const reaction of context.state.reactions[post_id]){
+        let index_of_user = 0;
+        for(const user of reaction.users_data){
 
-        if(reaction_dict.reaction_id == chosen_reaction_data.reaction_id){
-          context.commit('removeReaction', [reaction_dict.data, reaction_index__of_reaction_data]);
-          
+          if(user.username == context.getters.getAllUserInfo.username && reaction.emoticon_id == pressed_emoticon_id){
+            reaction.users_data.splice(index_of_user, 1);
+            return true;
+          }
+
+          else if(user.username == context.getters.getAllUserInfo.username){
+            reaction.users_data.splice(index_of_user, 1);
+          }
+
+          else if(reaction.emoticon_id == pressed_emoticon_id){
+            reaction_obj = {
+              'reaction_proxy': reaction, 
+              'reaction_data':{
+                              'emoticon_id': reaction.emoticon_id, 
+                              'emoticon_url': reaction.emoticon_url,
+                              'username': context.getters.getUserInfo.username, 
+                              'user_profile_img_url': context.getters.getUserInfo.user_profile_img_url, 
+                              'reaction_date': context.getters.getDatetimeNow
+                            }
+            };
+          }
+
+
+          index_of_user++;
+        }
+      }
+
+      //
+      if(reaction_obj !== null){
+        reaction_obj.reaction_proxy.users_data.unshift(reaction_obj.reaction_data);
+
+        // Add emoticon to "Recent" after it has been selected for reaction
+        context.dispatch('addReactionToRecent', 
+          {'emoticon_id': pressed_emoticon_id, 'emoticon_url': pressed_emoticon_url}
+        );
+      }
+
+      else{
+        //For an emoticon that is not yet in the database, create a new structure using the template
+        const NewReactionData = {'emoticon_id': pressed_emoticon_id, 'emoticon_url': pressed_emoticon_url, 
+          'users_data':[
+            {
+              'emoticon_id': pressed_emoticon_id, 
+              'emoticon_url': pressed_emoticon_url,
+              'username': context.getters.getUserInfo.username, 
+              'user_profile_img_url': context.getters.getUserInfo.user_profile_img_url, 
+              'reaction_date': context.getters.getDatetimeNow
+            }
+          ]
+        };
+
+        context.state.reactions[post_id].push(NewReactionData)
+
+        context.dispatch('addReactionToRecent', 
+          {'emoticon_id': pressed_emoticon_id, 'emoticon_url': pressed_emoticon_url}
+        );
+      }
+    },
+    
+
+    changeStatusReactionInFavorites(context, payload){
+      debugger
+      const {emoticon_id, emoticon_url} = payload;
+      const IndexEmotInFavorites = context.getters.getIndexEmotInFavorites(emoticon_id);
+
+
+      try{
+        if(IndexEmotInFavorites == -1){ 
+            context.state.user_info.emoticons.favorites.push({'emoticon_id': emoticon_id, 'emoticon_url': emoticon_url});
+            //send data to server
         }
         else{
-          const data = context.state.postData[post_id].reactions.find(reaction => reaction.reaction_id == chosen_reaction_data.reaction_id)
-          context.commit('removeReaction', [reaction_dict.data, reaction_index__of_reaction_data]);
-
-          //Checking whether a reaction to the post has been left by someone else before
-          if(data != undefined){
-            context.commit('addNewReaction', [data.data, user_info_obj]);
-          }
-          else{
-            const data = context.state.postData[post_id].reactions.push({"reaction_id":chosen_reaction_data.reaction_id, "img_url": chosen_reaction_data.img_url, "data":[user_info_obj]});
-          }
-          
+            context.state.user_info.emoticons.favorites.splice(IndexEmotInFavorites, 1);
+            //send data to server
         }
       }
-      else{
-        const data = context.state.postData[post_id].reactions.find(reaction => reaction.reaction_id == chosen_reaction_data.reaction_id).data;
-        context.commit('addNewReaction', [data, user_info_obj]);
-      }
+      catch(err){console.log(err)}
     },
 
-    changeStatusReactionInFavorites(context, reaction_data){
-      var [reaction_id, reaction_url] = reaction_data;
-      const emotInFavorites = context.getters.getIndexEmotInFavorites(reaction_id);
-      
-      if(emotInFavorites == -1){
-        context.commit('addReactionInFavorites', [reaction_id, reaction_url]);
-      }
-      else{
-        context.commit('removeReactionFromFavorites', emotInFavorites)
-      }
-    },
-
-    addReactionToRecent(context, reaction_data){
+    addReactionToRecent(context, payload){
       // исправить баг с добавлением в избранное и появлением дипликатов в recent
-      try{
-        const [reaction_id, reaction_url] = reaction_data;
-        const reaction_index = context.getters.getIndexEmotInRecent(reaction_id);
-        const recent_emots_list = context.getters.getUserInfo.emoticons.recent;
+      debugger
+      const {emoticon_id, emoticon_url} = payload;
+      const IndexEmotInRecent = context.getters.getIndexEmotInRecent(emoticon_id);
+      const RecentEmoticonsList = context.getters.getUserEmoticonRecent;
 
-        if(reaction_index == -1){
-          if(recent_emots_list.length < 5){
-            recent_emots_list.push({'reaction_id': reaction_id, 'img_url':reaction_url});
+      try{
+        if(IndexEmotInRecent == -1){
+          if(RecentEmoticonsList.length < 5){
+            RecentEmoticonsList.push({'emoticon_id': emoticon_id, 'emoticon_url':emoticon_url});
           }
           else{
-            recent_emots_list.splice(-1, 1, {'reaction_id': reaction_id, 'img_url':reaction_url});
+            RecentEmoticonsList.splice(-1, 1, {'emoticon_id': emoticon_id, 'emoticon_url':emoticon_url});
           }
         }
       }
-      catch(err){console.log(err);}
-
-
+      catch(err){console.log(err)}  
     }
   },
 

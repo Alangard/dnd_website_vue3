@@ -13,8 +13,8 @@
         <form class='comment_form' action="" @keydown.enter.prevent="addComment" @submit.prevent="addComment">
 
             <img class="profile_img"  
-                v-if='user_info.profile_img_url != ""' 
-                :src="user_info.profile_img_url"
+                v-if='user_info.user_profile_img_url != ""' 
+                :src="user_info.user_profile_img_url"
                 @click="$router.push({ name: 'user', params: {id: user_info.username} })">
                         
 

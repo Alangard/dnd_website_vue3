@@ -58,7 +58,6 @@ export default {
         width: 90%;
         max-width: 500px;
         border-radius: 5px;
-        max-height: 80%;
         padding: 0px 10px 10px 10px;
         background-color:var(--bg_color);
         filter: drop-shadow(0 0 10px var(--drop_shadow_color));
