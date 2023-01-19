@@ -2,14 +2,6 @@
 
     <div class="comments_items_container">
 
-        <CommentsItem 
-            :item="item" 
-            :index="index" 
-            v-for="(item, index) in items" 
-            :key="item.id"
-            :user_info="this.user_info"
-            @deleteComment="deleteComment"/>
-
         <form class='comment_form' action="" @keydown.enter.prevent="addComment" @submit.prevent="addComment">
 
             <img class="profile_img"  
@@ -59,8 +51,18 @@
                         <path d="M470.3,271.15,43.16,447.31a7.83,7.83,0,0,1-11.16-7V327a8,8,0,0,1,6.51-7.86l247.62-47c17.36-3.29,17.36-28.15,0-31.44l-247.63-47a8,8,0,0,1-6.5-7.85V72.59c0-5.74,5.88-10.26,11.16-8L470.3,241.76A16,16,0,0,1,470.3,271.15Z"/>
                     </svg>
             </button>
-        
+
         </form>
+
+        <CommentsItem 
+            :item="item" 
+            :index="index" 
+            v-for="(item, index) in items" 
+            :key="item.id"
+            :user_info="this.user_info"
+            @deleteComment="deleteComment"/>
+
+        <span v-if='this.items.length == 0'>There is nothing ¯\_(ツ)_/¯</span>
         
     </div>
 </template>
@@ -124,7 +126,6 @@ export default {
         align-items: center;
         height: max-content;
         margin-bottom: 15px;
-        padding-top: 10px;
         border-radius: 5px;
         background-color: var(--bg_block_color);
         box-shadow: var(--box_shadow);
@@ -132,14 +133,19 @@ export default {
         font-size: 17px;
         font-weight: 400;
         color: var(--text_color_primary);
+        caret-color: transparent;
 
         .comment_form{
             display: flex;
             flex-direction: row;
             align-items: flex-start;
             width: 100%;
-            padding: 10px;
-            //box-shadow: 0px -3px 6px -4px #535C70;
+            padding: 5px;
+            margin-bottom: 10px;
+            background-color: var(--bg_button_color);
+            border-radius: 5px;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
 
 
             .profile_img{
@@ -183,8 +189,8 @@ export default {
                     font-weight: 400;
                     resize: none;
                     outline: none;
-                    background-color: var(--bg_button_color);
-                    color: var(--text_color_primary);
+                    background-color: #ffff;
+                    color: #162952;
                     caret-color: var(--text_color_secondary);
 
                     scroll-behavior: smooth;
@@ -212,7 +218,7 @@ export default {
                 .reaction_btn{
                     position: absolute;
                     right: 10px;
-                    bottom: 13px;
+                    top: 5px;
                 }
             }
         
@@ -221,6 +227,10 @@ export default {
                 
             
            
+        }
+
+        span{
+            margin: 10px 0;
         }
 
     }

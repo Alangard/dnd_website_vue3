@@ -115,11 +115,13 @@ export default {
     flex-direction: column;
     align-items: center;
     padding-top: 70px;
+    height: auto;
     background-color: var(--bg_block_color);
 
     .content{
       width: 90%;
       max-width: 640px;
+      height: 100vh;
     }
 
     &.navBarHide{

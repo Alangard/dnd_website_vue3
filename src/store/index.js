@@ -325,6 +325,7 @@ export default createStore({
 
     //A method describing verbally the time from a completed event
     dateTimeFormat: (state) => (datetime_string) => {
+        
         const datetime = new Date(datetime_string);
         const now_datetime = new Date();
         const diff_in_seconds = Math.floor((now_datetime - datetime) / 1000);
