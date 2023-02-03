@@ -30,7 +30,7 @@ export default createStore({
                     ]
                 },
       user_info: {
-                  username: 'usert2.804357', user_profile_img_url: '',
+                  username: 'usert2.804357', user_profile_img_url: '', user_role:'user',//usert2.804357
                   emoticons:{
                               favorites:[{emoticon_id:'d2_dealwithit_ES', emoticon_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bd/Emoticon_dealwithit.gif'},{emoticon_id:'d2_facepalm_WR', emoticon_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif'}], 
                               recent:[{emoticon_id:'d2_facepalm_WR', emoticon_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif'},{emoticon_id:'d2_stunned_Rosh', emoticon_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif'}]
@@ -123,7 +123,7 @@ export default createStore({
 
             {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif',
               users_data: [
-                {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif',username: 'usert2.804357', user_profile_img_url: '', reaction_date: '2022-12-06T16:35:39.379Z'},
+                {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif',username: 'usert2.804357', user_profile_img_url: '', reaction_date: '2023-01-24T17:13:57.072Z'},
                 {emoticon_id: "d2_stunned_Rosh", emoticon_url: 'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif',username: 'user12.804833', user_profile_img_url: '', reaction_date: '2009-12-17T03:25:00.379Z'}
               ]
             },
@@ -228,7 +228,7 @@ export default createStore({
     },
 
     getUserInfo(state){//
-      return {'username': state.user_info.username, 'user_profile_img_url': state.user_info.user_profile_img_url}
+      return {'username': state.user_info.username, 'user_profile_img_url': state.user_info.user_profile_img_url, 'user_role': state.user_info.user_role}
     },
 
     getUserEmoticonFavorites(state){ //getUserEmoticon
@@ -322,50 +322,6 @@ export default createStore({
     capitalizeFirstLetter: (state) => (string) => {
       return string.charAt(0).toUpperCase() + string.slice(1);
     },
-
-    //A method describing verbally the time from a completed event
-    dateTimeFormat: (state) => (datetime_string) => {
-        
-        const datetime = new Date(datetime_string);
-        const now_datetime = new Date();
-        const diff_in_seconds = Math.floor((now_datetime - datetime) / 1000);
-
-        if(diff_in_seconds >= 3600){
-            if(Math.floor(diff_in_seconds / 3600) == 1){
-                return `more than ${Math.floor(diff_in_seconds / 3600)} hour ago`;
-            }
-
-            else if(Math.floor(diff_in_seconds / 3600) == 2 || Math.floor(diff_in_seconds / 3600) == 3){
-                return `more than ${Math.floor(diff_in_seconds / 3600)} hours ago`;
-            }
-
-            else{
-                //getMonth returns an integer number, between 0 and 11
-                const [month, day, year] = [datetime.getMonth() + 1, datetime.getDate(), datetime.getFullYear()];
-                const [hour, minutes] = [datetime.getHours(), datetime.getMinutes()];
-                return `${day}/${month}/${year} at ${hour}:${minutes}`;
-            }
-        }
-
-        else if (diff_in_seconds < 3600 && diff_in_seconds >= 60){
-            if(Math.floor(diff_in_seconds / 60) == 1){
-                return `more than ${Math.floor(diff_in_seconds/60)} minute ago`;
-            }
-
-            else if((Math.floor(diff_in_seconds / 60) == 5)){
-                return `more than ${Math.floor(diff_in_seconds/60)} minutes ago`;
-            }
-
-            else if(Math.floor(diff_in_seconds / 60) >= 5){
-                return `more than ${Math.floor(diff_in_seconds/60)} minutes ago`;
-            }
-        }
-
-        else {
-            return 'now';
-        }
-    }
-
   },
 
   mutations: {

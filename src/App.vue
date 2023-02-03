@@ -81,10 +81,13 @@ export default {
   --text_color_hover: #ffff;
   --block_border_color: #535C70;
   --box_shadow: 1px 1px 5px #535C70;
-  --font_header: 700 normal 17px/1.3em 'Oswald', sans-serif;
+  --font_header: 700 normal 14px/1.3em 'Lato', sans-serif;
+  --font_basic: 300 normal 14px 'Lato', sans-serif;
   --drop_shadow_color: #535C70;
   --gradien_to_transparent_color:#ababaf;
   --active_section_color: #bbbbc1;
+  --error_color: #d42c2f;
+
 
 
 
@@ -102,11 +105,12 @@ export default {
   --text_color_hover: #ffff;
   --block_border_color: #535C70;
   --box_shadow: 2px 2px 10px black;
-  --font_header: 700 normal 17px/1.3em 'Oswald', sans-serif;
+  --font_header: 700 normal 14px/1.3em 'Lato', sans-serif;
+  --font_basic: 300 normal 14px 'Lato', sans-serif;
   --drop_shadow_color: #5B58F7;
   --gradien_to_transparent_color:#4c4b4b;
   --active_section_color: #222121;
-
+  --error_color: #d42c2f;
 
 }
 

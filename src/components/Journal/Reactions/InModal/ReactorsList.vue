@@ -26,7 +26,7 @@
                             <span class='username' @click="$router.push({ name: 'user', params: {id: reactor.data.username} })">
                                 {{this.$store.getters.capitalizeFirstLetter(reactor.data.username.split('.')[0])}}
                             </span>
-                            <span class='datetime'>Reacted {{this.$store.getters.dateTimeFormat(reactor.data.reaction_date)}}</span>
+                            <span class='datetime'>Reacted {{ useTimeAgo(new Date(reactor.data.reaction_date)).value }}</span>
                         </div>
                     </div>
                     
@@ -45,7 +45,7 @@
 
 <script setup>
     import { defineProps, computed  } from 'vue'
-    import { useVirtualList, useInfiniteScroll } from '@vueuse/core';
+    import { useVirtualList, useInfiniteScroll, useTimeAgo } from '@vueuse/core';
 
     const props = defineProps({
         'reactors_list_prop': Array,

@@ -24,7 +24,7 @@
                     </span> 
 
                     <span class="dot_divider">•</span>
-                    <span class="post_date">Posted {{this.$store.getters.dateTimeFormat(this.post_date)}}</span>
+                    <span class="post_date">Posted {{this.post_timeout}}</span>
             </div>
 
             <div class="title_field"
@@ -81,13 +81,14 @@
 import ReactionModal from '@/components/Journal/Reactions/ReactionModal.vue'
 import EmoticonContainer from './Reactions/EmoticonContainer.vue'
 import WebShare from './Share/WebShare.vue';
+import { useTimeAgo } from '@vueuse/core';
 
 export default {
     components: { EmoticonContainer, WebShare, ReactionModal},
     data(){
         return{
+            post_timeout: useTimeAgo(new Date(this.$.vnode.key.data.post_date)),
             id: this.$.vnode.key.data.post_id,
-            post_date: this.$.vnode.key.data.post_date,
             creator_nickname: this.$.vnode.key.data.creator_nickname,
             creator_profile_img_url: this.$.vnode.key.data.creator_profile_img_url,
             title: this.$.vnode.key.data.title,
@@ -190,6 +191,7 @@ export default {
                 max-height: 420px;
                 width: 604px;
                 max-width: 100%;
+                margin-bottom: 10px;
                 border-radius: 5px;
                 object-fit: contain;
                 overflow: hidden;
@@ -198,7 +200,7 @@ export default {
             }
 
             .description_field{
-                padding: 15px 0;
+                padding-bottom:10px;
                 font-weight: 300;
 
             }

@@ -2,7 +2,7 @@
     <div class="comment-item_container" 
         :class="{'comment_item_container_replied': this.parentItem != undefined,
                  'comment_item_container_replying': this.reply_btn_pressed == true}"
-                 @keydown.esc="closeReplyCommentField">
+        @keydown.esc="closeReplyCommentField, closeEditComment">
         
         <div class="user-info_container">
 
@@ -21,84 +21,116 @@
                 <circle cx="12" cy="12" r="10"/>
             </svg>
 
-            <div>
-                <span class='username' 
-                    @click="$router.push({ name: 'user', params: {id: item.user_info.username} })">
-                    {{ this.$store.getters.capitalizeFirstLetter(item.user_info.username.split('.')[0]) }}
-                </span>
+            <div class="header_of_comment_info">
 
-                <span class='comment_date_container' v-if="this.editable_comment == false">
-                    Commented {{ this.$store.getters.dateTimeFormat(item.date) }}
-                </span>
+                <div class="column_wrapper">
+                    <div class='username_and_role'>
+                        <span class="username" 
+                            @click="$router.push({ name: 'user', params: {id: item.user_info.username} })">
+                            {{ this.$store.getters.capitalizeFirstLetter(item.user_info.username.split('.')[0]) }}
+                        </span>
+                        <span class="user_role">
+                            {{ ` (${this.$store.getters.capitalizeFirstLetter(item.user_info.user_role)}) ` }}
+                        </span>
+                    </div>
 
-                <span class='comment_date_container' v-if="this.editable_comment == true">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#290000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path>
-                        <polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon>
-                    </svg>
-                    Last change {{ this.$store.getters.dateTimeFormat(item.date) }}
-                </span>
+                    <span class='comment_date_container' v-if="item.user_info.username != this.user_info.username">
+                        Commented {{ this.comment_timeout }}
+                    </span>
+
+                    <span class='comment_date_container' v-else>
+                        Last change {{ this.comment_timeout }}
+                    </span>
+
+
+                </div>
+
+                <div class="dropdown_btn_container">
+                    <div v-if="item.comment_text != '*Comment was deleted*'">
+                        <div v-if="item.report_reasons.length == 0">
+                            <dropdown
+                                @moreFuncOpen="moreFuncSwipeElementOpen"
+                                @StartEdit="StartEditComment"
+                                @showDeleteAlert="this.showAlert = true"
+                                :isMobile="this.$store.getters.getIsMobileState"
+                                :current_user_info="this.user_info"
+                                :user_info="item.user_info"
+                                :isBlock="false"
+                                :comment_text="this.item.comment_text">
+                            </dropdown>
+                        </div>
+                        <div v-else>
+                            <dropdown
+                                @moreFuncOpen="moreFuncSwipeElementOpen"
+                                @StartEdit="StartEditComment"
+                                @showDeleteAlert="this.showAlert = true"
+                                :isMobile="this.$store.getters.getIsMobileState"
+                                :current_user_info="this.user_info"
+                                :user_info="item.user_info"
+                                :isBlock="true"
+                                :comment_text="this.item.comment_text">
+                            </dropdown>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </div>
 
-    
-        <div class="comment_field_container">
+        
+         <div class="comment_field_container">
+                <comment-container 
+                    :current_user_info="this.user_info" 
+                    :comment_item="this.item"
+                    @saveComment="saveComment">
+                </comment-container>
 
-            <form ref="edit_comment_form" class="edit_comment_form" action="" 
-                @keydown.enter.prevent="editComment">
+            <div class="comment_footer_container">
+                <div class='wrapper' v-if="item.comment_status == 'normal'">
+                    <div class="vote_container">
+                        <div class="likes_container" :class="{'pressed': this.like_btn_pressed}" @click="like">
+                            <button class="likes_btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#290000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3">
+                                    </path>
+                                </svg>
+                            </button>
+                            <span class="counter">
+                                {{ item.likes }}
+                            </span>
+                        </div>
 
-                <textarea 
-                    v-if="this.comment_is_visible == false"
-                    v-model="this.item.comment_text"
-                    rows="3"
-                    autofocus>
-                </textarea>
+                        <div class="dislikes_container" :class="{'pressed': this.dislike_btn_pressed}" @click="dislike">
+                            <button class="dislikes_btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#290000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17">
+                                    </path>
+                                </svg>
+                            </button>
+                            <span class="counter">
+                                {{ item.dislikes }}
+                            </span>
+                        </div>
+                    </div>
 
-            </form>
+                    <button class='btn_add_reply' type="button" @click="openReplyCommentField"> 
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#290000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 9l6 6-6 6"/><path d="M4 4v7a4 4 0 0 0 4 4h11"/>
+                        </svg>
+                        Reply
+                    </button>
 
-            <p class="leaved_comment_section" 
-                v-if="this.editable_comment == true && this.comment_is_visible == true" 
-                @click="StartEditComment">
-                {{ item.comment_text }}
-            </p>
-            
-            <p class="leaved_comment_section" v-if="this.editable_comment == false">{{ item.comment_text }}</p>
-
-            <div class="buttons_container">
-                <button class='btn_delete' v-if="parentItem" @click="deleteReply">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#290000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        <line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line>
-                    </svg>
-                </button>
-                <button class='btn_delete' v-if="!parentItem" @click="this.$emit('deleteComment', this.index)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#290000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        <line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line>
-                    </svg>
-                </button>
-
-
-                <button class='btn_add_reply' type="button" @click="openReplyCommentField"> 
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#290000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 9l6 6-6 6"/><path d="M4 4v7a4 4 0 0 0 4 4h11"/>
-                    </svg>
-                    Reply
-                </button>
-
-                <button class='btn_share' type="button">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#290000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="18" cy="5" r="3"></circle>
-                        <circle cx="6" cy="12" r="3"></circle>
-                        <circle cx="18" cy="19" r="3"></circle>
-                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                    </svg>
-                    Share
-                </button>
+                    <button class='btn_share' type="button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#290000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                        Share
+                    </button>
+                </div>
 
             </div> 
         </div>
@@ -169,32 +201,62 @@
                     :key="child.id"
                     :parentItem="item"
                     :user_info="this.user_info"
-                    @deleteReply="deleteReply"
+                    @deleteComment="deleteComment"
                 />
         </div>
 
+        <Alert
+            v-if="this.showAlert"
+            :alert_object="{'header': 'Delete comment', 'message': 'Are you sure you want to delete this comment?', 
+                            'action':'Delete', 'crtiticality': 'error'}"
+            @close_alert='showAlert = false'
+            @doAction='this.deleteComment(), this.showAlert = false'>
+        </Alert>
     </div>
 </template>
 
 <script>
-import { useDebouncedRefHistory } from '@vueuse/core';
 import CommentsItem from './CommentsItem.vue';
+import { useTimeAgo } from '@vueuse/core';
+import Dropdown from '@/components/Templates_components/Dropdown/Dropdown.vue';
+import Alert from '@/components/Templates_components/Alert.vue';
+import CommentContainer from './CommentContainer.vue';
+
 export default {
-    components: { CommentsItem } ,
+    components: { CommentsItem, Dropdown, Alert, CommentContainer } ,
     props:['item', 'index', 'parentItem', 'user_info'],
     data(){
         return{
+            showAlert: false,
+            comment_timeout: useTimeAgo(new Date(this.item.date)),
             comment_text: '',
-            editable_comment: true, // Variable limiting the ability to edit a comment
-            comment_is_visible: true, // The style variable is responsible for displaying the finished version of the comment (true = p element, false = textarea)
+            like_btn_pressed: false,
+            dislike_btn_pressed: false,
+            hasPermission: this.item.user_info.username == this.user_info.username || this.user_info.user_role == 'admin', // Variable limiting the ability to edit a comment
+            showNotEditableComment: true, // The style variable is responsible for displaying the finished version of the comment (true = p element, false = textarea)
             reply_btn_pressed: false,
         }
     },
 
-
     methods: {
-        deleteReply() {
-            this.parentItem.replies.splice(this.index, 1);
+    
+        saveComment(comment_info){
+            this.item.comment_text = comment_info.comment_text;
+            this.item.date = comment_info.date;
+        },
+
+        moreFuncSwipeElementOpen(){
+            console.log('Open modal for mobile')
+        },
+
+        deleteComment(){
+            if(this.parentItem){
+                // this.parentItem.replies.splice(this.index, 1);
+                this.item.comment_status = 'deleted';
+                this.item.comment_text ='*Comment was deleted*';
+
+            }
+            else{this.$emit('deleteComment', this.index);}
         },
 
         addReply(event) {
@@ -204,6 +266,10 @@ export default {
                 user_info: this.user_info,
                 comment_text: this.comment_text,
                 date: this.$store.getters.getDatetimeNow,
+                comment_status:'normal',
+                report_reasons:[],
+                likes: 0,
+                dislikes: 0,
                 replies: []
             }
             this.item.replies.push(comment_data);
@@ -212,24 +278,32 @@ export default {
             this.closeReplyCommentField();
         },
 
-        //A method executed after the form has been accepted. 
-        //Commits the date of the last change and changes the visibility variable of the final comment block
-        editComment(){
-            this.item.date = this.$store.getters.getDatetimeNow;
-            this.comment_is_visible = true;
-        },
-
         //Method called after clicking on the finished comment, replacing the p block with textarea
         StartEditComment(){
-            this.comment_is_visible = false;
-            this.$refs.edit_comment_form.style.caretColor='var(--text_color_secondary)';
+            if(this.item.user_info.report_reasons.length == 0){
+                this.showNotEditableComment = false;
+                this.$refs.edit_comment_form.style.caretColor='var(--text_color_secondary)';
+            }
         },
+
+        closeEditComment(){
+            this.showNotEditableComment = true;
+        },
+
+        //A method executed after the form has been accepted. 
+        //Commits the date of the last change and changes the visibility variable of the final comment block
+        sendEditedComment(){
+            this.item.date = this.$store.getters.getDatetimeNow;
+            this.showNotEditableComment = true;
+            this.closeEditComment();
+        },
+
 
         //A method called after clicking on the "reply" button. 
         //Calls the reply textbox and changes the styles and adds blur to comments outside the branch or non-parent 
         openReplyCommentField(event){
             this.reply_btn_pressed = true;
-            this.comment_text = `@${this.$store.getters.capitalizeFirstLetter(this.user_info.username)}, `
+            this.comment_text = `@${this.$store.getters.capitalizeFirstLetter(this.item.user_info.username)}, `
             const comment_item_el = document.querySelectorAll('.comment-item_container');
             for(let element of comment_item_el){
                 if(!element.contains(event.target)){element.style.filter='blur(2px)';}
@@ -242,13 +316,44 @@ export default {
             const comment_item_el = document.querySelectorAll('.comment-item_container');
             for(let element of comment_item_el){element.style.filter ='blur(0)';}
             this.reply_btn_pressed = false;
+        },      
+
+        //A methods that increases the number of likes and dislikes and changes the class (style) of the button
+        like(){
+            if(this.like_btn_pressed == false && this.dislike_btn_pressed == false){
+                this.like_btn_pressed = true;
+                this.item.likes ++;
+            }
+            else if(this.dislike_btn_pressed == true && this.like_btn_pressed == false){
+                this.dislike_btn_pressed = false;
+                this.item.dislikes--;
+                this.like_btn_pressed = true;
+                this.item.likes++;
+            }
+
+            else if(this.like_btn_pressed == true){
+                this.like_btn_pressed = false;
+                this.item.likes--;
+            }
         },
+        dislike(){
+            if(this.like_btn_pressed == false && this.dislike_btn_pressed == false){
+                this.dislike_btn_pressed = true;
+                this.item.dislikes ++;
+            }
+            else if(this.like_btn_pressed == true && this.dislike_btn_pressed == false){
+                this.like_btn_pressed = false;
+                this.item.likes--;
+                this.dislike_btn_pressed = true;
+                this.item.dislikes++;
+            }
 
-
-
-
-        
-  }  
+            else if(this.dislike_btn_pressed == true){
+                this.dislike_btn_pressed = false;
+                this.item.dislikes--;
+            }
+        },
+  }
 }
 </script>
 
@@ -261,14 +366,23 @@ export default {
     padding:0 10px 0 10px;
     width: 100%;
     caret-color: transparent;
+    margin-bottom: 8px;
+
 
     .comment_item_container_replied{
         padding: 0 0 0 35px;
+        margin-bottom: 0;
+
     }
 
     .user-info_container{
         display: flex;
         flex-direction: row;
+        margin-top: 6px;
+        padding: 8px 5px 0 5px;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+        background-color: var(--bg_button_color);
 
         .profile_img{
             height: 35px;
@@ -280,34 +394,53 @@ export default {
             cursor: pointer;
         }
 
-        div{
+        .header_of_comment_info{
             display: flex;
-            flex-direction: column;
-            justify-content: space-around;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
             width: 100%;
 
-            .username{
-                font-weight: 700;
-                font-size: 14px;
-                line-height: 14px;
-                cursor: pointer;
-            }
-
-            .comment_date_container{
+            .column_wrapper{
                 display: flex;
-                flex-direction: row;
-                align-items: flex-start;
-                font-weight: 300;
-                font-size: 13px;
-                line-height: 13px;
+                flex-direction: column;
 
-                & svg{
-                    height: 13px;
-                    width: 13px;
-                    stroke: var(--text_color_primary);
-                    margin-right: 5px;
+                .username_and_role{
+                    display:block;
+                    flex-direction: row;
+                    justify-content: flex-start;
+                    font-weight: 700;
+                    font-size: 13px;
+                    line-height: 13px;
+                    text-overflow: ellipsis;
+                    overflow: hidden; 
+                    white-space: nowrap;
+        
+                    cursor: pointer;
+
+                    .user_role{
+                        font-weight: 300;
+                    }
+                }
+
+                .comment_date_container{
+                    display: block;
+                    flex-direction: row;
+                    align-items: flex-start;
+                    font-weight: 300;
+                    margin-bottom: 2px;
+                    font-size: 11px;
+                    line-height: 12px;
+                    text-overflow: ellipsis;
+                    overflow: hidden; 
+                    white-space: nowrap;
                 }
             }
+
+            .dropdown_btn_continer{
+                display: none;
+            }
+
         }
 
     }
@@ -316,10 +449,11 @@ export default {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        margin: 8px;
         margin-left: 0px; 
-        padding: 2px 0 0 0px;
         caret-color: transparent;
+        background-color: var(--bg_button_color);
+        border-bottom-left-radius: 5px;
+        border-bottom-right-radius: 5px;
 
         &:hover, &:active, &:focus{
             cursor:default;
@@ -371,29 +505,106 @@ export default {
             padding: 0 5px;
             height: inherit;
             border: 1px solid transparent;
-        }
-        .buttons_container{
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: flex-end;
-            width: 100%;
-            margin-top: 3px;
 
-            button{
-                background-color: transparent;
-                border: none;
-                outline: none;
-                font-weight: 300;
-                font-size: 13px;
-                line-height: 13px;
-                color: var(--text_color_primary);
+            &.banned{
+                font-weight: bold;
+                color: var(--error_color);
+
+                ul{
+                    margin: 0;
+
+                    li{ 
+                        font-style: normal;
+                        font-weight: 300;
+                    }
+                }
+
+  
             }
 
-            button > svg{
-                height: 20px;
-                width: 20px;
-                stroke: var(--text_color_secondary);
+
+        }
+        .comment_footer_container{
+            width: 100%;
+            margin-top: 3px;
+            padding-left: 36px;
+            margin-bottom: 8px;
+
+            .wrapper{
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: flex-start;
+                .vote_container{
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-right: 6px;
+                    background-color: transparent;
+                    border-radius: 5px;
+
+                    .counter{
+                        font-weight: 300;
+                        font-size: 13px;
+                    }
+
+                    .likes_container{
+                        display: flex;
+                        position: relative;
+                        flex-direction: row;
+                        align-items: center;
+                        padding-right: 6px;
+
+                        button{margin-right: 4px}
+                    }
+
+                    .dislikes_container{
+                        display: flex;
+                        position: relative;
+                        flex-direction: row;
+                        align-items: center;
+                        padding-right: 6px;
+
+                        button{margin-right: 4px}
+                    }
+
+
+                    .likes_btn:hover > svg{stroke:#37ad6d;}
+                    .dislikes_btn:hover > svg{stroke:#d42c2f;}
+
+                    .likes_btn.pressed > svg{stroke:#37ad6d;}
+
+                    .dislikes_btn.pressed > svg{stroke:#d42c2f;}
+
+                }
+
+                button{
+                    border-radius: 5px;
+                    padding: 4px 6px;
+                    border: 2px solid transparent;
+                    outline: none;
+                    background-color: transparent;
+                    font-weight: 700;
+                    font-size: 13px;
+                    line-height: 13px;
+                    color: var(--text_color_secondary);
+                    margin-right:6px;
+
+                    &:hover {
+                        border-color: var(--bg_button_active_color);
+                        color: var(--bg_button_active_color);
+                        cursor:pointer;
+                    }
+
+                    &:hover > svg {stroke: var(--bg_button_active_color);}
+
+                    svg{
+                        height: 20px;
+                        width: 20px;
+                        stroke: var(--text_color_secondary);
+                    }
+                }
             }
         }
     
