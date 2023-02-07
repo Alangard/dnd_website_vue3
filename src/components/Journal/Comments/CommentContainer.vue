@@ -39,7 +39,7 @@ export default {
     props:['current_user_info', 'comment_item','comment_status'],
     data(){
         return{
-            showEditableCommentForm: false,
+            showNotEditableComment: true, // The style variable is responsible for displaying the finished version of the comment (true = p element, false = textarea)
             comment_text: this.comment_item.comment_text,
         }
     },
@@ -117,6 +117,9 @@ export default {
     height: inherit;
     border: 1px solid transparent;
     font-weight: 400;
+    word-wrap: break-word;
+    word-break: break-word;
+    max-width: 690px;
 
     .banned{
         font-weight: bold;

@@ -91,8 +91,10 @@ export default {
                 report_reasons:['1'],
                 comment_text:"comment 1",
                 date:"2023-01-24T14:32:36.657Z",
-                likes: 10,
-                dislikes: 1,
+                rate: {'usert2.804357': 1, 'Alangard.1': 1,},
+                rate_summ: 2,
+                positive_rates_list: ['usert2.80435', 'Alangard.1'],
+                negative_rates_list: [],
                 replies:[
                     {   
                         id:28,
@@ -105,8 +107,10 @@ export default {
                         report_reasons:[],
                         comment_text:"@Usert2.804357, reply for comment 1",
                         date:"2023-01-24T14:32:43.953Z",
-                        likes: 104,
-                        dislikes: 0,
+                        rate: {'Alangard.1': -1},
+                        rate_summ: -1,
+                        positive_rates_list: [],
+                        negative_rates_list: ['Alangard.1'],
                         replies:[
                             {
                                 id:72,
@@ -119,8 +123,10 @@ export default {
                                 report_reasons:['reason 1', 'reason 2 something ....'],
                                 comment_text:"@Alangard.1, reply for reply for comment 1",
                                 date:"2023-01-24T14:32:53.464Z",
-                                likes: 4,
-                                dislikes: 10,
+                                rate: {'Alangard.1': -1},
+                                rate_summ: -1,
+                                positive_rates_list: [],
+                                negative_rates_list: ['Alangard.1'],
                                 replies:[]
                             }
                         ],
@@ -139,8 +145,10 @@ export default {
                     report_reasons:[],
                     comment_text:"comment 2",
                     date:"2023-01-24T14:32:58.801Z",
-                    likes: 4,
-                    dislikes: 2,
+                    rate: {},
+                    rate_summ: 0,
+                    positive_rates_list: [],
+                    negative_rates_list: [],
                     replies:[]
                 },
             ],
@@ -161,8 +169,10 @@ export default {
                     date: this.$store.getters.getDatetimeNow,
                     comment_status:'normal',
                     report_reasons:[],
-                    likes: 0,
-                    dislikes: 0,
+                    rate: {},
+                    rate_summ: 0,
+                    positive_rates_list: [],
+                    negative_rates_list: [],
                     replies: []
                 }
                 this.items.push(comment_data);

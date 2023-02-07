@@ -3,83 +3,17 @@
         :class="{'comment_item_container_replied': this.parentItem != undefined,
                  'comment_item_container_replying': this.reply_btn_pressed == true}"
         @keydown.esc="closeReplyCommentField, closeEditComment">
-        
-        <div class="user-info_container">
-
-            <img class="profile_img"  
-                v-if='item.user_info.user_profile_img_url != ""' 
-                :src="item.user_info.user_profile_img_url"
-                @click="$router.push({ name: 'user', params: {id: item.user_info.username} })">
-                        
-
-            <svg class="profile_img"  xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                v-else
-                @click="$router.push({ name: 'user', params: {id: item.user_info.username} })">
-                    
-                <path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/>
-                <circle cx="12" cy="10" r="3"/>
-                <circle cx="12" cy="12" r="10"/>
-            </svg>
-
-            <div class="header_of_comment_info">
-
-                <div class="column_wrapper">
-                    <div class='username_and_role'>
-                        <span class="username" 
-                            @click="$router.push({ name: 'user', params: {id: item.user_info.username} })">
-                            {{ this.$store.getters.capitalizeFirstLetter(item.user_info.username.split('.')[0]) }}
-                        </span>
-                        <span class="user_role">
-                            {{ ` (${this.$store.getters.capitalizeFirstLetter(item.user_info.user_role)}) ` }}
-                        </span>
-                    </div>
-
-                    <span class='comment_date_container' v-if="item.user_info.username != this.user_info.username">
-                        Commented {{ this.comment_timeout }}
-                    </span>
-
-                    <span class='comment_date_container' v-else>
-                        Last change {{ this.comment_timeout }}
-                    </span>
-
-
-                </div>
-
-                <div class="dropdown_btn_container">
-                    <div v-if="item.comment_text != '*Comment was deleted*'">
-                        <div v-if="item.report_reasons.length == 0">
-                            <dropdown
-                                @moreFuncOpen="moreFuncSwipeElementOpen"
-                                @StartEdit="StartEditComment"
-                                @showDeleteAlert="this.showAlert = true"
-                                :isMobile="this.$store.getters.getIsMobileState"
-                                :current_user_info="this.user_info"
-                                :user_info="item.user_info"
-                                :isBlock="false"
-                                :comment_text="this.item.comment_text">
-                            </dropdown>
-                        </div>
-                        <div v-else>
-                            <dropdown
-                                @moreFuncOpen="moreFuncSwipeElementOpen"
-                                @StartEdit="StartEditComment"
-                                @showDeleteAlert="this.showAlert = true"
-                                :isMobile="this.$store.getters.getIsMobileState"
-                                :current_user_info="this.user_info"
-                                :user_info="item.user_info"
-                                :isBlock="true"
-                                :comment_text="this.item.comment_text">
-                            </dropdown>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
+    
+        <comment-info-header
+            :item="this.item"
+            :user_info="this.user_info"
+            @startEditComment="startEditComment"
+            @showDeleteAlert="this.showAlert = true">
+        </comment-info-header>
         
          <div class="comment_field_container">
                 <comment-container 
+                    :showEditableCommentForm="this.showEditableCommentForm"
                     :current_user_info="this.user_info" 
                     :comment_item="this.item"
                     @saveComment="saveComment">
@@ -87,31 +21,6 @@
 
             <div class="comment_footer_container">
                 <div class='wrapper' v-if="item.comment_status == 'normal'">
-                    <div class="vote_container">
-                        <div class="likes_container" :class="{'pressed': this.like_btn_pressed}" @click="like">
-                            <button class="likes_btn">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#290000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3">
-                                    </path>
-                                </svg>
-                            </button>
-                            <span class="counter">
-                                {{ item.likes }}
-                            </span>
-                        </div>
-
-                        <div class="dislikes_container" :class="{'pressed': this.dislike_btn_pressed}" @click="dislike">
-                            <button class="dislikes_btn">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#290000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17">
-                                    </path>
-                                </svg>
-                            </button>
-                            <span class="counter">
-                                {{ item.dislikes }}
-                            </span>
-                        </div>
-                    </div>
 
                     <button class='btn_add_reply' type="button" @click="openReplyCommentField"> 
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#290000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -120,16 +29,34 @@
                         Reply
                     </button>
 
-                    <button class='btn_share' type="button">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#290000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="18" cy="5" r="3"></circle>
-                            <circle cx="6" cy="12" r="3"></circle>
-                            <circle cx="18" cy="19" r="3"></circle>
-                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                        </svg>
-                        Share
-                    </button>
+                   <div class="vote_container">
+                        <button class="likes_btn" 
+                            :class="{'pressed': user_leaved_rate && this.like_btn_pressed == true}"
+                            @click="leave_like">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#290000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3">
+                                </path>
+                            </svg>
+                        </button>
+
+                        <span class="counter" 
+                            :class="{'negative': item.rate_summ < 0, 'positive': item.rate_summ > 0}"
+                            :title="`Positive votes: ${item.positive_rates_list.length}, negative votes: ${item.negative_rates_list.length}`">
+                            {{ item.rate_summ }}
+                        </span>
+
+                        <button class="dislikes_btn"
+                            :class="{'pressed': user_leaved_rate && this.dislike_btn_pressed == true}" 
+                            @click="leave_dislike">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#290000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17">
+                                </path>
+                            </svg>
+                        </button>
+                    </div>
+
+
+
                 </div>
 
             </div> 
@@ -217,27 +144,38 @@
 
 <script>
 import CommentsItem from './CommentsItem.vue';
-import { useTimeAgo } from '@vueuse/core';
+import CommentInfoHeader from './CommentInfoHeader.vue';
 import Dropdown from '@/components/Templates_components/Dropdown/Dropdown.vue';
 import Alert from '@/components/Templates_components/Alert.vue';
 import CommentContainer from './CommentContainer.vue';
 
 export default {
-    components: { CommentsItem, Dropdown, Alert, CommentContainer } ,
+    components: { CommentsItem, CommentInfoHeader, Dropdown, Alert, CommentContainer} ,
     props:['item', 'index', 'parentItem', 'user_info'],
     data(){
         return{
             showAlert: false,
-            comment_timeout: useTimeAgo(new Date(this.item.date)),
             comment_text: '',
             like_btn_pressed: false,
             dislike_btn_pressed: false,
             hasPermission: this.item.user_info.username == this.user_info.username || this.user_info.user_role == 'admin', // Variable limiting the ability to edit a comment
-            showNotEditableComment: true, // The style variable is responsible for displaying the finished version of the comment (true = p element, false = textarea)
             reply_btn_pressed: false,
         }
     },
-
+    computed: {
+        user_leaved_rate(){
+            for(const element of Object.keys(this.item.rate)){
+                if(element == this.user_info.username){
+                    if(this.item.rate[element] > 0){
+                        return this.like_btn_pressed = true;
+                    }
+                    else if(this.item.rate[element] < 0){
+                        return this.dislike_btn_pressed = true;
+                    }
+                }
+            }
+        },
+    },
     methods: {
     
         saveComment(comment_info){
@@ -245,9 +183,6 @@ export default {
             this.item.date = comment_info.date;
         },
 
-        moreFuncSwipeElementOpen(){
-            console.log('Open modal for mobile')
-        },
 
         deleteComment(){
             if(this.parentItem){
@@ -268,8 +203,10 @@ export default {
                 date: this.$store.getters.getDatetimeNow,
                 comment_status:'normal',
                 report_reasons:[],
-                likes: 0,
-                dislikes: 0,
+                rate: {},
+                rate_summ: 0,
+                positive_rates_list: [],
+                negative_rates_list: [],
                 replies: []
             }
             this.item.replies.push(comment_data);
@@ -279,10 +216,10 @@ export default {
         },
 
         //Method called after clicking on the finished comment, replacing the p block with textarea
-        StartEditComment(){
-            if(this.item.user_info.report_reasons.length == 0){
+        startEditComment(){
+            if(this.item.report_reasons.length == 0){
                 this.showNotEditableComment = false;
-                this.$refs.edit_comment_form.style.caretColor='var(--text_color_secondary)';
+                document.querySelector('.edit_comment_form textarea').style.caretColor='var(--text_color_secondary)';
             }
         },
 
@@ -319,40 +256,61 @@ export default {
         },      
 
         //A methods that increases the number of likes and dislikes and changes the class (style) of the button
-        like(){
-            if(this.like_btn_pressed == false && this.dislike_btn_pressed == false){
-                this.like_btn_pressed = true;
-                this.item.likes ++;
-            }
-            else if(this.dislike_btn_pressed == true && this.like_btn_pressed == false){
-                this.dislike_btn_pressed = false;
-                this.item.dislikes--;
-                this.like_btn_pressed = true;
-                this.item.likes++;
-            }
 
-            else if(this.like_btn_pressed == true){
-                this.like_btn_pressed = false;
-                this.item.likes--;
+        leave_like(){
+            debugger
+            if(this.user_info.username in this.item.rate){
+                if(this.item.rate[this.user_info.username] <= 0){
+                    this.item.rate[this.user_info.username] = 1;
+                    this.item.negative_rates_list.shift(this.user_info.username);
+                    this.item.positive_rates_list.push(this.user_info.username);
+                    this.item.rate_summ += 2;
+                    this.like_btn_pressed = true;
+                    this.dislike_btn_pressed = false;
+                }
+                else if(this.item.rate[this.user_info.username] > 0){
+                    delete this.item.rate[this.user_info.username];
+                    this.item.positive_rates_list.shift(this.user_info.username);
+                    this.item.rate_summ --;
+                    this.like_btn_pressed = false;
+                }
+            }
+            else{
+                this.item.rate[this.user_info.username] = 1;
+                this.item.positive_rates_list.push(this.user_info.username);
+                this.item.rate_summ ++;
+                this.like_btn_pressed = true;
+                
             }
         },
-        dislike(){
-            if(this.like_btn_pressed == false && this.dislike_btn_pressed == false){
-                this.dislike_btn_pressed = true;
-                this.item.dislikes ++;
-            }
-            else if(this.like_btn_pressed == true && this.dislike_btn_pressed == false){
-                this.like_btn_pressed = false;
-                this.item.likes--;
-                this.dislike_btn_pressed = true;
-                this.item.dislikes++;
-            }
 
-            else if(this.dislike_btn_pressed == true){
-                this.dislike_btn_pressed = false;
-                this.item.dislikes--;
+        leave_dislike(){
+            debugger
+            if(this.user_info.username in this.item.rate){
+                if(this.item.rate[this.user_info.username] < 0){
+                    delete this.item.rate[this.user_info.username];
+                    this.item.negative_rates_list.shift(this.user_info.username);
+                    this.item.rate_summ ++;
+                    this.dislike_btn_pressed = false;
+                }
+                else if(this.item.rate[this.user_info.username] >= 0){
+                    this.item.rate[this.user_info.username] = -1;
+                    this.item.positive_rates_list.shift(this.user_info.username);
+                    this.item.negative_rates_list.push(this.user_info.username);
+                    this.item.rate_summ += -2;
+                    this.dislike_btn_pressed = true;
+                    this.like_btn_pressed = false;
+                }
+            }
+            else{
+                this.item.rate[this.user_info.username] = -1;
+                this.item.negative_rates_list.push(this.user_info.username);
+                this.dislike_btn_pressed = true;
+                this.item.rate_summ --;
             }
         },
+
+       
   }
 }
 </script>
@@ -375,75 +333,82 @@ export default {
 
     }
 
-    .user-info_container{
-        display: flex;
-        flex-direction: row;
-        margin-top: 6px;
-        padding: 8px 5px 0 5px;
-        border-top-left-radius: 5px;
-        border-top-right-radius: 5px;
-        background-color: var(--bg_button_color);
+    // .user-info_container{
+    //     display: flex;
+    //     flex-direction: row;
+    //     margin-top: 6px;
+    //     padding: 8px 5px 0 5px;
+    //     border-top-left-radius: 5px;
+    //     border-top-right-radius: 5px;
+    //     background-color: var(--bg_button_color);
 
-        .profile_img{
-            height: 35px;
-            width: 35px;
-            margin: 0 5px 0 0;
-            object-fit: cover;
-            border-radius: 5px;
-            stroke: var(--text_color_secondary);
-            cursor: pointer;
-        }
+    //     .profile_img{
+    //         height: 35px;
+    //         width: 35px;
+    //         margin: 0 5px 0 0;
+    //         object-fit: cover;
+    //         border-radius: 5px;
+    //         stroke: var(--text_color_secondary);
+    //         cursor: pointer;
+    //     }
 
-        .header_of_comment_info{
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
+    //     .header_of_comment_info{
+    //         display: flex;
+    //         flex-direction: row;
+    //         align-items: center;
+    //         justify-content: space-between;
+    //         width: 100%;
 
-            .column_wrapper{
-                display: flex;
-                flex-direction: column;
+    //         .column_wrapper{
+    //             display: flex;
+    //             flex-direction: column;
 
-                .username_and_role{
-                    display:block;
-                    flex-direction: row;
-                    justify-content: flex-start;
-                    font-weight: 700;
-                    font-size: 13px;
-                    line-height: 13px;
-                    text-overflow: ellipsis;
-                    overflow: hidden; 
-                    white-space: nowrap;
+    //             .username_and_role{
+    //                 display:flex;
+    //                 flex-direction: row;
+    //                 justify-content: flex-start;
+    //                 align-items: center;
+    //                 font-weight: 700;
+    //                 font-size: 13px;
+    //                 line-height: 13px;
+    //                 margin-bottom: 4px;
+    //                 text-overflow: ellipsis;
+    //                 overflow: hidden; 
+    //                 white-space: nowrap;
         
-                    cursor: pointer;
+    //                 cursor: pointer;
 
-                    .user_role{
-                        font-weight: 300;
-                    }
-                }
+    //                 .user_role{
+    //                     font-size: 11px;
+    //                     margin-left: 10px;
+    //                     padding: 1px 8px;
+    //                     border-radius: 20px;
+    //                     border: 1px solid var(--bg_button_active_color);
+    //                     font-weight: 300;
+    //                 }
+    //             }
 
-                .comment_date_container{
-                    display: block;
-                    flex-direction: row;
-                    align-items: flex-start;
-                    font-weight: 300;
-                    margin-bottom: 2px;
-                    font-size: 11px;
-                    line-height: 12px;
-                    text-overflow: ellipsis;
-                    overflow: hidden; 
-                    white-space: nowrap;
-                }
-            }
+    //             .comment_date_container{
+    //                 display: block;
+    //                 flex-direction: row;
+    //                 align-items: flex-start;
+    //                 font-weight: 300;
+    //                 margin-bottom: 6px;
+    //                 font-size: 11px;
+    //                 line-height: 12px;
+    //                 text-overflow: ellipsis;
+    //                 overflow: hidden; 
+    //                 white-space: nowrap;
+    //             }
+    //         }
 
-            .dropdown_btn_continer{
-                display: none;
-            }
+    //         .dropdown_btn_continer{
+    //             display: none;
+    //         }
 
-        }
+    //     }
 
-    }
+    // }
 
     .comment_field_container{
         display: flex;
@@ -545,30 +510,11 @@ export default {
                     border-radius: 5px;
 
                     .counter{
-                        font-weight: 300;
+                        font-weight: 700;
                         font-size: 13px;
+                        &.negative{color: #d42c2f;}
+                        &.positive{color:#37ad6d;}
                     }
-
-                    .likes_container{
-                        display: flex;
-                        position: relative;
-                        flex-direction: row;
-                        align-items: center;
-                        padding-right: 6px;
-
-                        button{margin-right: 4px}
-                    }
-
-                    .dislikes_container{
-                        display: flex;
-                        position: relative;
-                        flex-direction: row;
-                        align-items: center;
-                        padding-right: 6px;
-
-                        button{margin-right: 4px}
-                    }
-
 
                     .likes_btn:hover > svg{stroke:#37ad6d;}
                     .dislikes_btn:hover > svg{stroke:#d42c2f;}
@@ -581,7 +527,7 @@ export default {
 
                 button{
                     border-radius: 5px;
-                    padding: 4px 6px;
+                    padding: 2px 3px;
                     border: 2px solid transparent;
                     outline: none;
                     background-color: transparent;
@@ -589,10 +535,9 @@ export default {
                     font-size: 13px;
                     line-height: 13px;
                     color: var(--text_color_secondary);
-                    margin-right:6px;
+                    margin:6px;
 
                     &:hover {
-                        border-color: var(--bg_button_active_color);
                         color: var(--bg_button_active_color);
                         cursor:pointer;
                     }
@@ -600,8 +545,8 @@ export default {
                     &:hover > svg {stroke: var(--bg_button_active_color);}
 
                     svg{
-                        height: 20px;
-                        width: 20px;
+                        height: 15px;
+                        width: 15px;
                         stroke: var(--text_color_secondary);
                     }
                 }

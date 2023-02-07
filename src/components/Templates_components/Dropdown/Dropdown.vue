@@ -128,7 +128,6 @@ export default {
         border: 2px solid transparent;
         outline: none;
         border-radius: 5px;
-        &:hover, &.opened {border-color: var(--bg_button_active_color);}
         &:hover > svg, &.opened > svg {stroke: var(--bg_button_active_color);}
 
     }

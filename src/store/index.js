@@ -30,7 +30,7 @@ export default createStore({
                     ]
                 },
       user_info: {
-                  username: 'usert2.804357', user_profile_img_url: '', user_role:'user',//usert2.804357
+                  username: 'Alangard.1', user_profile_img_url: '', user_role:'user',//usert2.804357
                   emoticons:{
                               favorites:[{emoticon_id:'d2_dealwithit_ES', emoticon_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bd/Emoticon_dealwithit.gif'},{emoticon_id:'d2_facepalm_WR', emoticon_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif'}], 
                               recent:[{emoticon_id:'d2_facepalm_WR', emoticon_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/0/00/Emoticon_facepalm.gif'},{emoticon_id:'d2_stunned_Rosh', emoticon_url:'https://static.wikia.nocookie.net/dota2_gamepedia/images/b/bb/Dotakin_roshan_stars.gif'}]
@@ -147,6 +147,7 @@ export default createStore({
         
         '1': [],
       },
+
 
       // reactions: {
       //   '1985':[
