@@ -40,29 +40,31 @@
         </div>
 
         <div class="dropdown_btn_container">
-            <div v-if="this.item.comment_text != '*Comment was deleted*'">
+            <div v-if="this.item.comment_status != 'deleted'">
                 <div v-if="this.item.report_reasons.length == 0">
                     <dropdown
-                        @moreFuncOpen="moreFuncSwipeElementOpen"
+                        @moreFuncOpenMobile="moreFuncSwipeElementOpen"
                         @StartEdit="this.$emit('startEditComment')"
                         @showDeleteAlert="this.$emit('showDeleteAlert')"
                         :isMobile="this.$store.getters.getIsMobileState"
                         :current_user_info="this.user_info"
                         :user_info="this.item.user_info"
                         :isBlock=false
-                        :comment_text="this.item.comment_text">
+                        :comment_text="this.item.comment_text"
+                        :comment_status="this.item.comment_status">
                     </dropdown>
                 </div>
                 <div v-else>
                     <dropdown
-                        @moreFuncOpen="moreFuncSwipeElementOpen"
+                        @moreFuncOpenMobile="moreFuncSwipeElementOpen"
                         @StartEdit="this.$emit('startEditComment')"
                         @showDeleteAlert="this.$emit('showDeleteAlert')"
                         :isMobile="this.$store.getters.getIsMobileState"
                         :current_user_info="this.user_info"
                         :user_info="item.user_info"
                         :isBlock=true
-                        :comment_text="this.item.comment_text">
+                        :comment_text="this.item.comment_text"
+                        :comment_status="this.item.comment_status">
                     </dropdown>
                 </div>
             </div>

@@ -1,9 +1,16 @@
 <template>
 
-    <div class="comment_block">
-        <div v-if="showEditableCommentForm == false && this.comment_item.comment_status == 'normal'"
-            @click="StartEditComment">
-            {{ this.comment_item.comment_text }}
+    <div class="comment_block" 
+        :class="{'banned':this.comment_item.comment_status == 'banned', 'deleted':this.comment_item.comment_status == 'deleted'}">
+        <div v-if="showNotEditableComment== false && this.comment_item.comment_status == 'normal'">
+            <span>
+                <span class="parent_username" 
+                    v-if="this.parentItem != undefined"
+                    @click="$router.push({ name: 'user', params: {id: this.parentItem.user_info.username} })">
+                    @{{this.parentItem.user_info.username}},  
+                </span>
+                <span>{{this.comment_item.comment_text}}</span>
+            </span>
         </div>
 
         <div class="banned" v-if="this.comment_item.comment_status == 'banned'">
@@ -15,17 +22,17 @@
             </ul>
         </div>
 
-        <div v-if="this.comment_item.comment_status == 'deleted'">
+        <div class="deleted" v-if="this.comment_item.comment_status == 'deleted'">
             {{ this.comment_item.comment_text }}
         </div>
     </div>
 
     <form ref="comment_form" class="comment_form" action="" 
-        @keydown.enter.prevent="sendEditedComment"
-        @keydown.esc="endEditComment">
+        @keydown.enter.prevent="this.$emit('sendEditedComment', comment_text)"
+        @keydown.esc="this.$emit('endEditComment')">
 
-        <textarea id="comment_form_textarea"
-            v-if="showEditableCommentForm == true"
+        <textarea
+            v-if="this.showNotEditableComment == true"
             v-model="this.comment_text"
             rows="3"
             autofocus>
@@ -36,55 +43,35 @@
 <script>
 import { onClickOutside } from '@vueuse/core';
 export default {
-    props:['current_user_info', 'comment_item','comment_status'],
+    props:['current_user_info', 'comment_item','parentItem', 'showNotEditableComment'],
     data(){
         return{
-            showNotEditableComment: true, // The style variable is responsible for displaying the finished version of the comment (true = p element, false = textarea)
             comment_text: this.comment_item.comment_text,
         }
     },
 
     mounted(){
         onClickOutside(this.$refs.comment_form, (event) => 
-            this.endEditComment()
+            this.$emit('endEditComment')
         )
     },
-
-    methods:{
-        //A method executed after the form has been accepted. 
-        //Commits the date of the last change and changes the visibility variable of the final comment block
-        sendEditedComment(){
-            this.$emit('saveComment',{'comment_text':this.comment_text, 'date': this.$store.getters.getDatetimeNow});
-            this.endEditComment();
-        },
-
-        //Method called after clicking on the finished comment, replacing the p block with textarea
-        StartEditComment(){
-            if(this.current_user_info.username == this.comment_item.user_info.username){ 
-                this.showEditableCommentForm = true;
-                this.$refs.comment_form.style.caretColor='var(--text_color_secondary)';
-            }            
-        },
-
-        endEditComment(){
-            this.showEditableCommentForm = false;
-        },
-
-        
-    }
 }
 </script>
 
 <style lang="scss" scoped>
 .comment_form{
     width: 100%;
+    padding: 0 5px 0 43px;
 
     textarea{
         resize:none;
         width: 100%;
-        border: 2px solid var(--bg_button_color);
+        border: 2px solid  var(--bg_button_active_color);
         border-radius: 5px;
+        background-color: transparent;
         outline: none;
+        caret-color: var(--text_color_secondary);
+        color: var(--text_color_primary);
 
         scroll-behavior: smooth;
         &::-webkit-scrollbar{
@@ -102,24 +89,29 @@ export default {
             border-radius: 5px;
         }
 
-        &:hover{border-color: var(--bg_button_active_color);}
-
         &.empty{
             overflow: hidden;
         }
     }
 }
 .comment_block {
-    margin: 0;
-    word-wrap: break-word;
+    display: block;
     width: 100%;
-    padding: 0 5px 0 43px;
+    max-width: 690px;
     height: inherit;
+    margin: 0;
+    padding: 0 5px 3px 43px;
     border: 1px solid transparent;
     font-weight: 400;
     word-wrap: break-word;
     word-break: break-word;
-    max-width: 690px;
+    caret-color: transparent;
+    background-color: var(--bg_button_color);
+
+    &.banned, &.deleted{
+        border-bottom-left-radius: 5px;
+        border-bottom-right-radius: 5px;
+    }
 
     .banned{
         font-weight: bold;
@@ -132,6 +124,18 @@ export default {
                 font-weight: 300;
             }
         }
+    }
+
+    .deleted{
+        font-weight: bold;
+        color: var(--error_color);
+    }
+
+    .parent_username{
+        cursor: pointer;
+        font-weight: 700;
+
+        &:hover{color: var(--bg_button_active_color);}
     }
 }
 </style>

@@ -35,7 +35,7 @@
                     </div>
 
                     <div v-else>
-                        <div v-if="this.comment_text != '*Comment was deleted*'">
+                        <div v-if="this.comment_status != 'deleted'">
                             <div v-if="this.current_user_info.username != this.user_info.username">
                                 <ul>
                                     <li class='report' @click="this.menuIsOpen = false"> 
@@ -82,7 +82,7 @@
 <script>
 import { onClickOutside } from '@vueuse/core';
 export default {
-    props:['isMobile', 'isBlock','current_user_info','user_info','comment_text'],
+    props:['isMobile', 'isBlock','current_user_info','user_info','comment_text','comment_status'],
     data(){
         return{
             menuIsOpen: false,
@@ -94,7 +94,7 @@ export default {
                 this.menuIsOpen = !this.menuIsOpen
             }
             else{
-                this.$emit('moreFuncOpen');
+                this.$emit('moreFuncOpenMobile');
             }
         },
     },
