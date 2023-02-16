@@ -1,25 +1,24 @@
 <template>
-    <a class='aside_link' :id="this.item_id" @click="scrollToTop">
+    <a class='aside_link' :id="props.item_id" @click="scrollToTop">
         <slot name='scrollspy_aside__body'></slot>
     </a>
 </template>
 
-<script>
-export default {
-    props:['item_id', 'isMobile'],
-    data() {return {}},
-    methods:{
-        scrollToTop(event){
-            const href = event.target.getAttribute('id');
-            const el = href ? document.querySelector("#"+href) : null;
-            if (el) {
-                document.querySelector('.article').scrollTop = el.offsetTop
-            }    
-        }
-    }
 
+<script setup>
+import { defineProps } from 'vue';
+
+const props = defineProps(['item_id', 'isMobile']);
+
+function scrollToTop(event){
+    const href = event.target.getAttribute('id');
+    const el = href ? document.querySelector("#" + href) : null;
+    if(el) {
+        document.querySelector('.article').scrollTop = el.offsetTop
+    }    
 }
 </script>
+
 
 <style lang="scss">
 .aside_link{

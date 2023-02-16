@@ -7,7 +7,21 @@
     </div>
 </template>
 
-<script>
+<script setup>
+import { onLongPress } from '@vueuse/core';
+import { ref, defineEmits  } from 'vue';
+
+const btn_container = ref(null);
+const emit = defineEmits(['LongPressEvent'])
+
+const onLongPressCallbackHook = (event) => {emit('LongPressEvent', event)};
+
+onLongPress(btn_container, onLongPressCallbackHook, { modifiers: { prevent: true } });
+
+</script>
+
+
+<!-- <script>
 import { onLongPress } from '@vueuse/core'
 export default {
     data(){return{}},
@@ -26,7 +40,7 @@ export default {
         },
     }
 }
-</script>
+</script> -->
 
 <style lang="scss" scoped>
     .long_press__btn_container{

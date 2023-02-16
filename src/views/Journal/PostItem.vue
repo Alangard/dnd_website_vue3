@@ -3,14 +3,7 @@
 </template>
 
 
-<script>
-import Comments from '@/components/Journal/Comments/Comments.vue';
-export default {
-    components: { Comments } ,
-    data(){
-        return{
-            id: this.$route.params.id
-        }
-    }
-}
+<script setup>
+import { defineAsyncComponent } from 'vue';
+const Comments = defineAsyncComponent(() => import('@/components/Journal/Comments/Comments.vue'));
 </script>

@@ -1,72 +1,72 @@
 <template>
     <div class="main-container" 
-        :class="{'light-theme': this.$store.getters.getTheme =='light', 'dark-theme': this.$store.getters.getTheme =='dark'}">
+        :class="{'light-theme': store.getters.getTheme =='light', 'dark-theme':store.getters.getTheme =='dark'}">
         
         <div class="rightside_container">
             <div class="autor_data_container">
-                    <img class="profile_img" :src="this.creator_profile_img_url" alt="" 
-                        v-if="this.creator_profile_img_url != ''"
-                        @click="$router.push({ name: 'user', params: {id: this.creator_nickname} })"
+                    <img class="profile_img" :src="key.data.creator_profile_img_url" alt="" 
+                        v-if="key.data.creator_profile_img_url != ''"
+                        @click="$router.push({ name: 'user', params: {id: key.data.creator_nickname} })"
                     >
 
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                         v-else
                         class="profile_img" 
-                        @click="$router.push({ name: 'user', params: {id: this.creator_nickname} })">
+                        @click="$router.push({ name: 'user', params: {id: key.data.creator_nickname} })">
                             <path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/>
                             <circle cx="12" cy="10" r="3"/>
                             <circle cx="12" cy="12" r="10"/>
                     </svg>
 
                     <span class="profile_name"
-                        @click="$router.push({ name: 'user', params: {id: this.creator_nickname} })">
-                        {{this.$store.getters.capitalizeFirstLetter(this.creator_nickname.split('.')[0])}}
+                        @click="$router.push({ name: 'user', params: {id: key.data.creator_nickname} })">
+                        {{store.getters.capitalizeFirstLetter(key.data.creator_nickname.split('.')[0])}}
                     </span> 
 
                     <span class="dot_divider">•</span>
-                    <span class="post_date">Posted {{this.post_timeout}}</span>
+                    <span class="post_date">Posted {{useTimeAgo(new Date(key.data.post_date)).value}}</span>
             </div>
 
             <div class="title_field"
-                @click="$router.push({ name: 'postitem', params: {id: this.id} })">
-                {{this.$store.getters.capitalizeFirstLetter(this.title)}}
+                @click="$router.push({ name: 'postitem', params: {id: key.data.post_id} })">
+                {{store.getters.capitalizeFirstLetter(key.data.title)}}
             </div>
 
-            <img class="post_img" :src="this.post_img_url" alt='post_img'
-                v-if="this.post_img_url"
-                @click="$router.push({ name: 'postitem', params: {id: this.id} })">
+            <img class="post_img" :src="key.data.post_img_url" alt='post_img'
+                v-if="key.data.post_img_url"
+                @click="$router.push({ name: 'postitem', params: {id: key.data.post_id} })">
 
-            <div class="description_field">{{this.$store.getters.capitalizeFirstLetter(this.description)}}</div>
+            <div class="description_field">{{store.getters.capitalizeFirstLetter(key.data.description)}}</div>
 
         </div>
 
         <div class="bottom_container">
 
             <EmoticonContainer
-                @click="this.modalIsOpen =! this.modalIsOpen"
-                :short_post_data_reactions = 'this.reactions' 
-                :post_id='this.id'>
+                @click="modalIsOpen =! modalIsOpen"
+                :short_post_data_reactions = 'key.reactions' 
+                :post_id='key.data.post_id'>
             </EmoticonContainer>
 
             <Transition name='modal'>
 
                 <ReactionModal
-                    v-if="this.modalIsOpen"
-                    @close_modal='this.modalIsOpen = false'
-                    :post_id='this.id'>
+                    v-if="modalIsOpen"
+                    @close_modal='modalIsOpen = false'
+                    :post_id='key.data.post_id'>
                 </ReactionModal>
 
             </Transition>
 
             <div class="user_activities_rightside_container">
                 <div class="comments_container"
-                    :class="{commented: this.commented}"
-                    @click="$router.push({ name: 'postitem', params: {id: this.id} })">
+                    :class="{commented: key.comments.commented}"
+                    @click="$router.push({ name: 'postitem', params: {id: key.data.post_id} })">
 
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                         </svg>
-                        <span>{{this.comments_counter}}</span>
+                        <span>{{key.comments.counter}}</span>
                 </div>
             
                 <WebShare></WebShare>
@@ -77,34 +77,20 @@
 
 </template>
 
-<script>
-import ReactionModal from '@/components/Journal/Reactions/ReactionModal.vue'
-import EmoticonContainer from './Reactions/EmoticonContainer.vue'
-import WebShare from './Share/WebShare.vue';
+<script setup>
+import { ref, defineAsyncComponent, getCurrentInstance } from 'vue';
+import { useStore } from 'vuex';
 import { useTimeAgo } from '@vueuse/core';
 
-export default {
-    components: { EmoticonContainer, WebShare, ReactionModal},
-    data(){
-        return{
-            post_timeout: useTimeAgo(new Date(this.$.vnode.key.data.post_date)),
-            id: this.$.vnode.key.data.post_id,
-            creator_nickname: this.$.vnode.key.data.creator_nickname,
-            creator_profile_img_url: this.$.vnode.key.data.creator_profile_img_url,
-            title: this.$.vnode.key.data.title,
-            post_img_url: this.$.vnode.key.data.post_img_url,
-            description: this.$.vnode.key.data.description,
-            reactions: this.$.vnode.key.reactions,
-            reactions_list: this.$.vnode.key.reactions.top3_reactions__list,
-            reacted_reaction: this.$.vnode.key.reactions.reacted,
-            tag_list: this.$.vnode.key.tags.tags_list,
-            comments_counter: this.$.vnode.key.comments.counter,
-            commented: this.$.vnode.key.comments.commented,
-            modalIsOpen: false,
-        }
-    },
-}
+const ReactionModal = defineAsyncComponent(() => import('@/components/Journal/Reactions/ReactionModal.vue'));
+const EmoticonContainer = defineAsyncComponent(() => import( './Reactions/EmoticonContainer.vue'));
+const WebShare = defineAsyncComponent(() => import('./Share/WebShare.vue'));
 
+const modalIsOpen = ref(false);
+const store = useStore();
+const instance = getCurrentInstance();
+
+const key = typeof instance.vnode.key === 'symbol' ? String(instance.vnode.key) : instance.vnode.key;
 </script>
 
 <style lang="scss" scoped>

@@ -3,7 +3,7 @@
     <div 
       class="accordion__trigger"
       :class="{'accordion__trigger_active': visible}"
-      @click="open">
+      @click="open()">
 
       <!-- This slot will handle the title/header of the accordion and is the part you click on -->
       <slot name="accordion-trigger"></slot>
@@ -11,10 +11,10 @@
 
     <transition 
       name="accordion"
-      @enter="start"
-      @after-enter="end"
-      @before-leave="start"
-      @after-leave="end">
+      @enter="start()"
+      @after-enter="end()"
+      @before-leave="start()"
+      @after-leave="end()">
 
       <div class="accordion__content"
         v-show="visible">
@@ -27,40 +27,22 @@
   </div>
 </template>
 
+<script setup>
+import { ref, inject } from 'vue'
 
-<script>
-export default {
-  props: {},
-  inject: ["Accordion"],
-  data() {
-    return {
-      index: null
-    };
-  },
-  computed: {
-    visible() {
-      return this.index == this.Accordion.active;
-    }
-  },
-  methods: {
-    open() {
-      if (this.visible) {
-        this.Accordion.active = null;
-      } else {
-        this.Accordion.active = this.index;
-      }
-    },
-    start(el) {
-      el.style.height = el.scrollHeight + "px";
-    },
-    end(el) {
-      el.style.height = "";
-    }
-  },
-  created() {
-    this.index = this.Accordion.count++;
-  }
+const Accordion = inject('Accordion');
+let index = ref(Accordion.count.value++);
+
+const visible = computed(() => {return index == Accordion.active});
+
+function open() {
+  if (visible) {Accordion.active.value = null;} 
+  else {Accordion.active.value = index;}
 };
+
+function start(el) {el.style.height = el.scrollHeight + "px";};
+
+function end(el) {el.style.height = "";};
 </script>
 
 <style lang="scss" scoped>

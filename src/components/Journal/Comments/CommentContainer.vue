@@ -62,6 +62,7 @@ export default {
 .comment_form{
     width: 100%;
     padding: 0 5px 0 43px;
+    background-color: var(--bg_button_color);
 
     textarea{
         resize:none;

@@ -1,10 +1,10 @@
 <template>
 
     <div class="main-content_journal"
-        :class="{'light-theme': this.$store.state.theme =='light', 'dark-theme': this.$store.state.theme =='dark'}">
+        :class="{'light-theme': store.state.theme =='light', 'dark-theme': store.state.theme =='dark'}">
 
         <PostItemComponent
-            v-for="post_id in this.posts_list_data" :key="post_id">
+            v-for="post_id in store.getters.getShrotPostData" :key="post_id">
         </PostItemComponent>
 
     </div>
@@ -14,7 +14,18 @@
 
 </template>
 
-<script>
+<script setup>
+import { defineAsyncComponent } from 'vue';
+import { useStore } from 'vuex'
+
+const PostItemComponent = defineAsyncComponent(() => import('@/components/Journal/PostItemComponent.vue'));
+const store = useStore();
+
+</script>
+
+
+
+<!-- <script>
 import PostItemComponent from '@/components/Journal/PostItemComponent.vue';
 export default {
     components: { PostItemComponent },
@@ -33,7 +44,7 @@ export default {
     },
 
 }
-</script>
+</script> -->
 
 <style lang="scss" scoped>
     .main-content_journal{

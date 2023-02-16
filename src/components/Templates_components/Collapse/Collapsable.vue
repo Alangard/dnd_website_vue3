@@ -1,8 +1,8 @@
 <template>
-    <div class="section" :id='this.item_id'>
+    <div class="section" :id='props.item_id'>
         <div class='collapse_header'
             :class="{visible: isVisible}"
-            @click="this.collapse">
+            @click="collapse()">
 
             <slot name='collapse_header'></slot>
         </div>
@@ -14,7 +14,7 @@
             @before-leave="start"
             @after-leave="end">
 
-            <div class='collapse_body' v-if="this.isVisible">
+            <div class='collapse_body' v-if="isVisible">
                 <slot name='collapse_body'></slot>
             </div>
         </transition>
@@ -22,27 +22,23 @@
 </template>
 
 
-<script>
-export default {
-    props:['item_id', 'visible'],
+<script setup>
+import { ref, defineEmits, defineProps } from 'vue';
 
-    data() {
-        return {isVisible: false,}
-    },
+const emit = defineEmits(['changeCollapseState']);
+const props = defineProps(['item_id', 'visible']);
 
-    mounted(){
-        this.isVisible = this.visible;
-    },
+const isVisible = ref(props.visible);
 
-    methods: {
-        collapse(){
-            this.isVisible = !this.isVisible;
-            this.$emit('changeCollapseState', this.isVisible);
-        },
-        start(el) {el.style.height = el.scrollHeight + "px";},
-        end(el) {el.style.height = "";}
-    },
+function collapse(){
+    isVisible.value = !isVisible.value;
+    emit('changeCollapseState', isVisible);
 }
+
+function start(el){el.style.height = el.scrollHeight + "px";}
+
+function end(el){el.style.height = "";}
+
 </script>
 
 

@@ -2,34 +2,24 @@
     <div class="accordion">
       <slot></slot>
     </div>
-  </template>
+</template>
+
+<script setup>
+import { ref, provide } from 'vue'
+
+const Accordion = ref({count: 0, active: null});
+provide('Accordion', Accordion)
+</script>
+
+<style lang="scss" scoped>
+  .accordion {
+      margin: 0;
+      padding: 0;
+      width: 100%;
   
-  <script>
-  export default {
-    props: {},
-    data() {
-      return {
-        Accordion: {
-          count: 0,
-          active: null
-        }
-      };
-    },
-    provide() {
-      return { Accordion: this.Accordion };
-    }
-  };
-  </script>
-  
-  <style lang="scss" scoped>
-    .accordion {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-    
-        &:last-child {
-        border-bottom: none;
-        }
-    }
-  </style>
+      &:last-child {
+      border-bottom: none;
+      }
+  }
+</style>
   

@@ -3,8 +3,8 @@
     
   <div class="main_content_wrapper"
     :class="{'navBarHide': $route.meta.hideNavbar,
-             'light-theme': this.$store.state.theme =='light', 
-             'dark-theme': this.$store.state.theme =='dark'
+             'light-theme': store.state.theme =='light', 
+             'dark-theme': store.state.theme =='dark'
             }">
 
     <div class="content">
@@ -15,55 +15,45 @@
 
 </template>
 
-<script>
-import TopNav from "./components/TopNav.vue";
+<script setup>
+import TopNav from "./components/TopNav.vue"
+import { useStore } from 'vuex'
+import { onMounted, onUnmounted, ref } from 'vue'
 
-export default {
-    components: { TopNav },
-    data() {
-      return {
-        user_info: null,
-        windowWidth: null,
-        mobile_limit: 750, // 750px is the limit value. If the width is larger, it means that you are viewing from desktop
-      }
-    },
+const store = useStore();
+let windowWidth = ref(null);
+const mobile_limit = 750; // 750px is the limit value. If the width is larger, it means that you are viewing from desktop
 
-    created(){
-      window.addEventListener('resize', this.checkScreen);
-      this.checkScreen();
-      
-      
-      // Making a request to retrieve user data and save it into vuex store
-      
-    },
+window.addEventListener('resize', checkScreen);
+checkScreen();
+// Making a request to retrieve user data and save it into vuex store
 
-    mounted(){
-        if (localStorage.theme) {
-            this.$store.commit('changeTheme', localStorage.theme);
-        }
-        else{
-            this.$store.commit('changeTheme', 'light'); 
-            localStorage.theme = 'light';
-        }
+// Func to get the screen width and change the global store variable 'isMobile'
+function checkScreen(){
+  windowWidth = window.innerWidth;
+  // console.log(windowWidth)
+  if (windowWidth <= mobile_limit){
+      store.commit('changeIsMobileFlag', true);
+      return;
+  }
+  else{
+    store.commit('changeIsMobileFlag', false);
+    return; 
+  }
 
- 
-    },
-
-    unmounted(){window.removeEventListener('resize',  this.checkScreen);},
-
-    methods:{
-      // Method to get the screen width and change the global store variable 'isMobile'
-      checkScreen(){
-        this.windowWidth = window.innerWidth;
-        if (this.windowWidth <= this.mobile_limit){
-            this.$store.commit('changeIsMobileFlag', true);
-            return;
-        }
-        this.$store.commit('changeIsMobileFlag', false);
-        return; 
-      }
-    }
 }
+
+onMounted(() => {
+  if (localStorage.theme) {
+    store.commit('changeTheme', localStorage.theme);
+  }
+  else{
+    storecommit('changeTheme', 'light'); 
+    localStorage.theme = 'light';
+  }
+})
+
+onUnmounted(() => window.removeEventListener('resize',  checkScreen));
 </script>
 
 <style lang="scss">

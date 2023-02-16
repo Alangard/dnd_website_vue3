@@ -1,8 +1,8 @@
 <template>
-    <div class="section" :id='this.item_id'>
+    <div class="section" :id='props.item_id'>
         <div class='section_header'
             :class="{visible: isVisible}"
-            @click="this.collapse">
+            @click="collapse()">
 
             <slot name='scrollspy_section__header'></slot>
 
@@ -18,14 +18,33 @@
             @before-leave="start"
             @after-leave="end">
 
-            <div class='section_body' v-show="this.isVisible">
+            <div class='section_body' v-show="isVisible">
                 <slot name='scrollspy_section__body'></slot>
             </div>
         </transition>
     </div>
 </template>
 
-<script>
+<script setup>
+import { ref, defineProps, defineEmits } from 'vue'
+
+const props = defineProps(['item_id','visible']);
+const emit = defineEmits(['changeCollapseState']);
+let isVisible = ref(props.visible);
+
+function collapse(){
+    isVisible.value = !isVisible.value;
+    emit('changeCollapseState', true);
+}
+
+function start(el){el.style.height = el.scrollHeight + "px";}
+
+function end(el){el.style.height = "";}
+
+
+</script>
+
+<!-- <script>
 export default {
     props:['item_id', 'visible'],
 
@@ -46,7 +65,7 @@ export default {
         end(el) {el.style.height = "";}
     },
 }
-</script>
+</script> -->
 
 <style lang="scss" scoped>
 

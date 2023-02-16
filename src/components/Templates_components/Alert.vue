@@ -1,40 +1,35 @@
 <template>
-    <modal @close_modal='this.$emit("close_alert")'>
+    <modal @close_modal='emit("close_alert")'>
         <template #modal_header>
             <div class="header">
-                {{ this.alert_object.header }}
+                {{ props.alert_object.header }}
             </div>       
         </template>
 
         <template #modal_body>
             <div class='message_text'>
-                {{ this.alert_object.message }}
+                {{ props.alert_object.message }}
             </div>
             <div class="btn_container">
-                <button class="cancel_btn" @click='this.$emit("close_alert")'>Cancel</button>
-                <button class="action_btn" @click='this.$emit("doAction")'>{{ this.alert_object.action }}</button>
+                <button class="cancel_btn" @click='emit("close_alert")'>Cancel</button>
+                <button class="action_btn" @click='emit("doAction")'>{{ props.alert_object.action }}</button>
             </div>
         </template>
     </modal>
 
 </template>
 
-<script>
-import Modal from '@/components/Templates_components/Modal.vue';
 
+<script setup>
+import { defineAsyncComponent, defineProps, defineEmits } from 'vue';
 
-export default {
-    components:{Modal},
-    props:['alert_object'],
+const Modal = defineAsyncComponent(() => import('@/components/Templates_components/Modal.vue'));
 
-    data(){
-        return{}
-    },
+const props = defineProps(['alert_object']);
+const emit = defineEmits(['close_alert', 'doAction'])
 
-    methods:{
-    }
-}
 </script>
+
 
 <style lang="scss" scoped>
 

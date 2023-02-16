@@ -1,7 +1,7 @@
 <template>
 
     <div class="main-container" 
-        :class="{'light-theme': this.$store.getters.getTheme =='light', 'dark-theme': this.$store.getters.getTheme =='dark'}">
+        :class="{'light-theme': store.getters.getTheme =='light', 'dark-theme': store.getters.getTheme =='dark'}">
 
         <button 
             class="router-link"
@@ -21,26 +21,17 @@
     </div>
 </template>
 
+<script setup>
+import { onMounted, ref, watch } from 'vue'
+import { useStore } from 'vuex';
 
-<script>
-export default {
-    data(){
-        return{
-            theme: '',
-        }
-    },
+const store = useStore();
+let theme = ref(localStorage.theme);
 
-    mounted(){
-        this.theme = localStorage.theme;
-    },
-    
-    watch: {
-        theme(newTheme) {
-            this.$store.commit('changeTheme', newTheme); 
-        }
-    },
+watch(theme, (newTheme) => {
+    store.commit('changeTheme', newTheme); 
+});
 
-}
 </script>
 
 <style lang="scss" scoped>

@@ -2,8 +2,8 @@
     <div class="modal_wrapper">
         <div class="modal_container" ref='modal_container'>
             <div class="header">
-                <div class="close_btn" @click="this.$emit('close_modal')">
-                    <svg @click="this.$emit('close_modal')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <div class="close_btn" @click="emit('close_modal')">
+                    <svg @click="emit('close_modal')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
                 </div>
@@ -18,25 +18,24 @@
     </div> 
 </template>
 
-<script>
+<script setup>
+import { ref, defineEmits, onBeforeUnmount } from 'vue';
 import { onClickOutside } from '@vueuse/core';
 
-export default {
-    mounted(){
-        onClickOutside(this.$refs.modal_container, (event) => 
-            this.$emit('close_modal')
-        )
-        
-        // Disable scrolling background page when modal is open
-        document.querySelector('body').style.overflow ='hidden';
-    },
+const emit = defineEmits(['close_modal']);
+const modal_container = ref(null);
 
-    beforeUnmount(){
-        //Before the page is unmounted, toggle overflow back
-        document.querySelector('body').style.overflow = 'visible'
-    },
-}
+onClickOutside(modal_container, (event) => emit('close_modal'));
+
+// Disable scrolling background page when modal is open
+document.querySelector('body').style.overflow ='hidden';
+
+onBeforeUnmount(() => {
+    //Before the page is unmounted, toggle overflow back
+    document.querySelector('body').style.overflow = 'visible'
+})
 </script>
+
 
 <style lang="scss" scoped>
 
