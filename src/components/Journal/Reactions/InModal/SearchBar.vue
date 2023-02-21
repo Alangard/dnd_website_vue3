@@ -5,7 +5,7 @@
 
             <input type="text" v-model="search_query" placeholder="Search by emots..." />
 
-            <div class="clear_btn" @click='this.search_query=""'>
+            <div class="clear_btn" @click='search_query=""'>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -21,73 +21,44 @@
 
         <div class="search_results_container" 
             v-if='search_query.length > 0' 
-            :class="{mobile: this.$store.getters.getIsMobileState == true, empty: this.FilterReactionsById.length == 0}">
+            :class="{mobile: store.getters.getIsMobileState == true, empty: filterReactionsById.length == 0}">
 
             <in-favorites-btn
-                v-for="reaction in FilterReactionsById" :key='reaction'
-                :post_id="this.post_id"
-                :isMobile="this.$store.getters.getIsMobileState">
+                v-for="reaction in filterReactionsById" :key='reaction'
+                :post_id="props.post_id"
+                :isMobile="store.getters.getIsMobileState">
             </in-favorites-btn>
         
         
-            <span v-if='this.FilterReactionsById.length == 0'>Nothing was found</span>
+            <span v-if='filterReactionsById.length == 0'>Nothing was found</span>
         </div>
         
 
     </div>
 </template>
 
-<script>
-import InFavoritesBtn from './InFavoritesBtn.vue';
+<script setup>
+import { ref, defineProps, defineEmits, watch, computed, defineAsyncComponent } from 'vue';
+import { useStore } from 'vuex';
 
-export default {
-  components: { InFavoritesBtn },
-    props:['post_id'],
-    data(){
-        return{
-           search_query: '',
-           emoticons_list: null,
-        }
-    },
+const InFavoritesBtn = defineAsyncComponent(() => import('./InFavoritesBtn.vue'));
 
-    watch:{
-        search_query(newValue, oldValue){
-            if(newValue != ''){
-                this.$emit('searchStart', false);
-            }
-            else{
-                this.$emit('searchStart', true)
-            }
-        }
-    },
+const props = defineProps(['post_id']);
+const emit = defineEmits(['searchStart'])
+const store = useStore();
 
-    beforeMount(){
-    //    this.getEmotsFromServer();
-       this.$emit('searchStart', true)
-       this.emoticons_list = this.getAllEmoticons
-    },
+let search_query = ref('');
 
-    methods:{
-        // async getEmotsFromServer(){
-        //     await fetch('https://jsonplaceholder.typicode.com/photos')
-        //         .then(response => response.json())
-        //         .then(json => {this.emoticons_list = json;})
-        // }
-    },
+const getAllEmoticons = computed(() => store.state.emoticons.all);
+const filterReactionsById = computed(() => getAllEmoticons.value.filter(emoticon => emoticon.emoticon_id.indexOf(search_query.value) !== -1));
+        
+watch(search_query, (newValue) => {
+    if(newValue != ''){emit('searchStart', false);}
+    else{emit('searchStart', true);}
+});
 
-    computed:{
-        getAllEmoticons(){
-            //Request to the server to get all emoticons
-            return this.$store.state.emoticons.all;
-        },
-
-        FilterReactionsById(){
-            return this.emoticons_list.filter(emoticon => emoticon.emoticon_id.indexOf(this.search_query) !== -1)
-        }
-    },
-
-    
-}
+//this.getEmotsFromServer();
+emit('searchStart', true);
 </script>
 
 <style lang="scss" scoped>

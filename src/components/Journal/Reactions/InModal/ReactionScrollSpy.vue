@@ -1,5 +1,5 @@
 <template>
-    <scroll-spy :isMobile='this.isMobile'>
+    <scroll-spy :isMobile='props.isMobile'>
         <template #scrollspy_articles>
             <scroll-spy-item :item_id='"recent"' :visible=true>
                 <template #scrollspy_section__header>Recent</template>
@@ -7,8 +7,8 @@
 
                     <in-favorites-btn
                         v-for="reaction in getUserEmoticonRecent" :key='reaction'
-                        :post_id="this.post_id"
-                        :isMobile="this.$store.getters.getIsMobileState">
+                        :post_id="props.post_id"
+                        :isMobile="props.isMobile">
                     </in-favorites-btn>
 
                 </template>
@@ -23,8 +23,8 @@
 
                     <in-favorites-btn
                         v-for="reaction in getUserEmoticonFavorites" :key='reaction'
-                        :post_id="this.post_id"
-                        :isMobile="this.$store.getters.getIsMobileState">
+                        :post_id="props.post_id"
+                        :isMobile="props.isMobile">
                     </in-favorites-btn>
 
                 </template>
@@ -39,8 +39,8 @@
 
                     <in-favorites-btn
                         v-for="reaction in getMostPopularEmoticons" :key='reaction'
-                        :post_id="this.post_id"
-                        :isMobile="this.$store.getters.getIsMobileState">
+                        :post_id="props.post_id"
+                        :isMobile="props.isMobile">
                     </in-favorites-btn>
 
                 </template>
@@ -52,8 +52,8 @@
 
                     <in-favorites-btn
                         v-for="reaction in getAllEmoticons" :key='reaction'
-                        :post_id="this.post_id"
-                        :isMobile="this.$store.getters.getIsMobileState">
+                        :post_id="props.post_id"
+                        :isMobile="props.isMobile">
                     </in-favorites-btn>                    
 
                 </template>
@@ -61,7 +61,7 @@
         </template>
 
 
-        <template #scrollspy_aside__links :isMobile ='this.isMobile'>
+        <template #scrollspy_aside__links :isMobile ='props.isMobile'>
             <scroll-spy-aside-item :item_id='"recent"'>
                 <template #scrollspy_aside__body>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -101,40 +101,21 @@
 </template>
 
 
-<script>
+<script setup>
+import { computed, defineProps } from 'vue';
+import { useStore } from 'vuex';
+
 import ScrollSpy from '@/components/Templates_components/ScrollSpy/ScrollSpy.vue'
 import ScrollSpyItem from '@/components/Templates_components/ScrollSpy/ScrollSpyItem.vue'
 import ScrollSpyAsideItem from '@/components/Templates_components/ScrollSpy/ScrollSpyAsideItem.vue'
 import InFavoritesBtn from './InFavoritesBtn.vue';
 
-export default {
-    components: { ScrollSpy, ScrollSpyItem, ScrollSpyAsideItem, InFavoritesBtn},
-    props:['isMobile', 'post_id'],
-    data(){return{
-    }},
+const props = defineProps(['isMobile', 'post_id']);
+const store = useStore();
 
-    computed:{
-        getUserInfo(){
-            return this.$store.state.user_info;
-        },  
-
-        getAllEmoticons(){
-            //Request to the server to get all emoticons
-            return this.$store.state.emoticons.all;
-        },
-
-        getMostPopularEmoticons(){
-            return this.$store.state.emoticons.most_popular;
-        },
-
-        getUserEmoticonRecent(){
-            return this.getUserInfo.emoticons.recent; 
-        },
-
-        getUserEmoticonFavorites(){
-            return this.getUserInfo.emoticons.favorites; 
-        },
-
-    }
-}
+const getUserInfo = computed(() => store.state.user_info);
+const getAllEmoticons = computed(() => store.state.emoticons.all);
+const getMostPopularEmoticons = computed(() => store.state.emoticons.most_popular);
+const getUserEmoticonRecent = computed(() => getUserInfo.value.emoticons.recent);
+const getUserEmoticonFavorites = computed(() => getUserInfo.value.emoticons.favorites);
 </script>

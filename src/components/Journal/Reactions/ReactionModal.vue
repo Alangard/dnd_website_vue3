@@ -1,35 +1,35 @@
 <template>
-    <modal @close_modal='this.$emit("close_modal")'>
+    <modal @close_modal='emit("close_modal")'>
         <template #modal_header>
             <div class="reactions_more_container">
                 <reaction-more 
-                    :reactions_obj_by_post_id="this.reactions_obj_by_post_id"
-                    :post_id="this.post_id"
+                    :reactions_obj_by_post_id="reactions_obj_by_post_id"
+                    :post_id="props.post_id"
                     @renderReactorsList="renderReactorsList">
                 </reaction-more>
             </div>
 
             <search-bar 
-                v-if='this.chosen_section == "all_emoticons"'
-                :post_id='this.post_id'
-                @searchStart='(bool_trigger) => this.searchStart = bool_trigger'>
+                v-if='chosen_section == "all_emoticons"'
+                :post_id='props.post_id'
+                @searchStart='(bool_trigger) => searchStart = bool_trigger'>
             </search-bar>
             
         </template>
 
         <template #modal_body>
-            <div class="reactors_container" :class="{mobile: this.$store.getters.getIsMobileState == true}">
+            <div class="reactors_container" :class="{mobile: store.getters.getIsMobileState == true}">
                 <reactors-list 
-                    v-if="this.chosen_section != 'all_emoticons' && this.chosen_section != null"
-                    :reactors_list_prop='this.reactors_list'
-                    :chosen_section="this.chosen_section">
+                    v-if="chosen_section != 'all_emoticons' && chosen_section != null"
+                    :reactors_list_prop='reactors_list'
+                    :chosen_section="chosen_section">
                 </reactors-list>
             </div>
 
             <scroll-spy 
-                v-if="this.chosen_section == 'all_emoticons' && this.searchStart"
-                :isMobile='this.$store.getters.getIsMobileState'
-                :post_id="this.post_id">
+                v-if="chosen_section == 'all_emoticons' && searchStart"
+                :isMobile='store.getters.getIsMobileState'
+                :post_id="props.post_id">
             </scroll-spy>
 
         </template>
@@ -37,61 +37,50 @@
 
 </template>
 
-<script>
-import Modal from '@/components/Templates_components/Modal.vue';
-import ReactionMore from './InModal/ReactionMore.vue';
-import ReactorsList from './InModal/ReactorsList.vue';
-import SearchBar from './InModal/SearchBar.vue';
-import ScrollSpy from './InModal/ReactionScrollSpy.vue';
+<script setup>
+import { ref, defineProps, defineEmits,  defineAsyncComponent } from 'vue';
+import { useStore } from 'vuex'
 
-export default {
-    components:{Modal, ReactionMore, ReactorsList, SearchBar, ScrollSpy},
-    props:['post_id'],
+const Modal = defineAsyncComponent(() => import('@/components/Templates_components/Modal.vue'));
+const ReactionMore = defineAsyncComponent(() => import('./InModal/ReactionMore.vue'));
+const ReactorsList = defineAsyncComponent(() => import('./InModal/ReactorsList.vue'));
+const SearchBar = defineAsyncComponent(() => import('./InModal/SearchBar.vue'));
+const ScrollSpy = defineAsyncComponent(() => import('./InModal/ReactionScrollSpy.vue'));
 
-    data(){
-        return{
-            reactions_obj_by_post_id: null,
-            reactors_list: null, //sorted list of reactors
-            searchStart: null,
-            chosen_section: null, // str variable for type of section for ReactionMore component 
-        }
-    },
+const props = defineProps(['post_id']);
+const emit = defineEmits(['close_modal']);
+const store = useStore();
 
-    beforeMount() {
-        // Create a request to the server to get reaction data for a specific post, using post_id
-        // Modelling a request by retrieving data from VueX
+// Create a request to the server to get reaction data for a specific post, using post_id
+// Modelling a request by retrieving data from VueX
+let reactions_obj_by_post_id = ref(store.state.reactions[props.post_id]);
+let reactors_list = ref(null); //sorted list of reactors
+let searchStart = ref(null);
+let chosen_section = ref(null); // str variable for type of section for ReactionMore component 
 
-        this.reactions_obj_by_post_id = this.$store.state.reactions[this.post_id];
-    },
+function renderReactorsList(element_id){
+    // The method takes event.target.tagName (id) and generates a list of users who reacted with the selected emoticon 
+    // or a list of all reacted users (class='total_reactions_count_btn').
 
-    methods:{
-        renderReactorsList(element_id){
-            // The method takes event.target.tagName (id) and generates a list of users who reacted with the selected emoticon 
-            // or a list of all reacted users (class='total_reactions_count_btn').
+    let reactors_info = [];
+    switch(element_id){
+        case 'total_reactions_count': 
 
-            let reactors_info = [];
-
-            switch(element_id){
-                case 'total_reactions_count': 
-
-                    this.reactions_obj_by_post_id.forEach(element => {reactors_info.push(...element.users_data);});
-                    this.reactors_list = reactors_info.sort((a, b) => new Date(b.reaction_date) - new Date(a.reaction_date));
-                    
-                    this.chosen_section = 'total_reactions_count';
-                    return this.reactors_list;
-
-                case 'all_emoticons':
-                    this.chosen_section = 'all_emoticons';
-                    break;
-                
-                default:
-                    this.reactors_list = this.reactions_obj_by_post_id.find(element => element.emoticon_id == element_id).users_data;
-                    this.chosen_section = element_id;
-                    return this.reactors_list;
-            }
+            reactions_obj_by_post_id.value.forEach(element => {reactors_info.push(...element.users_data);});
+            reactors_list.value = reactors_info.sort((a, b) => new Date(b.reaction_date) - new Date(a.reaction_date));
             
-        }
-    }
+            chosen_section.value = 'total_reactions_count';
+            return reactors_list;
+
+        case 'all_emoticons':
+            chosen_section.value = 'all_emoticons';
+            break;
+        
+        default:
+            reactors_list.value = reactions_obj_by_post_id.value.find(element => element.emoticon_id == element_id).users_data;
+            chosen_section.value = element_id;
+            return reactors_list;
+    }     
 }
 </script>
 
@@ -104,6 +93,4 @@ export default {
     max-height: 53px;
     width: 100%;
 }
-
-
 </style>

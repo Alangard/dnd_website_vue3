@@ -5,7 +5,7 @@
             <div v-for="reactor in list" :key="reactor">
 
                 <div class='reactor_element'
-                    :class="{reacted: reactor.data.username == this.$store.getters.getUserInfo.username}">
+                    :class="{reacted: reactor.data.username == store.getters.getUserInfo.username}">
 
                     <div class="leftside_container">
                         <img class="profile_img"  v-if='reactor.data.user_profile_img_url != ""' :src="reactor.data.user_profile_img_url" alt="" 
@@ -24,7 +24,7 @@
 
                         <div class="user_info">
                             <span class='username' @click="$router.push({ name: 'user', params: {id: reactor.data.username} })">
-                                {{this.$store.getters.capitalizeFirstLetter(reactor.data.username.split('.')[0])}}
+                                {{store.getters.capitalizeFirstLetter(reactor.data.username.split('.')[0])}}
                             </span>
                             <span class='datetime'>Reacted {{ useTimeAgo(new Date(reactor.data.reaction_date)).value }}</span>
                         </div>
@@ -45,12 +45,11 @@
 
 <script setup>
     import { defineProps, computed  } from 'vue'
+    import { useStore} from 'vuex'
     import { useVirtualList, useInfiniteScroll, useTimeAgo } from '@vueuse/core';
 
-    const props = defineProps({
-        'reactors_list_prop': Array,
-        'chosen_section': String,
-    });
+    const props = defineProps(['reactors_list_prop','chosen_section']);
+    const store = useStore();
 
     const reactors_list = computed(() => props.reactors_list_prop); //read docs https://vueuse.org/core/usevirtuallist/#reactive-list
     const { list, containerProps, wrapperProps } = useVirtualList(reactors_list, {itemHeight: 74});
