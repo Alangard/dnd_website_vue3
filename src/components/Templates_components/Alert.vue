@@ -22,8 +22,9 @@
 
 <script setup>
 import { defineAsyncComponent, defineProps, defineEmits } from 'vue';
+import Modal from '@/components/Templates_components/Modal.vue'
 
-const Modal = defineAsyncComponent(() => import('@/components/Templates_components/Modal.vue'));
+// const Modal = defineAsyncComponent(() => import('@/components/Templates_components/Modal.vue'));
 
 const props = defineProps(['alert_object']);
 const emit = defineEmits(['close_alert', 'doAction'])

@@ -39,86 +39,74 @@
     </div> 
 </template>
 
-<script>
+<script setup>
+import { ref, computed, defineProps, defineEmits} from 'vue';
 
-export default {
-    props:['comment_item','user_info'],
-    data(){
-        return{
-            like_btn_pressed: false,
-            dislike_btn_pressed: false,
+const props = defineProps(['comment_item','user_info']);
+const emit = defineEmits(['openReplyCommentField']);
+
+let like_btn_pressed = ref(false);
+let dislike_btn_pressed = ref(false);
+
+const user_leaved_rate = computed(() => {
+    for(const element of Object.keys(props.comment_item.rate)){
+        if(element == props.user_info.username){
+            if(props.comment_item.rate[element] > 0){return like_btn_pressed = true;}
+            else if(props.comment_item.rate[element] < 0){return dislike_btn_pressed = true;}
         }
-    },
-    computed: {
-        //A method indicating whether a comment has been rated by the current user
-        user_leaved_rate(){
-            for(const element of Object.keys(this.comment_item.rate)){
-                if(element == this.user_info.username){
-                    if(this.comment_item.rate[element] > 0){
-                        return this.like_btn_pressed = true;
-                    }
-                    else if(this.comment_item.rate[element] < 0){
-                        return this.dislike_btn_pressed = true;
-                    }
-                }
-            }
-        },
-    },
-    methods: {
+    }
+});
 
-        //A methods that increases the number of likes and dislikes and changes the class (style) of the button
-        leave_like(){
-            debugger
-            if(this.user_info.username in this.comment_item.rate){
-                if(this.comment_item.rate[this.user_info.username] <= 0){
-                    this.comment_item.rate[this.user_info.username] = 1;
-                    this.comment_item.negative_rates_list.shift(this.user_info.username);
-                    this.comment_item.positive_rates_list.push(this.user_info.username);
-                    this.comment_item.rate_summ += 2;
-                    this.like_btn_pressed = true;
-                    this.dislike_btn_pressed = false;
-                }
-                else if(this.comment_item.rate[this.user_info.username] > 0){
-                    delete this.comment_item.rate[this.user_info.username];
-                    this.comment_item.positive_rates_list.shift(this.user_info.username);
-                    this.comment_item.rate_summ --;
-                    this.like_btn_pressed = false;
-                }
-            }
-            else{
-                this.comment_item.rate[this.user_info.username] = 1;
-                this.comment_item.positive_rates_list.push(this.user_info.username);
-                this.comment_item.rate_summ ++;
-                this.like_btn_pressed = true;
-                
-            }
-        },
+//A methods that increases the number of likes and dislikes and changes the class (style) of the button
+function leave_like(){
+    debugger
+    if(props.user_info.username in props.comment_item.rate){
+        if(props.comment_item.rate[props.user_info.username] <= 0){
+            props.comment_item.rate[props.user_info.username] = 1;
+            props.comment_item.negative_rates_list.shift(props.user_info.username);
+            props.comment_item.positive_rates_list.push(props.user_info.username);
+            props.comment_item.rate_summ += 2;
+            like_btn_pressed = true;
+            dislike_btn_pressed = false;
+        }
+        else if(props.comment_item.rate[props.user_info.username] > 0){
+            delete props.comment_item.rate[props.user_info.username];
+            props.comment_item.positive_rates_list.shift(props.user_info.username);
+            props.comment_item.rate_summ --;
+            like_btn_pressed = false;
+        }
+    }
+    else{
+        props.comment_item.rate[props.user_info.username] = 1;
+        props.comment_item.positive_rates_list.push(props.user_info.username);
+        props.comment_item.rate_summ ++;
+        like_btn_pressed = true;
+    }
+}
 
-        leave_dislike(){
-            debugger
-            if(this.user_info.username in this.comment_item.rate){
-                if(this.comment_item.rate[this.user_info.username] < 0){
-                    delete this.comment_item.rate[this.user_info.username];
-                    this.comment_item.negative_rates_list.shift(this.user_info.username);
-                    this.comment_item.rate_summ ++;
-                    this.dislike_btn_pressed = false;
-                }
-                else if(this.comment_item.rate[this.user_info.username] >= 0){
-                    this.comment_item.rate[this.user_info.username] = -1;
-                    this.comment_item.positive_rates_list.shift(this.user_info.username);
-                    this.comment_item.negative_rates_list.push(this.user_info.username);
-                    this.comment_item.rate_summ += -2;
-                    this.dislike_btn_pressed = true;
-                    this.like_btn_pressed = false;
-                }
-            }
-            else{
-                this.comment_item.rate[this.user_info.username] = -1;
-                this.comment_item.negative_rates_list.push(this.user_info.username);
-                this.dislike_btn_pressed = true;
-                this.comment_item.rate_summ --;
-            }
-        },
+function leave_dislike(){
+    debugger
+    if(props.user_info.username in props.comment_item.rate){
+        if(props.comment_item.rate[props.user_info.username] < 0){
+            delete props.comment_item.rate[props.user_info.username];
+            props.comment_item.negative_rates_list.shift(props.user_info.username);
+            props.comment_item.rate_summ ++;
+            dislike_btn_pressed = false;
+        }
+        else if(props.comment_item.rate[props.user_info.username] >= 0){
+            props.comment_item.rate[props.user_info.username] = -1;
+            props.comment_item.positive_rates_list.shift(props.user_info.username);
+            props.comment_item.negative_rates_list.push(props.user_info.username);
+            props.comment_item.rate_summ += -2;
+            dislike_btn_pressed = true;
+            like_btn_pressed = false;
+        }
+    }
+    else{
+        props.comment_item.rate[props.user_info.username] = -1;
+        props.comment_item.negative_rates_list.push(props.user_info.username);
+        dislike_btn_pressed = true;
+        props.comment_item.rate_summ --;
     }
 }
 </script>

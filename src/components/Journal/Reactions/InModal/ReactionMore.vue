@@ -28,9 +28,8 @@
             <reaction-more-btn
                 @react="reacted"
                 @click="isClicked"
-                :isMobile="this.$store.getters.getIsMobileState"
                 :user_info="getUserInfo"
-                v-for='reaction in this.reactions_obj_by_post_id' :key='reaction'>
+                v-for='reaction in props.reactions_obj_by_post_id' :key='reaction'>
             </reaction-more-btn>
 
         </div>
@@ -44,60 +43,45 @@
     </div>
 </template>
 
-<script>
+<script setup>
 import ReactionMoreBtn from './ReactionMoreBtn.vue';
 
-export default {
-    components: { ReactionMoreBtn },
-    props:['reactions_obj_by_post_id', 'post_id'],
+import { ref, computed, defineProps, defineEmits } from 'vue';
+import { useStore } from 'vuex';
 
-    data(){return{
-    }},
+const props = defineProps(['reactions_obj_by_post_id', 'post_id']);
+const emit = defineEmits(['renderReactorsList']);
+const store = useStore();
 
-    computed:{
-        getUserInfo(){
-            return this.$store.state.user_info;
-        },
+const emot_container = ref(null);
+const getUserInfo = computed(() => store.state.user_info);
+const totalReactionsCount = computed(() => {
+    let sum = 0;
+    for(const reaction of props.reactions_obj_by_post_id){sum += reaction.users_data.length;}
+    return sum;
+});
 
-        totalReactionsCount(){
-            var sum = 0;
-            for(const reaction of this.reactions_obj_by_post_id){sum += reaction.users_data.length;}
-            return sum;
-        },
-    },
-
-    methods:{
-        isClicked(event){
-            if(event.target.tagName == 'INPUT'){
-                const element_id = event.target.id;
-                this.$emit('renderReactorsList', element_id);
-            }
-        },
-
-        // Handle reaction button press event *Need to divide to computed functions*
-        reacted(emoticon_data){
-            debugger
-            const {emoticon_id, emoticon_url} = emoticon_data;
-
-            this.$store.dispatch('changeReactionStatus', 
-                {'post_id': this.post_id, 'pressed_emoticon_id': emoticon_id, 'pressed_emoticon_url': emoticon_url}
-            )
-        },
-
-        scrollX(e) {
-            this.$refs['emot_container'].scrollLeft += e.deltaY;
-        },
-
-        scroll_left() {
-            this.$refs['emot_container'].scrollLeft -= 100;
-        },
-
-        scroll_right() {
-            this.$refs['emot_container'].scrollLeft += 100;
-        }
+function isClicked(event){
+    if(event.target.tagName == 'INPUT'){
+        const element_id = event.target.id;
+        emit('renderReactorsList', element_id);
     }
-}
+};
+
+// Handle reaction button press event *Need to divide to computed functions*
+function reacted(emoticon_data){
+    debugger
+    const {emoticon_id, emoticon_url} = emoticon_data;
+    store.dispatch('changeReactionStatus', {'post_id': props.post_id, 'pressed_emoticon_id': emoticon_id, 'pressed_emoticon_url': emoticon_url});
+};
+
+function scrollX(e) {emot_container.value.scrollLeft += e.deltaY;};
+
+function scroll_left() {emot_container.value.scrollLeft -= 100;};
+        
+function scroll_right() {emot_container.value.scrollLeft += 100;}
 </script>
+
 
 <style lang="scss" scoped>
     .wrapper{

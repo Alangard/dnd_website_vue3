@@ -13,12 +13,14 @@
 
   </div>
 
+
+
 </template>
 
 <script setup>
 import TopNav from "./components/TopNav.vue"
 import { useStore } from 'vuex'
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref} from 'vue'
 
 const store = useStore();
 let windowWidth = ref(null);
@@ -105,6 +107,7 @@ onUnmounted(() => window.removeEventListener('resize',  checkScreen));
 }
 
   .main_content_wrapper{
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;

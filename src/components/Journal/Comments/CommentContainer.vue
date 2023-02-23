@@ -1,62 +1,59 @@
 <template>
 
     <div class="comment_block" 
-        :class="{'banned':this.comment_item.comment_status == 'banned', 'deleted':this.comment_item.comment_status == 'deleted'}">
-        <div v-if="showNotEditableComment== false && this.comment_item.comment_status == 'normal'">
+        :class="{'banned':props.comment_item.comment_status == 'banned', 'deleted':props.comment_item.comment_status == 'deleted'}">
+        <div v-if="props.showNotEditableComment== false && props.comment_item.comment_status == 'normal'">
             <span>
                 <span class="parent_username" 
-                    v-if="this.parentItem != undefined"
-                    @click="$router.push({ name: 'user', params: {id: this.parentItem.user_info.username} })">
-                    @{{this.parentItem.user_info.username}},  
+                    v-if="props.parentItem != undefined"
+                    @click="$router.push({ name: 'user', params: {id: props.parentItem.user_info.username} })">
+                    @{{props.parentItem.user_info.username}},  
                 </span>
-                <span>{{this.comment_item.comment_text}}</span>
+                <span>{{props.comment_item.comment_text}}</span>
             </span>
         </div>
 
-        <div class="banned" v-if="this.comment_item.comment_status == 'banned'">
+        <div class="banned" v-if="props.comment_item.comment_status == 'banned'">
             *Comment was deleted due to violation of the rules*
             <ul>
-                <li v-for="report_reason in this.comment_item.report_reasons" :key="report_reason">
+                <li v-for="report_reason in props.comment_item.report_reasons" :key="report_reason">
                     {{ report_reason }}
                 </li>
             </ul>
         </div>
 
-        <div class="deleted" v-if="this.comment_item.comment_status == 'deleted'">
-            {{ this.comment_item.comment_text }}
+        <div class="deleted" v-if="props.comment_item.comment_status == 'deleted'">
+            {{ props.comment_item.comment_text }}
         </div>
     </div>
 
     <form ref="comment_form" class="comment_form" action="" 
-        @keydown.enter.prevent="this.$emit('sendEditedComment', comment_text)"
-        @keydown.esc="this.$emit('endEditComment')">
+        @keydown.enter.prevent="emit('sendEditedComment', comment_text)"
+        @keydown.esc="emit('endEditComment')">
 
         <textarea
-            v-if="this.showNotEditableComment == true"
-            v-model="this.comment_text"
+            v-if="props.showNotEditableComment == true"
+            v-model="comment_text"
             rows="3"
             autofocus>
         </textarea>
     </form>
 </template>
 
-<script>
+<script setup>
+import { ref, defineProps, defineEmits, onMounted } from 'vue';
 import { onClickOutside } from '@vueuse/core';
-export default {
-    props:['current_user_info', 'comment_item','parentItem', 'showNotEditableComment'],
-    data(){
-        return{
-            comment_text: this.comment_item.comment_text,
-        }
-    },
 
-    mounted(){
-        onClickOutside(this.$refs.comment_form, (event) => 
-            this.$emit('endEditComment')
-        )
-    },
-}
+const props = defineProps(['comment_item','parentItem', 'showNotEditableComment']);
+const emit = defineEmits(['endEditComment', 'sendEditedComment']);
+
+const comment_text = ref(props.comment_item.comment_text);
+const comment_form = ref(null);
+
+onMounted(() => onClickOutside(comment_form, (event) => emit('endEditComment')));
+
 </script>
+
 
 <style lang="scss" scoped>
 .comment_form{
@@ -138,5 +135,7 @@ export default {
 
         &:hover{color: var(--bg_button_active_color);}
     }
+
+    div:first-child{padding-right: 28px;}
 }
 </style>

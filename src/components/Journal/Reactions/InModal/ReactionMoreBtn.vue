@@ -1,52 +1,69 @@
 <template>
     <long-press-btn class='reaction_more_block_section' 
-        v-if="this.reaction.users_data.length != 0"
-        :title="':' + this.reaction.emoticon_id"
-        :class="{reacted: this.reaction_is_checked != -1}"
+        v-if="reaction.users_data.length != 0"
+        :title="':' + reaction.emoticon_id"
+        :class="{reacted: reaction_is_checked != -1}"
         @LongPressEvent="react">
     
         
-        <input type="radio" name="emoticonGroup" :value="`${this.reaction.emoticon_id}`" :id="`${this.reaction.emoticon_id}`">
-        <label :for="`${this.reaction.emoticon_id}`">
-            <img :src="this.reaction.emoticon_url" :alt="`:${this.reaction.emoticon_id}`">
-            <span>{{this.reaction.users_data.length}}</span>
+        <input type="radio" name="emoticonGroup" :value="`${reaction.emoticon_id}`" :id="`${reaction.emoticon_id}`">
+        <label :for="`${reaction.emoticon_id}`">
+            <img :src="reaction.emoticon_url" :alt="`:${reaction.emoticon_id}`">
+            <span>{{reaction.users_data.length}}</span>
         </label>
     </long-press-btn>
 </template>
 
+<script setup>
+import LongPressBtn from '@/components/Templates_components/LongPressBtn.vue';
 
-<script>
-import LongPressBtn from '@/components/Templates_components/LongPressBtn.vue'
+import { computed, defineProps, defineEmits, getCurrentInstance } from 'vue';
 
-export default {
-    components: { LongPressBtn },
+const props = defineProps(['user_info']);
+const emit = defineEmits(['react']);
+const instance = getCurrentInstance();
 
-    props:['isMobile', 'user_info'],
+const reaction = typeof instance.vnode.key === 'symbol' ? String(instance.vnode.key) : instance.vnode.key;
+const reaction_is_checked = computed(() => reaction.users_data.findIndex(element => element.username == props.user_info.username));
 
-    data(){
-        return{
-            reaction: this.$.vnode.key,
-        }
-    },
+function react(){emit('react', {"emoticon_id": reaction.emoticon_id, "emoticon_url":reaction.emoticon_url});}
 
-    computed:{
 
-        //Get the object index of the user of the current session who left this response. Use to set the styles
-        reaction_is_checked(){
-            const user_index = this.reaction.users_data.findIndex(element => element.username == this.user_info.username);
-            return user_index;
-        }
-    },
-
-    methods:{
-
-        //A method that leaves a user reaction. Click handling proccessing in the ReactionMore component
-        react(){
-            this.$emit('react', {"emoticon_id":this.reaction.emoticon_id, "emoticon_url":this.reaction.emoticon_url});
-        },
-    }
-}
 </script>
+
+
+
+<!-- // import LongPressBtn from '@/components/Templates_components/LongPressBtn.vue'
+
+// export default {
+//     components: { LongPressBtn },
+
+//     props:['isMobile', 'user_info'],
+
+//     data(){
+//         return{
+//             reaction: this.$.vnode.key,
+//         }
+//     },
+
+//     computed:{
+
+//         //Get the object index of the user of the current session who left this response. Use to set the styles
+//         reaction_is_checked(){
+//             const user_index = this.reaction.users_data.findIndex(element => element.username == this.user_info.username);
+//             return user_index;
+//         }
+//     },
+
+//     methods:{
+
+//         //A method that leaves a user reaction. Click handling proccessing in the ReactionMore component
+//         react(){
+//             this.$emit('react', {"emoticon_id":this.reaction.emoticon_id, "emoticon_url":this.reaction.emoticon_url});
+//         },
+//     }
+// 
+// -->
 
 <style lang="scss" scoped>
 .reaction_more_block_section{

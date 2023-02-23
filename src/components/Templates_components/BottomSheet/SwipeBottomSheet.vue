@@ -37,7 +37,6 @@ export default {
 .wrapper{
     position: fixed;
     top: 0;
-    left: 0;
     z-index: 1060;
     width: 100vw;
     height: 100vh;
@@ -49,7 +48,6 @@ export default {
     overflow: hidden;
 
     .bottom_sheet_container{
-        position: relative;
         width: 100%;
         height: 50%;
         background-color:var(--bg_color);

@@ -1,12 +1,12 @@
 <template>
     <long-press-btn class='favorites_block_section'
-        v-if="this.isMobile == true"
-        :title="':'+this.emoticon.emoticon_id"
+        v-if="props.isMobile == true"
+        :title="':'+ emoticon.emoticon_id"
         @LongPressEvent="changeFavoritesStatus"
         @click="react">
 
-        <div class="container" :class="{mobile: this.isMobile == true, inFovorites: inFavorites}">
-            <img :src="this.emoticon.emoticon_url" :alt="`:${this.emoticon.emoticon_id}`">
+        <div class="container" :class="{mobile: props.isMobile == true, inFovorites: inFavorites}">
+            <img :src="emoticon.emoticon_url" :alt="`:${emoticon.emoticon_id}`">
             <div class="favorites_btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
@@ -17,10 +17,10 @@
 
     <long-press-btn class='favorites_block_section'
         v-else 
-        :title="':'+this.emoticon.emoticon_id">
+        :title="':' + emoticon.emoticon_id">
 
         <div class="container" @click="react" :class="{inFovorites: inFavorites}" >
-                <img :src="this.emoticon.emoticon_url" :alt="`:${this.emoticon.emoticon_id}`" >
+                <img :src="emoticon.emoticon_url" :alt="`:${emoticon.emoticon_id}`" >
                 <div class="favorites_btn" @click="changeFavoritesStatus"> 
                     <!-- the click event's propagation will be stopped -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -32,42 +32,27 @@
 
 </template>
 
-
-<script>
+<script setup>
 import LongPressBtn from '@/components/Templates_components/LongPressBtn.vue'
-export default {
-    components: { LongPressBtn },
-    props:['post_id', 'isMobile'],
-    data(){return{
-        emoticon: this.$.vnode.key,
-    }},
 
-    methods:{
-        //A method that leaves a user reaction
-        react(){
+import { computed, defineProps, getCurrentInstance} from 'vue';
+import { useStore } from 'vuex'; 
 
-            this.$store.dispatch('changeReactionStatus', 
-                {'post_id': this.post_id, 'pressed_emoticon_id': this.emoticon.emoticon_id, 'pressed_emoticon_url': this.emoticon.emoticon_url}
-            );
-      
-        },
+const props = defineProps(['post_id', 'isMobile']);
+const store = useStore();
+const instance = getCurrentInstance();
 
-        changeFavoritesStatus(btn_element){
-            this.$store.dispatch("changeStatusReactionInFavorites", 
-                {'emoticon_id':this.emoticon.emoticon_id, 'emoticon_url':this.emoticon.emoticon_url}
-            );
-        },
-    },
+const emoticon = typeof instance.vnode.key === 'symbol' ? String(instance.vnode.key) : instance.vnode.key;
+const inFavorites = computed(() => store.getters.getIndexEmotInFavorites(emoticon.emoticon_id) != -1 ? true : false);
 
-    computed:{
-        // Returns the index of the emoticon in the Favorites section. If there is no emoticon, the getter will return -1
-        inFavorites(){
-            const IndexEmoticonInFavorites = this.$store.getters.getIndexEmotInFavorites(this.emoticon.emoticon_id);
-            return IndexEmoticonInFavorites != -1 ? true : false;
-        }
-        
-    }
+function react(){
+    store.dispatch('changeReactionStatus', {'post_id': props.post_id, 'pressed_emoticon_id': emoticon.emoticon_id, 'pressed_emoticon_url': emoticon.emoticon_url});
 }
+
+function changeFavoritesStatus(){
+    store.dispatch("changeStatusReactionInFavorites", {'emoticon_id': emoticon.emoticon_id, 'emoticon_url': emoticon.emoticon_url});
+}
+
 </script>
 
 <style lang="scss" scoped>

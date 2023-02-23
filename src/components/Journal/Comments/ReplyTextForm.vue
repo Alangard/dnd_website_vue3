@@ -6,14 +6,14 @@
             @submit.prevent="addReply">
 
             <img class="profile_img"  
-                v-if='user_info.user_profile_img_url != ""' 
-                :src="user_info.user_profile_img_url"
-                @click="$router.push({ name: 'user', params: {id: user_info.username} })">
+                v-if='props.user_info.user_profile_img_url != ""' 
+                :src="props.user_info.user_profile_img_url"
+                @click="$router.push({ name: 'user', params: {id: props.user_info.username} })">
                         
 
             <svg class="profile_img"  xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 v-else
-                @click="$router.push({ name: 'user', params: {id: user_info.username} })">
+                @click="$router.push({ name: 'user', params: {id: props.user_info.username} })">
                     
                 <path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/>
                 <circle cx="12" cy="10" r="3"/>
@@ -22,8 +22,8 @@
 
             <div class="comment_container">
                 <textarea id="comment_textarea" placeholder="Comment..." rows="1" title="leave a comment"
-                    v-model="this.comment_text"
-                    :class="{empty: this.comment_text == ''}">
+                    v-model="comment_text"
+                    :class="{empty: comment_text == ''}">
                 </textarea>
                 
                 <button class="reaction_btn" type="button">
@@ -56,7 +56,42 @@
     </div>
 </template>
 
-<script>
+<script setup>
+import { ref, defineProps, defineEmits} from 'vue';
+import { useStore } from 'vuex';
+
+const props = defineProps(['comment_item','user_info','comment']);
+const emit = defineEmits(['closeReplyCommentField']);
+const store = useStore();
+
+let comment_text = ref(props.comment);
+
+function addReply(event) {
+    debugger
+    const id = Math.floor(Math.random() * 100);
+    const comment_data = {
+        id,
+        user_info: props.user_info,
+        comment_text: comment_text.value.split(',')[1],
+        date: store.getters.getDatetimeNow,
+        comment_status:'normal',
+        report_reasons:[],
+        rate: {},
+        rate_summ: 0,
+        positive_rates_list: [],
+        negative_rates_list: [],
+        replies: []
+    }
+    props.comment_item.replies.push(comment_data);
+    comment_text.value = ''
+
+    const comment_item_el = document.querySelectorAll('.comment-item_container');
+    for(let element of comment_item_el){element.style.filter ='blur(0)';}
+    emit('closeReplyCommentField');
+}
+</script>
+
+<!-- <script>
 export default {
     props:['comment_item','user_info','comment'],
     data(){
@@ -90,7 +125,7 @@ export default {
 
     }    
 }
-</script>
+</script> -->
 
 <style lang="scss" scoped>
 .replies_form_container{

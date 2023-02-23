@@ -1,7 +1,7 @@
 <template>
-    <collapsable :item_id="this.item_id" :visible=false @changeCollapseState="(state) => this.collapseOpen = state">
+    <collapsable :item_id="props.item_id" :visible=false @changeCollapseState="(state) => collapseOpen = state">
             <template #collapse_header>
-                <div class="collapse_header_container" v-if="this.collapseOpen == false">
+                <div class="collapse_header_container" v-if="collapseOpen == false">
                     Show more replies
                     <svg class="collapse_icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#290000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -26,13 +26,12 @@
             
 </template>
 
-<script>
+<script setup>
 import Collapsable from '@/components/Templates_components/Collapse/Collapsable.vue';
-export default {
-    props:['item_id', 'replies_count'],
-    components: { Collapsable },
-    data(){return{collapseOpen: false,}},
-}
+import { ref, defineProps } from 'vue'; 
+
+const props = defineProps(['item_id']);
+const collapseOpen = ref(false);
 </script>
 
 <style lang="scss" scoped>
