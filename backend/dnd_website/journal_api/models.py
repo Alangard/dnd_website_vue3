@@ -1,11 +1,16 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import User
 from mptt.models import MPTTModel, TreeForeignKey
 
 
-class Account(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='account')
-    avatar = models.CharField(max_length=2048)
+
+class Account(AbstractUser):
+    slug = models.SlugField(max_length=150, db_index=True, blank=True, verbose_name='slug')
+    avatar = models.URLField(default='', blank=True)
+    recent_reaction = models.CharField(max_length=2048, default='', blank=True)
+    # favorites_reaction = 
+    # recent_reaction =
 
     class Meta:
         db_table = "Account"
@@ -13,21 +18,19 @@ class Account(models.Model):
         verbose_name_plural = "Account"
 
     def __str__(self):
-        return f'{self.user.id} - {self.user.username}'
-
+        return f'{self.username}'
 
 class Post(models.Model):
-    title = models.CharField(max_length=150, db_index=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
+    title = models.CharField(max_length=255, db_index=True)
+    description = models.CharField(max_length=500, blank=True, null=True)
     body = models.TextField(blank=True, null=True)
-    slug = models.SlugField(max_length=150, unique=True, )
     created_at = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey('Account', on_delete=models.CASCADE, )
     tags = models.ManyToManyField('Tag', blank=True)
     reactions = models.ManyToManyField('Reaction', through="PostReaction", blank=True)
     comments_count = models.IntegerField(default=0)
-    commented = models.BooleanField()
-    reacted = models.BooleanField()
+    commented = models.BooleanField(default=False)
+    reacted = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.id} - {self.title}'
@@ -92,6 +95,9 @@ class Tag(models.Model):
 
     def __str__(self):
         return f'{self.id} - {self.name}'
+    
+    def get_absolute_url(self):
+        return f'/{self.slug}/'
 
     class Meta:
         db_table = "Tag"

@@ -1,16 +1,27 @@
 from django.contrib import admin
-from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
 from . import models
 from mptt.admin import MPTTModelAdmin
 
-class AccountInline(admin.StackedInline):
-    verbose_name_plural = 'Account'
-    model = models.Account
-    can_delete = False
-
-class CustomizeUserAdmin (UserAdmin):
-    inlines = [AccountInline, ]
+class CustomAccountAdmin(UserAdmin):
+    search_fields = ('username',)
+    prepopulated_fields = {'slug': ('username',)}
+    list_display = ['username', 'email', 'date_joined', 'is_staff']
+    fieldsets = [
+        (
+            None,
+            {
+                "fields": ["username", "email", "password"],
+            },
+        ),
+        (
+            "Advanced info",
+            {
+                "classes": ["collapse"],
+                "fields": ['slug' ,"avatar", "recent_reaction"],
+            },
+        ),
+    ]
 
 class PostReactionAdmin(admin.ModelAdmin):
     list_display = ['reaction', 'post', 'author']
@@ -20,6 +31,7 @@ class PostAdmin(admin.ModelAdmin):
 
 class TagAdmin(admin.ModelAdmin):
     list_display = ['id', 'name']
+    prepopulated_fields = {'slug': ('name',)}
 
 class CommentAdmin(MPTTModelAdmin):
     mptt_level_indent = 15
@@ -34,10 +46,8 @@ class ReactionAdmin(admin.ModelAdmin):
     list_display = ['id', 'reaction_name', 'reaction_category', 'reaction_url']
 
 
-admin.site.unregister(User)
-admin.site.register(User, CustomizeUserAdmin)
-admin.site.register(models.Account)
 
+admin.site.register(models.Account, CustomAccountAdmin)
 admin.site.register(models.Post, PostAdmin)
 admin.site.register(models.Tag, TagAdmin)
 admin.site.register(models.Comment, CommentAdmin)

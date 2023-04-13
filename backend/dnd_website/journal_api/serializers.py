@@ -1,13 +1,19 @@
 from rest_framework import serializers
 from .models import *
+    
+## Accounts serializers ############################################################
 
-class AccountDetailSerializer(serializers.ModelSerializer):
-    username = serializers.ReadOnlyField(source="user.username")
+class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
-        fields = ["user_id", "username","avatar"]
-    
+        extra_kwargs = {'password': {'write_only': True, 'min_length': 4}}
+        fields = ["username", 
+                  "email", 
+                  "password",
+                  "avatar",
+                  "recent_reaction"]
 
+## Utils #########################################################################
 
 class RecursiveCommentSerializer(serializers.Serializer):
     # Output recursive children comments
@@ -15,6 +21,7 @@ class RecursiveCommentSerializer(serializers.Serializer):
         serializer = self.parent.parent.__class__(value, context=self.context)
         return serializer.data
     
+
 class FilterCommentListSerializer(serializers.ListSerializer):
     # Drop double comments
     def to_representation(self, data):
@@ -23,7 +30,7 @@ class FilterCommentListSerializer(serializers.ListSerializer):
     
 
 class CommentsSerializer(serializers.ModelSerializer):
-    author = AccountDetailSerializer()
+    author = AccountSerializer()
     children = RecursiveCommentSerializer(many=True)
     replies_count = serializers.IntegerField(source='get_childrens_comment_count', read_only=True)
 
@@ -31,28 +38,39 @@ class CommentsSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ['id', 'parent', 'author', 'status', 'created_at', 'report_reasons', 'comment_text', 'replies_count', 'children']
         list_serializer_class = FilterCommentListSerializer
+    
 
+## Tags serializers ################################################################
 
-class PostListSerializer(serializers.ModelSerializer):
+class TagListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = '__all__'
+
+class TagDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['id','name']
+
+## Posts serilizers #################################################################
+
+class PostDetailSerializer(serializers.ModelSerializer):
     # Post list preview on feed
-    tags = serializers.SlugRelatedField(slug_field='name', read_only = True, many=True)
-    author = AccountDetailSerializer()
+    tags = TagListSerializer(many=True, read_only=True)
+    author = serializers.HiddenField(default = serializers.CurrentUserDefault())
     comments_count = serializers.IntegerField(source='get_comments_count', read_only = True)
 
     class Meta:
         model = Post
         fields = '__all__'
 
-
-class PostDetailSerializer(serializers.ModelSerializer):
-    # Detail info about one post
-    tags = serializers.SlugRelatedField(slug_field='name', read_only = True, many=True)
-    author = AccountDetailSerializer()
-    comments = CommentsSerializer(many=True, read_only=True)
+class PostListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = '__all__'
-        include = ['tags', 'author']
+        fields = ['author', 'tags', 'title', 'description', 'body']
+
+
+######################################################################################
 
 
 class ReactionCategorySerializer(serializers.ModelSerializer):
@@ -71,16 +89,11 @@ class PostReactionSerializer(serializers.ModelSerializer):
         model = PostReaction
         fields = '__all__'
 
-class TagListSerializer(serializers.ModelSerializer):
+
+
+class ReportReasonSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Tag
-        fields = '__all__'
-
-class TagDetailSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tag
-        fields = ['id','name']
-
-
-
+        model = ReportReason
+        fields= '__all__'
+    
 
