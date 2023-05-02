@@ -2,15 +2,14 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import User
 from mptt.models import MPTTModel, TreeForeignKey
-
+from django.utils.timezone import now
 
 
 class Account(AbstractUser):
-    slug = models.SlugField(max_length=150, db_index=True, blank=True, verbose_name='slug')
+    slug = models.SlugField(max_length=150, db_index=True, blank=True, null=True)
     avatar = models.URLField(default='', blank=True)
-    recent_reaction = models.CharField(max_length=2048, default='', blank=True)
-    # favorites_reaction = 
-    # recent_reaction =
+    favorites_reaction = models.ManyToManyField('Reaction', related_name='favorites_reaction', blank=True)
+    recent_reaction = models.ManyToManyField('Reaction', related_name='recent_reaction', blank = True)
 
     class Meta:
         db_table = "Account"
@@ -19,15 +18,24 @@ class Account(AbstractUser):
 
     def __str__(self):
         return f'{self.username}'
+    
+    def save(self, *args, **kwargs):
+        from django.utils.text import slugify
+        self.slug = slugify(self.username)
+        super().save(*args, **kwargs)
 
 class Post(models.Model):
     title = models.CharField(max_length=255, db_index=True)
-    description = models.CharField(max_length=500, blank=True, null=True)
-    body = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    author = models.ForeignKey('Account', on_delete=models.CASCADE, )
+    description = models.CharField(max_length=500, blank=True)
+    body = models.TextField(blank=True)
+    thumbnail = models.URLField(blank=True, null=True)
+    created_datetime = models.DateTimeField(auto_now_add=True)
+    updated_datetime = models.DateTimeField(auto_now=True)
+    is_publish = models.BooleanField(default=True)
+    publish_datetime = models.DateTimeField(blank=True, null=True)
+    author = models.ForeignKey('Account', on_delete=models.SET_NULL, null=True )
     tags = models.ManyToManyField('Tag', blank=True)
-    reactions = models.ManyToManyField('Reaction', through="PostReaction", blank=True)
+    reactions = models.ManyToManyField('Reaction', through="PostReaction", related_name='reactions', blank=True)
     comments_count = models.IntegerField(default=0)
     commented = models.BooleanField(default=False)
     reacted = models.BooleanField(default=False)
@@ -39,12 +47,10 @@ class Post(models.Model):
         return f'{self.comments.all().count()}'
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['-created_datetime']
         db_table = "Post"
         verbose_name = "Post"
         verbose_name_plural = "Post"
-
-
 
 class Reaction(models.Model):
     reaction_name = models.CharField(max_length=250, unique=True)
@@ -73,7 +79,6 @@ class ReactionCategory(models.Model):
         verbose_name = "Reaction_category"
         verbose_name_plural = "Reaction_category"
 
-
 class PostReaction(models.Model):
     reaction = models.ForeignKey('Reaction', on_delete=models.CASCADE, )
     post = models.ForeignKey('Post', on_delete=models.CASCADE,)
@@ -90,8 +95,8 @@ class PostReaction(models.Model):
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField(max_length=150, unique=True, null=True)
+    name = models.CharField(max_length=50, unique=True)
+    slug = models.SlugField(max_length=75, unique=True, null=True)
 
     def __str__(self):
         return f'{self.id} - {self.name}'
@@ -110,8 +115,10 @@ class AbstractComment(models.Model):
     status = models.CharField(max_length=5, choices=(('n','normal'), ('b','banned'), ('d','deleted')), default='n')
     comment_text = models.TextField()
     replies_count = models.IntegerField(default=0, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_datetime = models.DateTimeField(auto_now_add=True)
+    updated_datetime = models.DateTimeField(auto_now=True)
     report_reasons = models.ManyToManyField('ReportReason', through="CommentReport", blank=True)
+    #likes/dislikes
 
     def __str__(self):
         return f'{self.id} - {self.comment_text}'
@@ -130,7 +137,7 @@ class Comment(AbstractComment, MPTTModel):
         return f'{self.children.all().count()}'
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['-created_datetime'] #likes it's second param to ordering
         db_table = "Comment"
         verbose_name = "Comment"
         verbose_name_plural = "Comment"
