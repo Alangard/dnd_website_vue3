@@ -1,5 +1,5 @@
 <template>
-    <v-container fluid>
+    <v-container fluid class="pb-12">
         <v-app-bar >
             <v-btn>Main</v-btn>
             <v-btn>Post</v-btn>

@@ -1,6 +1,6 @@
 <template>
-    <div class="d-flex flex-column align-center mt-10 h-auto" ref="scrollComponent">
 
+    <div class="d-flex flex-column align-center h-auto" ref="scrollComponent">
             <v-card class="main-container elevation-8"
                 v-for="post in postList" :key="post" >
 
@@ -110,7 +110,7 @@ import { defineAsyncComponent, onMounted, onUnmounted, ref, defineEmits, compute
 import { useStore } from 'vuex';
 import axios from 'axios';
 import { DateTimeFormat } from '@/helpers'
-
+import Filters from '@/components/Filters.vue';
 
 const store = useStore();
 
@@ -177,14 +177,11 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-
     .main-container{
         display: flex;
         flex-direction: column;
         align-items: center;
-        width: auto;
-        max-width: 740px;
-        margin: 2px 5px 15px 5px;
+        margin: 2px 0 15px 0;
         padding: 10px 15px 10px 10px;
         border-radius: 5px;
         caret-color: transparent;
