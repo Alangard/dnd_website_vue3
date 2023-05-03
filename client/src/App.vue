@@ -4,26 +4,19 @@
       <Navbar></Navbar>
       <v-sheet class="d-flex flex-column align-center">
         <v-sheet class="main_content_wrapper d-flex flex-column align-center w-100 px-3">
-          <Filters></Filters>
+          <Filters @filterToolbarIsOpen="filterAsideState =! filterAsideState"></Filters>
           <Journal></Journal>
         </v-sheet>
 
       </v-sheet>
-      <v-btn class="create_post_btn" icon="mdi-plus-thick" ></v-btn>
-    </v-app>
-    
-    <!-- <v-app>
-      <Navbar></Navbar>
-      <v-spacer></v-spacer>
-      <v-col>
-        <div class="main_content_wrapper">
-          <Journal></Journal>
-        </div>
-      </v-col>
-      <v-spacer></v-spacer>
-        <v-btn class="create_post_btn" icon="mdi-plus-thick" ></v-btn>
-    </v-app> -->
 
+
+
+      <FilterAside :isOpenAside="filterAsideState" @filterToolbarIsOpen="filterAsideState =! filterAsideState"></FilterAside>
+      <v-btn class="create_post_btn" icon="mdi-plus-thick" v-if="!filterAsideState"></v-btn>
+
+    </v-app>
+  
   </v-theme-provider>
 </template>
 
@@ -33,9 +26,12 @@ import {useStore} from 'vuex';
 
 import Navbar from '@/components/Navbar.vue';
 import Journal from '@/pages/Journal.vue';
-import Filters from '@/components/Filters.vue'
+import Filters from '@/components/Filters/Filters.vue'
+import FilterAside from '@/components/Filters/FilterAside.vue'
 
 const store = useStore();
+let filterAsideState = ref(false);
+
 
 </script>
 
@@ -46,8 +42,8 @@ const store = useStore();
 }
 .create_post_btn{
   position: fixed;
-  bottom: 10px;
-  right: 10px;
+  bottom: 14px;
+  right: 43%;
   z-index: 9999;
 }
 </style>

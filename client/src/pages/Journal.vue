@@ -110,7 +110,6 @@ import { defineAsyncComponent, onMounted, onUnmounted, ref, defineEmits, compute
 import { useStore } from 'vuex';
 import axios from 'axios';
 import { DateTimeFormat } from '@/helpers'
-import Filters from '@/components/Filters.vue';
 
 const store = useStore();
 

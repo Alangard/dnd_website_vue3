@@ -2,55 +2,53 @@
 
 <v-card class="filters-container  elevation-8" >
 
-                <div class="selector">
+                <div class="order_selector" id="order_selector">
                         <v-select
+                                active="true"
                                 variant="underlined"
                                 hide-selected="true"
                                 density="comfortable"
                                 label="Order by"
-                                v-model="curr_filter"
-                                :items="filters"
+                                v-model="curr_order_variant"
+                                :items="order_variants"
                                 @update:modelValue="onOrderChange"
                         ></v-select>
                 </div>
 
                 <v-sheet class='d-flex flex-row align-center w-100 justify-end pb-2'>
-                        <v-btn class='' size="large" variant="plain" icon="mdi-filter-menu-outline" @click.stop="drawer = !drawer">
-                        </v-btn>
+                        <v-btn class='' size="large" variant="plain" icon="mdi-filter-menu-outline" @click.stop="openFilterAside"></v-btn>
                 </v-sheet>  
 </v-card>     
 
-<v-navigation-drawer
-                v-model="drawer"
-                location="right"
-                width="740"
-                temporary>
-
-        <v-btn class='' variant="plain" rounded='lg' size="large" icon="mdi-arrow-left" @click.stop="drawer = !drawer">                    
-        </v-btn>
-</v-navigation-drawer>
 
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, defineEmits } from 'vue'
 
-const drawer = ref(null)
-const curr_filter = ref('The popular')
-const filters = ref([
+const emit = defineEmits(['filterToolbarIsOpen'])
+
+const curr_order_variant = ref('The popular')
+const order_variants = ref([
         'The popular',
         'The unpopular',
         'Asc likes',
         'Desc likes',
         'Asc comments',
         'Desc comments',
-      ])
+])
+
+const openFilterAside =() => {
+        emit('filterToolbarIsOpen');
+}
 
 const onOrderChange =() => {
-        console.log('change', curr_filter.value);
+        console.log('change', curr_order_variant.value);
         // make a request for ordering
-
 }
+
+
+
 
 </script>
 
@@ -67,11 +65,20 @@ const onOrderChange =() => {
         border-radius: 5px;
         caret-color: transparent;
 
-        .selector{
+        .order_selector{
                 width: 300px;
         }
 }
 
-// d-flex flex-row align-center justify-space-between pt-5 px-4 w-100 mt-8 mb-4
+
+// .apply_filters_btn_container{
+//         position: fixed;
+//         width: 100%;
+//         bottom: 0;
+//         padding: 12px 8px;
+
+// }
+
+
 
 </style>
