@@ -16,7 +16,7 @@
                 </div>
 
                 <v-sheet class='d-flex flex-row align-center w-100 justify-end pb-2'>
-                        <v-btn class='' size="large" variant="plain" icon="mdi-filter-menu-outline" @click.stop="openFilterAside"></v-btn>
+                        <v-btn class='' size="large" variant="plain" icon="mdi-tune" @click.stop="openFilterAside"></v-btn>
                 </v-sheet>  
 </v-card>     
 
