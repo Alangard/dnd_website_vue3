@@ -1,5 +1,5 @@
-
 import { createStore } from 'vuex'
+import { useTheme } from 'vuetify/lib/framework.mjs';
 
 
 export default createStore({
@@ -9,6 +9,7 @@ export default createStore({
       modals_info: {id: 0, state: false, modal_type: '', action_pressed: false},
       postData: null,
       TagsData: null,
+      postListStyle: 'list',
     }
     
   },
@@ -20,12 +21,11 @@ export default createStore({
 
     //returns true/false
     getIsMobileState (state) {
-        return state.isMobile;
+      return state.isMobile;
     },
 
-    //returns string 'light'/'dark' 
-    getTheme (state){
-        return state.theme;
+    getPostListStyle(state){
+      return state.postListStyle;
     },
 
     getPostData(state){
@@ -54,6 +54,10 @@ export default createStore({
 
     setTagsList(state, fetching_data){
       state.TagsData = fetching_data;
+    },
+
+    changePostListStyle(state, post_syle){
+      state.postListStyle = post_syle;
     },
 
 

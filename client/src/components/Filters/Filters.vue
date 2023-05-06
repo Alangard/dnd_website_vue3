@@ -16,7 +16,9 @@
                 </div>
 
                 <v-sheet class='d-flex flex-row align-center w-100 justify-end pb-2'>
-                        <v-btn class='' size="large" variant="plain" icon="mdi-tune" @click.stop="openFilterAside"></v-btn>
+                        <v-btn v-if="store.getters.getPostListStyle=='grid'" class='list_style_btn' size="large" variant="plain" icon="mdi-format-list-bulleted" @click.stop="displayPostInListStyle"></v-btn>
+                        <v-btn v-if="store.getters.getPostListStyle =='list'" class='grid_style_btn' size="large" variant="plain" icon="mdi-grid-large" @click.stop="displayPostInGridStyle"></v-btn>
+                        <v-btn class='filter_btn' size="large" variant="plain" icon="mdi-tune" @click.stop="openFilterAside"></v-btn>
                 </v-sheet>  
 </v-card>     
 
@@ -25,27 +27,35 @@
 
 <script setup>
 import { ref, defineEmits } from 'vue'
+import { useStore } from 'vuex'
 
+const store = useStore()
 const emit = defineEmits(['filterToolbarIsOpen'])
 
-const curr_order_variant = ref('The popular')
+const curr_order_variant = ref('New first')
 const order_variants = ref([
-        'The popular',
-        'The unpopular',
+        'New first',
+        'Old first',
         'Asc likes',
         'Desc likes',
         'Asc comments',
         'Desc comments',
 ])
 
-const openFilterAside =() => {
-        emit('filterToolbarIsOpen');
-}
-
 const onOrderChange =() => {
         console.log('change', curr_order_variant.value);
         // make a request for ordering
 }
+
+const openFilterAside =() => {emit('filterToolbarIsOpen');}
+
+const displayPostInGridStyle =() => {store.commit('changePostListStyle', 'grid')}
+
+const displayPostInListStyle =() => {store.commit('changePostListStyle', 'list')}
+
+
+
+
 
 
 

@@ -2,13 +2,13 @@
     <v-navigation-drawer class="h-a" v-if="width <= 740" v-model="props.isOpenAside"  disable-resize-watcher='false' location="right" width="740" temporary>
 
     <v-sheet class='d-flex flex-row align-center w-100 justify-space-between pt-1'>
-            <v-btn class="close_asid" variant="plain" rounded='lg' size="large" prepend-icon="mdi-arrow-left" @click.stop="changeStateFilterAside">Filters</v-btn>
+            <v-btn class="close_aside" variant="plain" rounded='lg' size="large" prepend-icon="mdi-arrow-left" @click.stop="changeStateFilterAside">Filters</v-btn>
             <v-btn class="clear_form" v-if='hasData' variant="plain" size="large">Clear all</v-btn>
     </v-sheet>  
 
     <v-divider></v-divider>
 
-    <v-text-field 
+    <v-text-field class="search_post"
             v-model="searchField"
             :loading="loading" 
             clearable
@@ -24,15 +24,22 @@
 
     <v-divider></v-divider>
 
-    <v-card class="filters_blocks" rounded='0' flat="true">
-        <div class="filters_tags_block my-3 mx-5">
-                <span>Filter by tags</span>
-                
-                <v-chip-group multiple v-model="selected_tags" selected-class="text-primary">
-                        <v-chip v-for="tag in tags" :key="tag">{{ tag }}</v-chip>
-                </v-chip-group>
-        </div>
+    <v-card class="filters_blocks" rounded='0' flat="true" style="height: max-content;">
+        <div class="filters_postdate_block my-3 mx-5">
+                <span>Filter by post date</span>
 
+                <VueDatePicker 
+                        class="mt-2"
+                        v-model="date" 
+                        :format="format"
+                        placeholder="Input date range" 
+                        :max-date="new Date()" 
+                        :enable-time-picker="false"
+                        :clearable="true"
+                        :dark="theme.global.name.value == 'dark'? true : false" 
+                        range 
+                />
+        </div>
         <v-divider></v-divider>
 
         <div class="filters_author_block my-3 mx-5">
@@ -77,47 +84,34 @@
                  
                 </div>
 
-
-
         </div>
-
         <v-divider></v-divider>
 
-        <div class="filters_postdate_block my-3 mx-5">
-                <span>Filter by post date</span>
-
-                <v-row>
-                        <v-col cols="12" sm="6">
-                                <v-date-picker v-model="dates" range></v-date-picker>
-                        </v-col>
-                        <v-col cols="12" sm="6">
-                                <v-text-field v-model="dateRangeText" label="Date range" prepend-icon="mdi-calendar"></v-text-field>
-                        </v-col>
-                </v-row>
-
+        <div class="filters_tags_block my-3 mx-5">
+                <span>Filter by tags</span>
+                
+                <v-chip-group multiple v-model="selected_tags" selected-class="text-primary">
+                        <v-chip v-for="tag in tags" :key="tag">{{ tag }}</v-chip>
+                </v-chip-group>
         </div>
 
-        <v-divider></v-divider>
-
+        <div class="apply_filters_btn_container" >
+                <v-btn block @click.stop="applyFilters">Apply</v-btn>
+        </div>
     </v-card>
-
-
-
-    <div class="apply_filters_btn_container" >
-            <v-btn block @click.stop="applyFilters">Apply</v-btn>
-    </div>
-
-
     </v-navigation-drawer>
+
 </template>
 
 <script setup>
 import { ref, defineProps, defineEmits, onUpdated, computed} from 'vue'
 import { useDisplay } from 'vuetify'
+import { useTheme } from 'vuetify/lib/framework.mjs';
 import FilterComponent from './FilterComponent.vue'
 
 
 
+let theme = useTheme()
 const props = defineProps(['isOpenAside'])
 const emit = defineEmits([''])
 
@@ -130,21 +124,21 @@ let loading = ref(false)
 let loaded = ref(false)
 let searchField = ref('')
 
-// Filter by tags
-const tags = ref([
-        'Work',
-        'Home Improvement',
-        'Vacation',
-        'Food',
-        'Drawers',
-        'Shopping',
-        'Art',
-        'Tech',
-        'Creative Writing',
-])
 
-let selected_tags = ref([])
+// Filter by date
 
+const date = ref('');
+const format = (dates) => {
+        let new_date = ''
+        dates.forEach(function (date, i) {
+                const day = date.getDate();
+                const month = date.getMonth() + 1;
+                const year = date.getFullYear();
+                if(i==0){new_date = `From ${day}/${month}/${year}`}
+                else{new_date += ` to ${day}/${month}/${year}`}
+        });
+        return new_date;
+}
 
 // Filter by author
 const search_author_query = ref('');
@@ -188,12 +182,21 @@ const deleteChip =(index) => {
         selected_user.value.splice(index, 1)
 }
 
-// Filter by date
+// Filter by tags
+const tags = ref([
+        'Work',
+        'Home Improvement',
+        'Vacation',
+        'Food',
+        'Drawers',
+        'Shopping',
+        'Art',
+        'Tech',
+        'Creative Writing',
+])
+let selected_tags = ref([])
 
-const dates = ref(['2019-09-10', '2019-09-20'])
-const dateRangeText = computed(() => {return dates.value.join(' - ')}) 
-
-
+/////
 
 const startSearch =() => {
         loading.value = true
@@ -236,7 +239,6 @@ onUpdated(() => {
         margin-top: 8px;
 }
 .apply_filters_btn_container{
-    position: fixed;
     width: 100%;
     bottom: 0;
     padding: 12px 8px;

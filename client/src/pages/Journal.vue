@@ -1,10 +1,8 @@
 <template>
 
-    <div class="d-flex flex-column align-center h-auto" ref="scrollComponent">
-            <v-card class="main-container elevation-8"
-                v-for="post in postList" :key="post" >
+    <div class="d-flex flex-column align-center h-auto" ref="scrollComponent" v-if="store.getters.getPostListStyle=='list'">
 
-                <div class="d-flex flex-column justify-space-around w-auto pl-2">
+        <v-card class="main-container elevation-8" v-for="post in postList" :key="post">
                     <div class="user_data d-flex flex-row align-center justify-start mb-1" style="width:max-content">
 
                             <v-avatar class="avatar" size="x-small" style="cursor:pointer" 
@@ -16,7 +14,7 @@
                                 <v-icon icon="mdi-account-circle" v-else></v-icon>
                             </v-avatar>
 
-                            <span class="username px-1 py-0 text-caption font-weight-regular" style="cursor:pointer" 
+                            <span class="username px-1 text-caption text-capitalize font-weight-regular" style="cursor:pointer" 
                                 @click="$router.push({ name: 'user', params: {id: post.author.username} })">
                                 {{post.author.username}}
                             </span> 
@@ -41,7 +39,7 @@
                         aspect-ratio="16/9"
                         cover>
                     </v-img>
-                                           
+                                        
 
                     <div class="description text-justify mb-2">{{post.description}}</div>
 
@@ -59,7 +57,7 @@
 
 
                     <div class="d-flex flex-row justify-space-between pt-2">
-                     
+                    
                         <!-- <v-img 
                             class='reaction mw-100 rounded mb-2' style="cursor:pointer"
                             v-for="reaction in post.reactions"
@@ -71,7 +69,7 @@
                         <v-btn class='btn' rounded="lg" icon="mdi-plus-circle-outline"
                                 @click="openReactionModal">
                         </v-btn>
-             
+            
 
                             <!-- <ReactionModal
                                 v-if="modalIsOpen"
@@ -86,21 +84,66 @@
                                 <v-btn class="btn mr-1" rounded="lg" icon="mdi-share-variant-outline"
                                     @click="share"
                                 ></v-btn>
-      
+    
                                 <v-btn class='btn' rounded="lg" prepend-icon="mdi-comment-text-outline" 
                                     @click="$router.push({ name: 'postdetail', params: {id: key.id} })">
                                     {{post.comments_count}}
                                 </v-btn>
-          
+        
 
-  
+
 
                         </div>
                     </div>
 
 
+            
+        </v-card >
+
+    </div>
+
+    <div class=" test-grid " ref="scrollComponent" v-else>
+        <v-card class="main-container-grid elevation-8" v-for="post in postList" :key="post">
+            <v-img 
+                class='thumbnail mw-100 rounded mb-2' style="cursor:pointer"
+                v-if="post.thumbnail"
+                @click="$router.push({ name: 'postdetail', params: {id: post.id} })"
+                :src="post.thumbnail"
+                alt="post_img"
+                aspect-ratio="4/3"
+                cover>
+            </v-img>
+
+            <div class="title text-subtitle-2 font-weight-bold text-left mt-4 mx-3 mb-2"
+                @click="$router.push({ name: 'postdetail', params: {id: post.id} })">
+                {{post.title}}
+            </div>
+
+            <div class="user_data d-flex flex-row align-center justify-space-between mb-3 mx-3 w-auto">
+
+                <div class='d-flex flex-column'>
+                    <span class="username text-subtitle-1 font-weight-bold text-capitalize" style="cursor:pointer" 
+                        @click="$router.push({ name: 'user', params: {id: post.author.username} })">
+                        {{post.author.username}}
+                    </span> 
+
+                    <span class="post_date text-caption font-weight-regular" style="cursor:pointer">
+                        {{DateTimeFormat(post.created_datetime)}}
+                    </span>   
                 </div>
-            </v-card >
+
+                <v-avatar class="avatar" size="large" style="cursor:pointer" 
+                    @click="$router.push({ name: 'user', params: {id: post.author.username} })">
+                    <v-img v-if="post.author.avatar != ''"
+                        :src="post.author.avatar"
+                        :alt="post.author.username">
+                    </v-img>
+                    <v-icon icon="mdi-account-circle" size='48' v-else></v-icon>
+                </v-avatar>
+            </div>
+
+        </v-card>
+
     </div>
     
 </template>
@@ -112,6 +155,7 @@ import axios from 'axios';
 import { DateTimeFormat } from '@/helpers'
 
 const store = useStore();
+
 
 
 // to do: check out infinity scroll for mobile version
@@ -179,7 +223,8 @@ onUnmounted(() => {
     .main-container{
         display: flex;
         flex-direction: column;
-        align-items: center;
+        justify-content: space-around;
+        width: auto;
         margin: 2px 0 15px 0;
         padding: 10px 15px 10px 10px;
         border-radius: 5px;
@@ -192,6 +237,21 @@ onUnmounted(() => {
             cursor: pointer;
         }
     }
+
+    .main-container-grid{
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        width: auto;
+        border-radius: 5px;
+        caret-color: transparent;
+    }
     
+    .test-grid{
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 2fr));
+        grid-gap: 15px;
+        align-items: stretch;
+    }
 
 </style>
