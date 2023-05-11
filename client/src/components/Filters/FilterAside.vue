@@ -3,7 +3,7 @@
 
     <v-sheet class='d-flex flex-row align-center w-100 justify-space-between pt-1'>
             <v-btn class="close_aside" variant="plain" rounded='lg' size="large" prepend-icon="mdi-arrow-left" @click.stop="changeStateFilterAside">Filters</v-btn>
-            <v-btn class="clear_form" v-if='hasData' variant="plain" size="large">Clear all</v-btn>
+            <v-btn class="clear_form" v-if='clearable_form' variant="plain" size="large" @click.stop="clearAllFilters">Clear all</v-btn>
     </v-sheet>  
 
     <v-divider></v-divider>
@@ -30,7 +30,7 @@
 
                 <VueDatePicker 
                         class="mt-2"
-                        v-model="date" 
+                        v-model="search_daterange" 
                         :format="format"
                         placeholder="Input date range" 
                         :max-date="new Date()" 
@@ -104,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits, onUpdated, computed} from 'vue'
+import { ref, defineProps, defineEmits, onUpdated, computed, watch} from 'vue'
 import { useDisplay } from 'vuetify'
 import { useTheme } from 'vuetify/lib/framework.mjs';
 import FilterComponent from './FilterComponent.vue'
@@ -116,18 +116,19 @@ const props = defineProps(['isOpenAside'])
 const emit = defineEmits([''])
 
 const { width } = useDisplay()
-const hasData = ref(true)
 let submitForm = ref(false)
+let clearable_form = ref(false);
+
 
 // Search field variables
 let loading = ref(false)
 let loaded = ref(false)
-let searchField = ref('')
+let searchField = ref(null) //It has props "clearable". When clicked, it changes to null
 
 
 // Filter by date
 
-const date = ref('');
+let search_daterange = ref(null); //It has props "clearable". When clicked, it changes to null
 const format = (dates) => {
         let new_date = ''
         dates.forEach(function (date, i) {
@@ -196,6 +197,29 @@ const tags = ref([
 ])
 let selected_tags = ref([])
 
+
+//output variables obj
+let output_filters_data = ref({
+        'filter__post_search_result':  searchField,
+        'filter__post_date_result': search_daterange,
+        'filter__post_author_result': selected_user,
+        'filter__post_tags_result': selected_tags,
+})
+
+
+// Watch for changes in the input fields, if at least one of them changes, change the visibility of the "clear all" button
+watch(() => output_filters_data.value, (new_obj) => {
+        
+        for(const [key, value] of Object.entries(new_obj)){
+                if(value == '' || value == [] || value == null){clearable_form.value = false}
+                else{
+                        clearable_form.value = true
+                        break
+                }
+        }
+},{deep: true}
+)
+
 /////
 
 const startSearch =() => {
@@ -214,6 +238,12 @@ const applyFilters =() => {
         submitForm.value = true
         props.isOpenAside = false
         emit('filterToolbarIsOpen')
+}
+
+const clearAllFilters =() =>{
+        for(const [key, value] of Object.entries(output_filters_data.value)){
+                
+        }
 }
 
 const changeStateFilterAside =() => {

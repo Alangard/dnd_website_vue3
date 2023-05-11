@@ -2,7 +2,7 @@
 
     <div class="d-flex flex-column align-center h-auto" ref="scrollComponent" v-if="store.getters.getPostListStyle=='list'">
 
-        <v-card class="main-container elevation-8" v-for="post in postList" :key="post">
+        <v-card class="main-container elevation-8" v-for="post in store.getters.getPostsList" :key="post">
                     <div class="user_data d-flex flex-row align-center justify-start mb-1" style="width:max-content">
 
                             <v-avatar class="avatar" size="x-small" style="cursor:pointer" 
@@ -103,7 +103,7 @@
     </div>
 
     <div class=" test-grid " ref="scrollComponent" v-else>
-        <v-card class="main-container-grid elevation-8" v-for="post in postList" :key="post">
+        <v-card class="main-container-grid elevation-8" v-for="post in store.getters.getPostsList" :key="post">
             <v-img 
                 class='thumbnail mw-100 rounded mb-2' style="cursor:pointer"
                 v-if="post.thumbnail"
@@ -151,47 +151,30 @@
 <script setup>
 import { defineAsyncComponent, onMounted, onUnmounted, ref, defineEmits, computed, onBeforeMount} from 'vue';
 import { useStore } from 'vuex';
-import axios from 'axios';
 import { DateTimeFormat } from '@/helpers'
 
 const store = useStore();
 
-
-
 // to do: check out infinity scroll for mobile version
 /*Fetch post_list_data ****************************************************/ 
 
-
 let scrollComponent = ref(null)
-let page_size = ref(7);
-let postData = ref({})
-let postList = ref([])
-let page = ref(1);
 let isLoading = ref(false);
-let baseUrl = `/api/v1/posts/?page=${page.value}&page_size=${page_size.value}`
-
 
 /*Filter post_list by one tag*/
-
 const setTagFilter = async (tag_id) => {
-    try{
-        baseUrl = baseUrl.split('&tags=')[0] + `&tags=${tag_id}`
-        await axios.get(baseUrl).then(response => {postList.value = response.data.results; postData.value = response.data})
-        store.commit('setPostData', postData.value)
-        store.commit('setPostsList', postList.value)
-    }
+    try{store.dispatch('fetchPostData', {'parametrs': `&tags=${tag_id}`})}
     catch(err){console.log(err)}
 }
 
 /*Infinite scrolling (dynamic pagination)*/
-
+// to do: check infinite scroller vuetify
 const LoadMorePosts = async () => {
+    const nextPageUrl = store.getters.getNextPostPageUrl
     try{ 
-        if(postData.value.next !== null){
-            let url = '/api/v1/posts/' + postData.value.next.split('/api/v1/posts/')[1]
-            await axios.get(url).then(response => {postList.value.push(...response.data.results); postData.value = response.data})
-            store.commit('setPostsList', postList.value)
-
+        if(nextPageUrl !== null){
+            const url = '/api/v1/posts/' + nextPageUrl.split('/api/v1/posts/')[1]
+            store.dispatch('fetchPostData', {'url': url})
         }
     }
     catch(err){console.log(err)}
@@ -200,16 +183,14 @@ const LoadMorePosts = async () => {
 
 const handleScroll = (e) => {
     let element = scrollComponent.value
-    if(element.getBoundingClientRect().bottom <= window.innerHeight){
+    if(Math.floor(element.getBoundingClientRect().bottom) <= window.innerHeight){
         isLoading.value = true
         LoadMorePosts() 
     }
 }
 
 onMounted(async () => {
-    postData.value = await axios.get(baseUrl).then(response => {return response.data})
-    postList.value = postData.value.results
-    store.commit('setPostData', postData.value)
+    store.dispatch('fetchPostData')
     window.addEventListener('scroll', handleScroll);
 })
 
@@ -229,7 +210,6 @@ onUnmounted(() => {
         padding: 10px 15px 10px 10px;
         border-radius: 5px;
         caret-color: transparent;
-
 
         .btn{
             height: 30px;

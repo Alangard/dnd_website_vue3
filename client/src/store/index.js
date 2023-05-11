@@ -1,5 +1,5 @@
 import { createStore } from 'vuex'
-import { useTheme } from 'vuetify/lib/framework.mjs';
+import axios from 'axios';
 
 
 export default createStore({
@@ -7,9 +7,16 @@ export default createStore({
     return{
       isMobile: null,
       modals_info: {id: 0, state: false, modal_type: '', action_pressed: false},
-      postData: null,
-      TagsData: null,
+
+      postData: {},
+      postList: [],
+
+
       postListStyle: 'list',
+
+      page_size: 7,
+      page: 1,
+      baseUrl: `/api/v1/posts/`
     }
     
   },
@@ -28,12 +35,28 @@ export default createStore({
       return state.postListStyle;
     },
 
+    getBaseUrl(state){
+      return state.baseUrl;
+    },
+
+    getPage(state){
+      return state.page;
+    },
+
+    getPageSize(state){
+      return state.page_size;
+    },
+
     getPostData(state){
       return state.postData;
     },
 
+    getNextPostPageUrl(state){
+      return state.postData.nextPageUrl;
+    },
+
     getPostsList(state){
-      return state.postData.results;
+      return state.postList;
     },
 
     getTagsData(state){
@@ -49,8 +72,13 @@ export default createStore({
     },
 
     setPostsList(state, fetching_data){
-      state.postData.results = fetching_data;
+      state.postList = fetching_data;
     },
+
+    extendPostsList(state, array_data){
+      state.postList.push(...array_data)
+    },
+
 
     setTagsList(state, fetching_data){
       state.TagsData = fetching_data;
@@ -77,6 +105,20 @@ export default createStore({
     },
 
 },
-  actions: {},
+  actions: {
+    async fetchPostData({ commit, dispatch, getters }, payload={}) {
+
+      let url = getters.getBaseUrl + `?page=${getters.getPage}&page_size=${getters.getPageSize}`
+
+      if (payload.url){url = payload.url}
+      else if(payload.parametrs){url += payload.parametrs;}
+
+      await axios.get(url).then(response => {
+        payload.parametrs ? commit('setPostsList', response.data.results) : commit('extendPostsList', response.data.results)
+        commit('setPostData', {'countPosts': response.data.count, 'nextPageUrl': response.data.next, 'previousPageUrl': response.data.previous})
+      })
+    }
+  },
+
   modules: {}
 })

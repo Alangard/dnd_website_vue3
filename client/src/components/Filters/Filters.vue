@@ -11,6 +11,8 @@
                                 label="Order by"
                                 v-model="curr_order_variant"
                                 :items="order_variants"
+                                item-title="title"
+                                item-value="value"
                                 @update:modelValue="onOrderChange"
                         ></v-select>
                 </div>
@@ -32,18 +34,19 @@ import { useStore } from 'vuex'
 const store = useStore()
 const emit = defineEmits(['filterToolbarIsOpen'])
 
-const curr_order_variant = ref('New first')
+const curr_order_variant = ref({title: 'New first', value: '?ordering=-created_datetime'})
 const order_variants = ref([
-        'New first',
-        'Old first',
-        'Asc likes',
-        'Desc likes',
-        'Asc comments',
-        'Desc comments',
+        {title: 'New first', value: '&ordering=-created_datetime'},
+        {title: 'Old first', value: '&ordering=created_datetime'},
+        {title: 'Asc likes', value: ''},
+        {title: 'Desc likes', value: ''},
+        {title: 'Asc comments', value: ''},
+        {title: 'Desc comments', value: ''},
 ])
 
-const onOrderChange =() => {
-        console.log('change', curr_order_variant.value);
+const onOrderChange = async () => {
+        try{store.dispatch('fetchPostData', {'parametrs': curr_order_variant.value})}
+        catch(err){console.log(err)}
         // make a request for ordering
 }
 
