@@ -10,14 +10,19 @@ class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
         extra_kwargs = {'password': {'write_only': True, 'min_length': 4}}
-        fields = ["username", 
-                  "email", 
-                  "password",
-                  "avatar",
-                  "favorites_reaction",
-                  "recent_reaction",
-                  "is_staff",
-                  "is_active"]
+        fields = [  'id',
+                    "username", 
+                    "avatar",
+                    "email",
+                    "favorites_reaction",
+                    "recent_reaction",
+                    "is_staff",
+                    "is_active"]
+        
+class ShortAccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = ["id", "username", "avatar"]
 
 ## Utils #########################################################################
 
@@ -36,13 +41,9 @@ class FilterCommentListSerializer(serializers.ListSerializer):
     
  ## Comments serializers ########################################################
 
-class CommentAccountSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Account
-        fields = ["username", "avatar"]
 
 class CommentsSerializer(serializers.ModelSerializer):
-    author = CommentAccountSerializer()
+    author = ShortAccountSerializer()
     children = RecursiveCommentSerializer(many=True)
     replies_count = serializers.IntegerField(source='get_childrens_comment_count', read_only=True)
 
@@ -96,15 +97,11 @@ class PostShortReactionSerializer(serializers.ModelSerializer):
         model = Reaction
         fields = ['id', 'reaction_name', 'reaction_url']
 
-class PostAccountSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Account
-        fields = ["username", "avatar"]
 
 class PostDetailSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)
     # reactions = PostReactionSerializer(many=True, read_only=True)
-    # author = PostAccountSerializer(read_only=True)
+    # author = ShortAccountSerializer(read_only=True)
     post_author_username = serializers.CharField(source='author.username', default='', read_only=True)
     comments_count = serializers.IntegerField(source='get_comments_count', read_only = True)
 
@@ -115,7 +112,7 @@ class PostDetailSerializer(serializers.ModelSerializer):
 # Post list preview on feed
 class PostListReadSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)
-    author = PostAccountSerializer(read_only=True)
+    author = ShortAccountSerializer(read_only=True)
     # reactions = PostShortReactionSerializer(many=True, read_only=True)
 
     class Meta:
@@ -128,7 +125,7 @@ class PostListReadSerializer(serializers.ModelSerializer):
 
     # tags = TagListSerializer(many=True, read_only=True)
 
-    # author = PostAccountSerializer(read_only=True)
+    # author = ShortAccountSerializer(read_only=True)
 
     reactions = serializers.SerializerMethodField()
 

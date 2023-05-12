@@ -47,7 +47,7 @@
                         <v-chip
                             class="tag_element rounded mr-1 mb-2" size="small"
                             v-for="tag in post.tags"
-                            @click="setTagFilter(tag.id)">
+                            @click="setTagFilter(tag.slug)">
                             {{ tag.name }}
                         </v-chip>
                     </div>
@@ -162,8 +162,8 @@ let scrollComponent = ref(null)
 let isLoading = ref(false);
 
 /*Filter post_list by one tag*/
-const setTagFilter = async (tag_id) => {
-    try{store.dispatch('fetchPostData', {'parametrs': `&tags=${tag_id}`})}
+const setTagFilter = async (tag_slug) => {
+    try{store.dispatch('fetchPostData', {'url': `posts/?page=1&page_size=7&tags=${tag_slug}`, 'setVariable': true})}
     catch(err){console.log(err)}
 }
 
@@ -173,7 +173,7 @@ const LoadMorePosts = async () => {
     const nextPageUrl = store.getters.getNextPostPageUrl
     try{ 
         if(nextPageUrl !== null){
-            const url = '/api/v1/posts/' + nextPageUrl.split('/api/v1/posts/')[1]
+            const url = 'posts/' + nextPageUrl.split('/api/v1/posts/')[1]
             store.dispatch('fetchPostData', {'url': url})
         }
     }
@@ -190,7 +190,7 @@ const handleScroll = (e) => {
 }
 
 onMounted(async () => {
-    store.dispatch('fetchPostData')
+    store.dispatch('fetchPostData',{'url': 'posts/?page=1&page_size=7'})
     window.addEventListener('scroll', handleScroll);
 })
 

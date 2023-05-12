@@ -10,13 +10,15 @@ export default createStore({
 
       postData: {},
       postList: [],
+      usersList: [],
+      TagsList: [],
 
 
       postListStyle: 'list',
 
       page_size: 7,
       page: 1,
-      baseUrl: `/api/v1/posts/`
+      baseUrl: `/api/v1/`
     }
     
   },
@@ -59,8 +61,12 @@ export default createStore({
       return state.postList;
     },
 
-    getTagsData(state){
-      return state.TagsData;
+    getUsersList(state){
+      return state.usersList
+    },
+
+    getTagsList(state){
+      return state.TagsList;
     }
 },
 
@@ -79,9 +85,12 @@ export default createStore({
       state.postList.push(...array_data)
     },
 
+    setUserData(state, fetching_data){
+      state.usersList = fetching_data
+    },
 
-    setTagsList(state, fetching_data){
-      state.TagsData = fetching_data;
+    setTagsData(state, fetching_data){
+      state.TagsList = fetching_data;
     },
 
     changePostListStyle(state, post_syle){
@@ -106,18 +115,42 @@ export default createStore({
 
 },
   actions: {
-    async fetchPostData({ commit, dispatch, getters }, payload={}) {
+    async fetchPostData({ commit, dispatch, getters }, payload={'url': '', 'setVariable': false}) {
 
-      let url = getters.getBaseUrl + `?page=${getters.getPage}&page_size=${getters.getPageSize}`
+      let url = getters.getBaseUrl
 
-      if (payload.url){url = payload.url}
-      else if(payload.parametrs){url += payload.parametrs;}
+      if (payload.url){url += payload.url}
 
       await axios.get(url).then(response => {
-        payload.parametrs ? commit('setPostsList', response.data.results) : commit('extendPostsList', response.data.results)
+        payload.setVariable && payload.setVariable == true ? commit('setPostsList', response.data.results) : commit('extendPostsList', response.data.results)
         commit('setPostData', {'countPosts': response.data.count, 'nextPageUrl': response.data.next, 'previousPageUrl': response.data.previous})
       })
-    }
+    },
+
+    async fetchUsersData({ commit, dispatch, getters }, payload={'url': ''}) {
+
+      let url = getters.getBaseUrl
+
+      if (payload.url){url += payload.url}
+
+      await axios.get(url).then(response => {
+        commit('setUserData', response.data)
+      })
+
+    },
+
+    async fetchTagsData({ commit, dispatch, getters }, payload={'url': ''}) {
+
+      let url = getters.getBaseUrl
+
+      if (payload.url){url += payload.url}
+
+      await axios.get(url).then(response => {
+        commit('setTagsData', response.data)
+      })
+
+    },
+
   },
 
   modules: {}

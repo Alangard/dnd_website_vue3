@@ -9,7 +9,7 @@
     <v-divider></v-divider>
 
     <v-text-field class="search_post"
-            v-model="searchField"
+            v-model="output_filters_data.filter__post_search_result"
             :loading="loading" 
             clearable
             density="compact" 
@@ -30,7 +30,7 @@
 
                 <VueDatePicker 
                         class="mt-2"
-                        v-model="search_daterange" 
+                        v-model="output_filters_data.filter__post_date_result" 
                         :format="format"
                         placeholder="Input date range" 
                         :max-date="new Date()" 
@@ -61,7 +61,7 @@
    
                         <div v-if="search_author_query != null && search_author_query.length > 0">
 
-                                        <v-chip class="my-1 mr-4"  v-for="user in filteredUserList" :key="user.id" @click="clickOnChip(user)">
+                                        <v-chip class="my-1 mr-4"  v-for="user in filteredUserList" :key="user.id" @click="selectUser(user)">
                                                 <v-avatar start style="cursor:pointer">
                                                         <v-img v-if="user.avatar != ''" :src="user.avatar" :alt="user.username" size="x-small"></v-img>
                                                         <v-icon icon="mdi-account-circle-outline" size="large" v-else></v-icon>
@@ -73,7 +73,7 @@
                         </div>
                         
                         <div v-else>
-                                <v-chip class="my-1 mr-2" v-for="(user, index) in selected_user" :key="user" :class="{'text-primary': user.chosen == true}"  @click="deleteChip(index)">
+                                <v-chip class="my-1 mr-2" v-for="(user, index) in  output_filters_data.filter__post_author_result" :key="user" :class="{'text-primary': user.chosen == true}"  @click="unselectUser(index)">
                                         <v-avatar start style="cursor:pointer">
                                                 <v-img v-if="user.avatar != ''" :src="user.avatar" :alt="user.username" size="x-small"></v-img>
                                                 <v-icon icon="mdi-account-circle-outline" size="large" v-else></v-icon>
@@ -90,9 +90,14 @@
         <div class="filters_tags_block my-3 mx-5">
                 <span>Filter by tags</span>
                 
-                <v-chip-group multiple v-model="selected_tags" selected-class="text-primary">
-                        <v-chip v-for="tag in tags" :key="tag">{{ tag }}</v-chip>
-                </v-chip-group>
+                <div class="mt-3 d-flex flex-row flex-wrap">
+                        <v-chip
+                                class="mr-2"
+                                @click="selectTag(tag, $event)"
+                                v-for="tag in tags" :key="tag">
+                                {{ tag.name }}
+                        </v-chip>
+                </div>
         </div>
 
         <div class="apply_filters_btn_container" >
@@ -104,108 +109,39 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits, onUpdated, computed, watch} from 'vue'
+import { ref, defineProps, defineEmits, onUpdated, onMounted, computed, watch} from 'vue'
 import { useDisplay } from 'vuetify'
 import { useTheme } from 'vuetify/lib/framework.mjs';
-import FilterComponent from './FilterComponent.vue'
-
+import store from '@/store';
 
 
 let theme = useTheme()
 const props = defineProps(['isOpenAside'])
 const emit = defineEmits([''])
 
-const { width } = useDisplay()
-let submitForm = ref(false)
-let clearable_form = ref(false);
 
-
-// Search field variables
-let loading = ref(false)
-let loaded = ref(false)
-let searchField = ref(null) //It has props "clearable". When clicked, it changes to null
-
-
-// Filter by date
-
-let search_daterange = ref(null); //It has props "clearable". When clicked, it changes to null
-const format = (dates) => {
-        let new_date = ''
-        dates.forEach(function (date, i) {
-                const day = date.getDate();
-                const month = date.getMonth() + 1;
-                const year = date.getFullYear();
-                if(i==0){new_date = `From ${day}/${month}/${year}`}
-                else{new_date += ` to ${day}/${month}/${year}`}
-        });
-        return new_date;
-}
-
-// Filter by author
-const search_author_query = ref('');
-const users = ref([
-        {
-            id: '1',
-            username: 'Frozen Yogurt',
-            avatar: ''
-        },
-        {
-            id: '2',
-            username: 'Alangard',
-            avatar: ''
-        },
-        {
-            id: '3',
-            username: 'Test',
-            avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAox0pl-j8_QQ2S5XDmXMoi5sK_hinHTG2v6HByW6id9m7lfjKvtvRHGxELUNoOxatn54&usqp=CAU'
-        },
-])
-
-let selected_user = ref([])
-
-const filteredUserList = computed(() => {
-      return users.value.filter(user => user.username.toLowerCase().indexOf(search_author_query.value.toLowerCase()) !== -1)
-});
-
-const clickOnChip =(user) => {
-
-        console.log('yes')
-        const index = users.value.findIndex((element) => element == user)
-        users.value[index]['chosen'] = true;
-
-        search_author_query.value = ''
-
-        user['chosen'] = true
-        selected_user.value.push(user);
-}
-
-const deleteChip =(index) => {
-        selected_user.value.splice(index, 1)
-}
-
-// Filter by tags
-const tags = ref([
-        'Work',
-        'Home Improvement',
-        'Vacation',
-        'Food',
-        'Drawers',
-        'Shopping',
-        'Art',
-        'Tech',
-        'Creative Writing',
-])
-let selected_tags = ref([])
-
-
-//output variables obj
 let output_filters_data = ref({
-        'filter__post_search_result':  searchField,
-        'filter__post_date_result': search_daterange,
-        'filter__post_author_result': selected_user,
-        'filter__post_tags_result': selected_tags,
+        'filter__post_search_result':  null,
+        'filter__post_date_result': null,
+        'filter__post_author_result': [],
+        'filter__post_tags_result': [],
 })
 
+
+onMounted(async () => {
+        try{
+                store.dispatch('fetchUsersData', {'url': 'accounts/'});
+                store.dispatch('fetchTagsData', {'url': 'tags/'});
+                
+        }
+        catch(err){console.log(err)}
+})
+
+onUpdated(() => {
+        //Disable scroll when a aside toolbar is opened
+        if(props.isOpenAside){document.documentElement.style.overflow = 'hidden'}
+        else{document.documentElement.style.overflow = 'visible'}
+})
 
 // Watch for changes in the input fields, if at least one of them changes, change the visibility of the "clear all" button
 watch(() => output_filters_data.value, (new_obj) => {
@@ -219,6 +155,25 @@ watch(() => output_filters_data.value, (new_obj) => {
         }
 },{deep: true}
 )
+
+const { width } = useDisplay()
+let submitForm = ref(false)
+let clearable_form = ref(false);
+
+
+// Search field variables
+let loading = ref(false)
+let loaded = ref(false)
+
+
+//output variables obj
+
+const search_author_query = ref('');
+
+const users = computed(() => {return store.getters.getUsersList});
+const tags = computed(() => {return store.getters.getTagsList});
+const filteredUserList = computed(() => {return users.value.filter(user => user.username.toLowerCase().indexOf(search_author_query.value.toLowerCase()) !== -1)});
+
 
 /////
 
@@ -234,10 +189,58 @@ const startSearch =() => {
         emit('filterToolbarIsOpen')
 }
 
+const format = (dates) => {
+        let new_date = ''
+        dates.forEach(function (date, i) {
+                const day = date.getDate();
+                const month = date.getMonth() + 1;
+                const year = date.getFullYear();
+                if(i==0){new_date = `From ${day}/${month}/${year}`}
+                else{new_date += ` to ${day}/${month}/${year}`}
+        });
+        return new_date;
+}
+
+const selectUser =(user) => {
+        const index = users.value.findIndex((element) => element == user)
+        users.value[index]['chosen'] = true;
+
+        search_author_query.value = ''
+ 
+        output_filters_data.value.filter__post_author_result.push({'id': user.id, 'username': user.username, 'avatar': user.avatar, 'chosen': true});
+}
+
+const unselectUser =(index) => {
+        output_filters_data.value.filter__post_author_result.splice(index, 1)
+}
+
+const selectTag = (tag_data, event) => {
+        const element = event.target
+        element.classList.toggle('text-primary')
+
+        const tag_index = output_filters_data.value.filter__post_tags_result.length ? output_filters_data.value.filter__post_tags_result.indexOf(tag_data) : -1
+        if(tag_index >= 0){output_filters_data.value.filter__post_tags_result.splice(tag_index, 1)}
+        else{output_filters_data.value.filter__post_tags_result.push(tag_data)}     
+}
+
 const applyFilters =() => {
+
+        ////
+        `?search=${'perspiciatis.3'}` // template
+        `created_datetime_after=${'2023-04-18'}&created_datetime_before=${'2023-04-19'}`// template
+        `&username=${Alangard}&username=${TestUser}` // n*template
+        `&tags=${tavern}&tags=${mousetrap}` // n*template
+
+ 
+
+
+
+
         submitForm.value = true
         props.isOpenAside = false
         emit('filterToolbarIsOpen')
+
+
 }
 
 const clearAllFilters =() =>{
@@ -251,11 +254,6 @@ const changeStateFilterAside =() => {
         emit('filterToolbarIsOpen')
 }
 
-onUpdated(() => {
-        //Disable scroll when a aside toolbar is opened
-        if(props.isOpenAside){document.documentElement.style.overflow = 'hidden'}
-        else{document.documentElement.style.overflow = 'visible'}
-})
 
 </script>
 

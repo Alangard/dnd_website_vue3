@@ -17,17 +17,24 @@ import collections
 from django.db import connection
 
 
+
+
+
+
+
+
 # Account's views ###################################################
 
 class AccountListView(generics.ListCreateAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
-    permission_classes = (IsAdminUser, )
+    permission_classes = (AllowAny, )
     filter_backends = [DjangoFilters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['=username']
     filterset_class = AccountFilter
     ordering_fields  = ['id', 'date_joined']
     ordering = ['-date_joined']
+    pagination_class = None
 
 class AccountCreateView(generics.CreateAPIView):
     serializer_class = AccountSerializer

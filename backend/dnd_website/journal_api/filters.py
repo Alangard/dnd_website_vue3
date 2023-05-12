@@ -13,14 +13,18 @@ class AccountFilter(DjangoFilters.FilterSet):
 
 class PostListFilter(DjangoFilters.FilterSet):
 
-    tags = DjangoFilters.ModelMultipleChoiceFilter(
-        field_name='tags',
-        queryset = Tag.objects.all(),
-        conjoined='True',
-    )
-
     created_datetime = DjangoFilters.DateTimeFromToRangeFilter(field_name='created_datetime',)
 
-    class Meta:
-        model = Post
-        fields = {'author__username':['icontains']}
+    tags = DjangoFilters.ModelMultipleChoiceFilter(
+        to_field_name='slug',
+        field_name='tags__slug',
+        queryset = Tag.objects.all(),
+        conjoined=False,
+    )
+
+    username = DjangoFilters.ModelMultipleChoiceFilter(
+        to_field_name='username',
+        field_name='author__username',
+        queryset = Account.objects.all(),
+        conjoined=False,
+    )
