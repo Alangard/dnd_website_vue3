@@ -1,109 +1,111 @@
 <template>
     <v-navigation-drawer class="h-a" v-if="width <= 740" v-model="props.isOpenAside"  disable-resize-watcher='false' location="right" width="740" temporary>
 
-    <v-sheet class='d-flex flex-row align-center w-100 justify-space-between pt-1'>
-            <v-btn class="close_aside" variant="plain" rounded='lg' size="large" prepend-icon="mdi-arrow-left" @click.stop="changeStateFilterAside">Filters</v-btn>
-            <v-btn class="clear_form" v-if='clearable_form' variant="plain" size="large" @click.stop="clearAllFilters">Clear all</v-btn>
-    </v-sheet>  
+        <v-sheet class='d-flex flex-row align-center w-100 justify-space-between pt-1'>
+                <v-btn class="close_aside" variant="plain" rounded='lg' size="large" prepend-icon="mdi-arrow-left" @click.stop="changeStateFilterAside">Filters</v-btn>
+                <v-btn class="clear_form" v-if='clearable_form' variant="plain" size="large" @click.stop="clearAllFilters">Clear all</v-btn>
+        </v-sheet>  
 
-    <v-divider></v-divider>
-
-    <v-text-field class="search_post"
-            v-model="output_filters_data.filter__post_search_result"
-            :loading="loading" 
-            clearable
-            density="compact" 
-            variant="default"
-            label="Search by post's title/description" 
-            append-inner-icon="mdi-magnify"
-            single-line
-            hide-details
-            @click:append-inner="startSearch"
-            @keydown.enter.stop="startSearch">
-    </v-text-field>
-
-    <v-divider></v-divider>
-
-    <v-card class="filters_blocks" rounded='0' flat="true" style="height: max-content;">
-        <div class="filters_postdate_block my-3 mx-5">
-                <span>Filter by post date</span>
-
-                <VueDatePicker 
-                        class="mt-2"
-                        v-model="output_filters_data.filter__post_date_result" 
-                        :format="format"
-                        placeholder="Input date range" 
-                        :max-date="new Date()" 
-                        :enable-time-picker="false"
-                        :clearable="true"
-                        :dark="theme.global.name.value == 'dark'? true : false" 
-                        range 
-                />
-        </div>
         <v-divider></v-divider>
 
-        <div class="filters_author_block my-3 mx-5">
-                <span>Filter by author</span>
+        <v-text-field class="search_post"
+                v-model="output_filters_data.filter__post_search_result"
+                :loading="loading" 
+                clearable
+                density="compact" 
+                variant="default"
+                label="Search by post's title/description" 
+                append-inner-icon="mdi-magnify"
+                single-line
+                hide-details
+                @click:append-inner="startSearch"
+                @keydown.enter.stop="startSearch">
+        </v-text-field>
 
-                <v-text-field
-                        class="mt-2"
-                        v-model="search_author_query"
-                        clearable
-                        density="compact" 
-                        variant="outlined"
-                        label="Search author by username" 
-                        append-inner-icon="mdi-magnify"
-                        single-line
-                        hide-details>
-                </v-text-field>
-                
-                <div class="author_chip_container">
-   
-                        <div v-if="search_author_query != null && search_author_query.length > 0">
+        <v-divider></v-divider>
 
-                                        <v-chip class="my-1 mr-4"  v-for="user in filteredUserList" :key="user.id" @click="selectUser(user)">
+        <v-card class="filters_blocks" rounded='0' flat="true" style="height: 100%;">
+                <div class="filters_postdate_block my-3 mx-5">
+                        <span>Filter by post date</span>
+
+                        <VueDatePicker 
+                                class="mt-2"
+                                v-model="output_filters_data.filter__post_date_result" 
+                                :format="format"
+                                placeholder="Input date range" 
+                                :max-date="new Date()" 
+                                :enable-time-picker="false"
+                                :clearable="true"
+                                :dark="theme.global.name.value == 'dark'? true : false" 
+                                range 
+                        />
+                </div>
+                <v-divider></v-divider>
+
+                <div class="filters_author_block my-3 mx-5">
+                        <span>Filter by author</span>
+
+                        <v-text-field
+                                class="mt-2"
+                                v-model="search_author_query"
+                                clearable
+                                density="compact" 
+                                variant="outlined"
+                                label="Search author by username" 
+                                append-inner-icon="mdi-magnify"
+                                single-line
+                                hide-details>
+                        </v-text-field>
+                        
+                        <div class="author_chip_container">
+        
+                                <div v-if="search_author_query != null && search_author_query.length > 0">
+
+                                                <v-chip class="my-1 mr-4"  v-for="user in filteredUserList" :key="user.id" @click="selectUser(user)">
+                                                        <v-avatar start style="cursor:pointer">
+                                                                <v-img v-if="user.avatar != ''" :src="user.avatar" :alt="user.username" size="x-small"></v-img>
+                                                                <v-icon icon="mdi-account-circle-outline" size="large" v-else></v-icon>
+                                                        </v-avatar>
+                                                        {{user.username}}
+                                                </v-chip>
+        
+                                        
+                                </div>
+                                
+                                <div v-else>
+                                        <v-chip class="my-1 mr-2" v-for="(user, index) in  output_filters_data.filter__post_author_result" :key="user" :class="{'text-primary': user.chosen == true}"  @click="unselectUser(index)">
                                                 <v-avatar start style="cursor:pointer">
                                                         <v-img v-if="user.avatar != ''" :src="user.avatar" :alt="user.username" size="x-small"></v-img>
                                                         <v-icon icon="mdi-account-circle-outline" size="large" v-else></v-icon>
                                                 </v-avatar>
                                                 {{user.username}}
                                         </v-chip>
-     
-                                
-                        </div>
+                                </div>
                         
-                        <div v-else>
-                                <v-chip class="my-1 mr-2" v-for="(user, index) in  output_filters_data.filter__post_author_result" :key="user" :class="{'text-primary': user.chosen == true}"  @click="unselectUser(index)">
-                                        <v-avatar start style="cursor:pointer">
-                                                <v-img v-if="user.avatar != ''" :src="user.avatar" :alt="user.username" size="x-small"></v-img>
-                                                <v-icon icon="mdi-account-circle-outline" size="large" v-else></v-icon>
-                                        </v-avatar>
-                                        {{user.username}}
+                        </div>
+
+                </div>
+                <v-divider></v-divider>
+
+                <div class="filters_tags_block my-3 mx-5">
+                        <span>Filter by tags</span>
+                        
+                        <div class="mt-3 d-flex flex-row flex-wrap">
+                                <v-chip
+                                        class="mr-2"
+                                        @click="selectTag(tag, $event)"
+                                        selected-class="text-primary"
+                                        v-for="tag in tags" :key="tag">
+                                        {{ tag.name }}
                                 </v-chip>
                         </div>
-                 
                 </div>
-
-        </div>
-        <v-divider></v-divider>
-
-        <div class="filters_tags_block my-3 mx-5">
-                <span>Filter by tags</span>
-                
-                <div class="mt-3 d-flex flex-row flex-wrap">
-                        <v-chip
-                                class="mr-2"
-                                @click="selectTag(tag, $event)"
-                                v-for="tag in tags" :key="tag">
-                                {{ tag.name }}
-                        </v-chip>
-                </div>
-        </div>
+                <v-divider></v-divider>
+        </v-card>
 
         <div class="apply_filters_btn_container" >
                 <v-btn block @click.stop="applyFilters">Apply</v-btn>
         </div>
-    </v-card>
     </v-navigation-drawer>
 
 </template>
@@ -126,6 +128,13 @@ let output_filters_data = ref({
         'filter__post_author_result': [],
         'filter__post_tags_result': [],
 })
+
+let output_filters_data_default = {
+        'filter__post_search_result':  null,
+        'filter__post_date_result': null,
+        'filter__post_author_result': [],
+        'filter__post_tags_result': [],
+}
 
 
 onMounted(async () => {
@@ -216,7 +225,7 @@ const unselectUser =(index) => {
 
 const selectTag = (tag_data, event) => {
         const element = event.target
-        element.classList.toggle('text-primary')
+        element.classList.toggle('selected')
 
         const tag_index = output_filters_data.value.filter__post_tags_result.length ? output_filters_data.value.filter__post_tags_result.indexOf(tag_data) : -1
         if(tag_index >= 0){output_filters_data.value.filter__post_tags_result.splice(tag_index, 1)}
@@ -225,14 +234,47 @@ const selectTag = (tag_data, event) => {
 
 const applyFilters =() => {
 
-        ////
-        `?search=${'perspiciatis.3'}` // template
-        `created_datetime_after=${'2023-04-18'}&created_datetime_before=${'2023-04-19'}`// template
-        `&username=${Alangard}&username=${TestUser}` // n*template
-        `&tags=${tavern}&tags=${mousetrap}` // n*template
+        let queryset = ''
+        for(const [key, value] of Object.entries(output_filters_data.value)){
 
- 
+                switch(key){
+                        case 'filter__post_search_result':
+                                if(value != null){queryset += `&search=${value}`}
+                                break
+                        
+                        case 'filter__post_date_result':
 
+                                let new_date = ''
+                                if(value != null){
+                                        value.forEach(function (date, i) {
+                                                const day = date.getDate();
+                                                const month = date.getMonth() + 1;
+                                                const year = date.getFullYear();
+                                                if(i==0){new_date = `&created_datetime_after=${year}-${month}-${day}`}
+                                                else{new_date += `&created_datetime_before=${year}-${month}-${day}`}
+                                        });
+                                        queryset += new_date
+                                }
+
+                                break
+
+                        case 'filter__post_author_result':
+                                let users_str = '' 
+                                for(const user_data of value){users_str += `&username=${user_data.username}`}
+                                queryset += users_str
+                                break
+                        
+                        case 'filter__post_tags_result':
+                                let tags_str = '' 
+                                for(const tag_data of value){tags_str += `&tags=${tag_data.slug}`}
+                                queryset += tags_str
+                                break
+                }
+                
+        }
+
+        const url = 'posts/?' + queryset.slice(1);
+        store.dispatch('fetchPostData',{'url': url, 'setVariable': true})
 
 
 
@@ -245,7 +287,14 @@ const applyFilters =() => {
 
 const clearAllFilters =() =>{
         for(const [key, value] of Object.entries(output_filters_data.value)){
-                
+
+                if(key == 'filter__post_tags_result'){
+                        const elements = document.querySelectorAll('.filters_tags_block div> .v-chip')
+                        try{for (const element of elements){element.classList.toggle('selected')}}
+                        catch(err){console.log(err)}
+                }
+
+                output_filters_data.value[key] = output_filters_data_default[key]
         }
 }
 
@@ -267,9 +316,15 @@ const changeStateFilterAside =() => {
         margin-top: 8px;
 }
 .apply_filters_btn_container{
-    width: 100%;
-    bottom: 0;
-    padding: 12px 8px;
+        position: fixed;
+        width: 100%;
+        bottom: 0px;
+        margin-bottom: 10px;
+        padding: 12px 8px;
 
+}
+
+.selected{
+        color: rgb(var(--v-theme-primary));
 }
 </style>

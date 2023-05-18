@@ -1,47 +1,46 @@
 <template>
     <v-container fluid class="pb-12">
-        <v-app-bar >
-            <v-btn>Main</v-btn>
-            <v-btn>Post</v-btn>
-            <v-switch
-                v-model="darkMode"
-                @change="toggleDarkMode"
-                hide-details
-                inset
-                :label="`Theme: ${switchLabel} mode`"
-            ></v-switch>
+        <v-app-bar class="d-flex flex-row justify-space-between">
+
+            <v-app-bar-nav-icon variant="text" @click.stop="openMenuDrawer"></v-app-bar-nav-icon>
+
+            <v-toolbar-title>Journal</v-toolbar-title>
+
+            <v-spacer></v-spacer>
+
+            <!-- <v-btn class="text-none" stacked>
+                <v-badge content="2" color="error">
+                    <v-icon>mdi-bell-outline</v-icon>
+                </v-badge>
+            </v-btn> -->
+
+            <v-btn prepend-icon="mdi-login" variant="text" @click="openAuthDalog">
+                Login
+            </v-btn>
+
+            <!-- <v-btn class="btn mr-1" rounded="lg" icon="mdi-account-circle" @click="login_Dialog = !login_Dialog"></v-btn> -->
+
+
+            
+
         </v-app-bar>
+
     </v-container>
 </template>
 
 
 <script setup>
-import {ref, computed, onBeforeMount} from 'vue'
-import { useTheme } from 'vuetify/lib/framework.mjs';
+import {ref, computed, onBeforeMount, defineEmits,} from 'vue';
 
-    let darkMode = ref(false)
-    let theme = useTheme()
+const emit = defineEmits(['openAuthDalog', 'openMenuDrawer'])
 
-    onBeforeMount(() => {
-        if(localStorage.getItem('theme')){
-            theme.global.name.value = localStorage.getItem('theme');
-            darkMode.value = theme.global.name.value == 'light'? false : true
-        }
-        else{
-            theme.global.name.value = 'light'
-            darkMode = false
-        }
-    })
+const openMenuDrawer = () => {emit('openMenuDrawer')}
 
-    const toggleDarkMode = () => {
-        theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
-        localStorage.setItem('theme', theme.global.name.value)
-    }
-        
-        
+const openAuthDalog = () => {emit('openAuthDalog');}
     
 
-    const switchLabel = computed(() => {return darkMode.value ? 'dark' : 'light';})
+
+
     
 </script>
 

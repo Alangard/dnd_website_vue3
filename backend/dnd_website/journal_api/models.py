@@ -10,7 +10,7 @@ class Account(AbstractUser):
     avatar = models.URLField(default='', blank=True)
     favorites_reaction = models.ManyToManyField('Reaction', related_name='favorites_reaction', blank=True)
     recent_reaction = models.ManyToManyField('Reaction', related_name='recent_reaction', blank = True)
-
+    
     class Meta:
         db_table = "Account"
         verbose_name = "Account"
@@ -35,7 +35,7 @@ class Post(models.Model):
     publish_datetime = models.DateTimeField(blank=True, null=True)
     author = models.ForeignKey('Account', on_delete=models.SET_NULL, null=True )
     tags = models.ManyToManyField('Tag', blank=True)
-    reactions = models.ManyToManyField('Reaction', through="PostReaction", related_name='reactions', blank=True)
+    reactions = models.ManyToManyField('Reaction', through='PostReaction', blank=True)
     comments_count = models.IntegerField(default=0)
     commented = models.BooleanField(default=False)
     reacted = models.BooleanField(default=False)

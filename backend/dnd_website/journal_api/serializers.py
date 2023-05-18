@@ -113,12 +113,12 @@ class PostDetailSerializer(serializers.ModelSerializer):
 class PostListReadSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)
     author = ShortAccountSerializer(read_only=True)
-    # reactions = PostShortReactionSerializer(many=True, read_only=True)
+    reactions = PostShortReactionSerializer(many=True, read_only=True)
 
     class Meta:
         model = Post
-        fields=['id', 'author', 'tags', 'title', 'created_datetime','description','thumbnail', 'comments_count','commented','reacted', 'reactions']
-        # fields = '__all__'
+        # fields=['id', 'author', 'tags', 'title', 'created_datetime','description','thumbnail', 'comments_count','commented','reacted', 'reactions']
+        fields = '__all__'
 
 
     # It's corectly work, but having n+1 issue#
@@ -127,13 +127,13 @@ class PostListReadSerializer(serializers.ModelSerializer):
 
     # author = ShortAccountSerializer(read_only=True)
 
-    reactions = serializers.SerializerMethodField()
+    # reactions = serializers.SerializerMethodField()
 
   
-    def get_reactions(self, obj):
-        # todo: optimizing this
-        objs = PostReaction.objects.filter(post=obj.id).values('reaction__id', 'reaction__reaction_name', 'reaction__reaction_url').annotate(reaction_count=Count('reaction__id')).order_by('-reaction_count')[:3]
-        return PostShortReactionSerializer(objs, many=True, read_only=True).data
+    # def get_reactions(self, obj):
+    #     # todo: optimizing this
+    #     objs = PostReaction.objects.filter(post=obj.id).values('reaction__id', 'reaction__reaction_name', 'reaction__reaction_url').annotate(reaction_count=Count('reaction__id')).order_by('-reaction_count')[:3]
+    #     return PostShortReactionSerializer(objs, many=True, read_only=True).data
         
 
 

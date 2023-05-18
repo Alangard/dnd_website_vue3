@@ -62,24 +62,6 @@ class PostListPagination(PageNumberPagination):
 class PostListView(generics.ListAPIView):
 
     def get_queryset(self):
-        # sq= Subquery(PostReaction.objects.filter(post=OuterRef('id')).values_list('id', flat=True)[:3]) 
-        # subquery = PostReaction.objects.filter(post=68).values('reaction__id').annotate(reaction_count=Count('reaction__id')).order_by('-reaction_count')[:3]
-        # query = Post.objects.filter(is_publish = True).select_related('author').prefetch_related('tags', Prefetch('reactions', queryset=PostReaction.objects.filter(post=sq)))
-    
-        # queryset= Post.objects.filter(is_publish = True).select_related('author').prefetch_related('tags','reactions').annotate(reactions_count = Count('reactions__id')).order_by('-reactions_count')   
-
-        # cursor = connection.cursor()
-        # cursor.execute('call get_top3_postreaction(%s)', [68])
-        # rows = cursor.fetchall()
-
-        # print(rows)
-        # queryset= Post.objects.filter(is_publish = True).select_related('author').prefetch_related('tags').annotate(reactions_data=Subquery(s))  
-        # s = 
-
-        # print(s)
-
-
-        # queryset= Post.objects.filter(is_publish = True).select_related('author').prefetch_related('tags' , 'reactions').annotate(reaction_count=Count('reactions__id'))
         queryset= Post.objects.filter(is_publish = True).select_related('author').prefetch_related('tags' , 'reactions')
         return queryset
 
@@ -95,7 +77,7 @@ class PostListView(generics.ListAPIView):
 
 class PostCreateView(generics.CreateAPIView):
     serializer_class = PostCreateSerializer
-    permission_classes = (IsOwnerOrAdmin,) 
+    permission_classes = (IsAuthenticated, IsAdminUser) 
 
 class PostReadUpdateView(generics.RetrieveUpdateAPIView):
     queryset = Post.objects.all()

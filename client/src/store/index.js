@@ -12,6 +12,10 @@ export default createStore({
       postList: [],
       usersList: [],
       TagsList: [],
+      currUserData: {
+        'access_token': '',
+        'refresh_token': ''
+      },
 
 
       postListStyle: 'list',
@@ -67,6 +71,10 @@ export default createStore({
 
     getTagsList(state){
       return state.TagsList;
+    },
+
+    getCurrUserData(state){
+      return state.currUserData;
     }
 },
 
@@ -95,6 +103,10 @@ export default createStore({
 
     changePostListStyle(state, post_syle){
       state.postListStyle = post_syle;
+    },
+
+    setCurrUserData(state, user_data){
+      state.currUserData = user_data;
     },
 
 
@@ -148,6 +160,20 @@ export default createStore({
       await axios.get(url).then(response => {
         commit('setTagsData', response.data)
       })
+
+    },
+
+    async auth_login({ commit, dispatch, getters }, payload={'url': '', 'userdata': {}}) {
+
+      let url = getters.getBaseUrl
+
+      if (payload.url){url += payload.url}
+
+      await axios.post(url, payload.userdata)
+        .then(response => {
+          console.log(response)
+          commit('setCurrUserData', response.data)
+        })
 
     },
 
