@@ -122,6 +122,17 @@ const props = defineProps(['isOpenAside'])
 const emit = defineEmits([''])
 
 
+
+const filters_data_initial = {
+        'filter__post_search_result':  null,
+        'filter__post_date_result': null,
+        'filter__post_author_result': [],
+        'filter__post_tags_result': [],
+}
+
+//explore deepCopy
+//let output_filters_data = ref({...filters_data_initial}) doesnt work
+
 let output_filters_data = ref({
         'filter__post_search_result':  null,
         'filter__post_date_result': null,
@@ -129,21 +140,10 @@ let output_filters_data = ref({
         'filter__post_tags_result': [],
 })
 
-let output_filters_data_default = {
-        'filter__post_search_result':  null,
-        'filter__post_date_result': null,
-        'filter__post_author_result': [],
-        'filter__post_tags_result': [],
-}
-
 
 onMounted(async () => {
-        try{
-                store.dispatch('fetchUsersData', {'url': 'accounts/'});
-                store.dispatch('fetchTagsData', {'url': 'tags/'});
-                
-        }
-        catch(err){console.log(err)}
+       if(store.getters.getUsersList.length == 0){store.dispatch('fetchUsersData', {'url': 'accounts/'});}
+       if(store.getters.getTagsList.length == 0){store.dispatch('fetchTagsData', {'url': 'tags/'});}            
 })
 
 onUpdated(() => {
@@ -186,6 +186,16 @@ const filteredUserList = computed(() => {return users.value.filter(user => user.
 
 /////
 
+function copyObject(obj) {
+  let copy = {};
+  for (let prop in obj) {
+    if (obj.hasOwnProperty(prop)) {
+      copy[prop] = obj[prop];
+    }
+  }
+  return copy;
+}
+
 const startSearch =() => {
         loading.value = true
 
@@ -216,11 +226,14 @@ const selectUser =(user) => {
 
         search_author_query.value = ''
  
-        output_filters_data.value.filter__post_author_result.push({'id': user.id, 'username': user.username, 'avatar': user.avatar, 'chosen': true});
+        output_filters_data.value['filter__post_author_result'].push({'id': user.id, 'username': user.username, 'avatar': user.avatar, 'chosen': true});
+        store.commit('spliceUserList', index)
 }
 
 const unselectUser =(index) => {
-        output_filters_data.value.filter__post_author_result.splice(index, 1)
+        store.commit('pushUserList', output_filters_data.value['filter__post_author_result'][index])
+        output_filters_data.value['filter__post_author_result'].splice(index, 1)
+        
 }
 
 const selectTag = (tag_data, event) => {
@@ -286,7 +299,7 @@ const applyFilters =() => {
 }
 
 const clearAllFilters =() =>{
-        for(const [key, value] of Object.entries(output_filters_data.value)){
+        for(const [key, value] of Object.entries(filters_data_initial)){
 
                 if(key == 'filter__post_tags_result'){
                         const elements = document.querySelectorAll('.filters_tags_block div> .v-chip')
@@ -294,7 +307,7 @@ const clearAllFilters =() =>{
                         catch(err){console.log(err)}
                 }
 
-                output_filters_data.value[key] = output_filters_data_default[key]
+                output_filters_data.value[key] = value
         }
 }
 

@@ -163,22 +163,18 @@ let isLoading = ref(false);
 
 /*Filter post_list by one tag*/
 const setTagFilter = async (tag_slug) => {
-    try{store.dispatch('fetchPostData', {'url': `posts/?page=1&page_size=7&tags=${tag_slug}`, 'setVariable': true})}
-    catch(err){console.log(err)}
+    store.dispatch('fetchPostData', {'url': `posts/?page=1&page_size=7&tags=${tag_slug}`, 'setVariable': true})
 }
 
 /*Infinite scrolling (dynamic pagination)*/
 // to do: check infinite scroller vuetify
 const LoadMorePosts = async () => {
     const nextPageUrl = store.getters.getNextPostPageUrl
-    try{ 
         if(nextPageUrl !== null){
             const url = 'posts/' + nextPageUrl.split('/api/v1/posts/')[1]
             store.dispatch('fetchPostData', {'url': url})
         }
-    }
-    catch(err){console.log(err)}
-    finally{isLoading.value = false}
+    isLoading.value = false
 }
 
 const handleScroll = (e) => {

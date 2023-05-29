@@ -45,8 +45,7 @@ const order_variants = ref([
 ])
 
 const onOrderChange = async () => {
-        try{store.dispatch('fetchPostData', {'parametrs': curr_order_variant.value})}
-        catch(err){console.log(err)}
+        store.dispatch('fetchPostData', {'parametrs': curr_order_variant.value})
 }
 
 const openFilterAside =() => {emit('filterToolbarIsOpen');}

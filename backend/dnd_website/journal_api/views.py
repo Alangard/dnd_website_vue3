@@ -16,6 +16,8 @@ import json
 import collections
 from django.db import connection
 
+from django.contrib.auth.hashers import make_password
+
 
 
 
@@ -27,7 +29,7 @@ from django.db import connection
 
 class AccountListView(generics.ListCreateAPIView):
     queryset = Account.objects.all()
-    serializer_class = AccountSerializer
+    serializer_class = ShortAccountSerializer
     permission_classes = (AllowAny, )
     filter_backends = [DjangoFilters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['=username']
@@ -40,11 +42,27 @@ class AccountCreateView(generics.CreateAPIView):
     serializer_class = AccountSerializer
     permission_classes = (AllowAny,)
 
+    def perform_create(self, serializer):
+        # Hash password but passwords are not required
+        if ('password' in self.request.data):
+            password = make_password(self.request.data['password'])
+            serializer.save(password=password)
+        else:
+            serializer.save()
+
 class AccountUpdateView(generics.RetrieveUpdateAPIView):
     lookup_field = 'slug' # get slug from url
     queryset = Account.objects.all()
-    serializer_class = AccountSerializer
+    serializer_class = ShortAccountSerializer
     permission_classes=(IsOwnerOrReadOnly,)
+
+    def perform_update(self, serializer):
+        # Hash password but passwords are not required
+        if ('password' in self.request.data):
+            password = make_password(self.request.data['password'])
+            serializer.save(password=password)
+        else:
+            serializer.save()
 
 class AccountDestroyView(generics.RetrieveDestroyAPIView):
     lookup_field = 'slug' # get slug from url

@@ -4,6 +4,7 @@ from .models import *
 class AccountFilter(DjangoFilters.FilterSet):
     date_joined = DjangoFilters.DateFromToRangeFilter(field_name='date_joined')
     username = DjangoFilters.CharFilter(field_name='username')
+    email = DjangoFilters.CharFilter(field_name='email')
     is_staff = DjangoFilters.BooleanFilter(field_name='is_staff')
     is_active = DjangoFilters.BooleanFilter(field_name='is_active')
 

@@ -10,14 +10,14 @@ urlpatterns = [
     path('auth/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
 
     path('accounts/', AccountListView.as_view(), name='accounts-list-url'),
+    path('account/create/', AccountCreateView.as_view(), name='account-create-url'),
     path('account/<slug:slug>/', AccountUpdateView.as_view(), name='account-update-url'),
-    path('account/create', AccountCreateView.as_view(), name='account-create-url'),
-    path('account/<slug:slug>/delete', AccountDestroyView.as_view(), name='account-delete-url'),
+    path('account/<slug:slug>/delete/', AccountDestroyView.as_view(), name='account-delete-url'),
 
     path('posts/', PostListView.as_view(), name='posts-list-url'),
     path('post/<int:pk>/', PostReadUpdateView.as_view(), name='post-read_update-url'),
     path('post/create', PostCreateView.as_view(), name='post-create-url'),
-    path('post/<int:pk>/delete', PostDestroyView.as_view(), name='post-delete-url'),
+    path('post/<int:pk>/delete/', PostDestroyView.as_view(), name='post-delete-url'),
 
     path('reactions_categories/', ReactionCategoriesListView.as_view(), name='reactions_categories-url'),
     path('reaction_category/<int:pk>/', ReactionCategoryRUDView.as_view(), name='reaction_category-url'),

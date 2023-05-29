@@ -4,20 +4,23 @@ from django.db.models import Count
 
 
 
+
 ## Accounts serializers ############################################################
 
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
-        extra_kwargs = {'password': {'write_only': True, 'min_length': 4}}
         fields = [  'id',
                     "username", 
+                    "password",
                     "avatar",
                     "email",
                     "favorites_reaction",
                     "recent_reaction",
                     "is_staff",
                     "is_active"]
+        
+
         
 class ShortAccountSerializer(serializers.ModelSerializer):
     class Meta:

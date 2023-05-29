@@ -12,10 +12,7 @@ export default createStore({
       postList: [],
       usersList: [],
       TagsList: [],
-      currUserData: {
-        'access_token': '',
-        'refresh_token': ''
-      },
+      currUserData: {},
 
 
       postListStyle: 'list',
@@ -75,6 +72,20 @@ export default createStore({
 
     getCurrUserData(state){
       return state.currUserData;
+    },
+
+    getCurrUserResponseStatus(state){
+      return state.currUserData.status;
+    },
+
+    getCurrUserError(state){
+      return state.currUserData.error_info;
+    },
+
+    getJWT(state){
+      return {'access_token': state.currUserData.access_token, 
+              'refresh_token': state.currUserData.refresh_token, 
+            }
     }
 },
 
@@ -93,8 +104,16 @@ export default createStore({
       state.postList.push(...array_data)
     },
 
-    setUserData(state, fetching_data){
+    setUsersData(state, fetching_data){
       state.usersList = fetching_data
+    },
+
+    spliceUserList(state, index){
+      state.usersList.splice(index, 1)
+    },
+
+    pushUserList(state, element){
+      state.usersList.push(element)
     },
 
     setTagsData(state, fetching_data){
@@ -106,8 +125,29 @@ export default createStore({
     },
 
     setCurrUserData(state, user_data){
-      state.currUserData = user_data;
+      state.currUserData = user_data
     },
+
+    setJWT(state, jwt_data){
+      state.currUserData['access_token']= jwt_data.access
+      state.currUserData['refresh_token']= jwt_data.access
+    },
+
+    setCurrUserError(state, err){
+      state.currUserData['error_info'] = err
+      state.currUserData['status'] = err.response.status
+    },
+
+    setCurrUserResponseStatus(state, status){
+      state.currUserData['status'] = status
+    },
+
+    setToDefaultCurrUserData(state){
+      for(const [key, value] of Object.entries(state.currUserData)){
+        state.currUserData[key] = ''
+      }
+    },
+
 
 
     ////////////////////////////////////////////////////////////
@@ -133,10 +173,14 @@ export default createStore({
 
       if (payload.url){url += payload.url}
 
-      await axios.get(url).then(response => {
-        payload.setVariable && payload.setVariable == true ? commit('setPostsList', response.data.results) : commit('extendPostsList', response.data.results)
-        commit('setPostData', {'countPosts': response.data.count, 'nextPageUrl': response.data.next, 'previousPageUrl': response.data.previous})
-      })
+      try{
+        await axios.get(url).then(response => {
+          payload.setVariable && payload.setVariable == true ? commit('setPostsList', response.data.results) : commit('extendPostsList', response.data.results)
+          commit('setPostData', {'countPosts': response.data.count, 'nextPageUrl': response.data.next, 'previousPageUrl': response.data.previous})
+        })
+      }
+      catch(err){console.log(err)}
+
     },
 
     async fetchUsersData({ commit, dispatch, getters }, payload={'url': ''}) {
@@ -145,9 +189,12 @@ export default createStore({
 
       if (payload.url){url += payload.url}
 
-      await axios.get(url).then(response => {
-        commit('setUserData', response.data)
-      })
+      try{
+        await axios.get(url).then(response => {
+          commit('setUsersData', response.data)
+        })
+      }
+      catch(err){console.log(err)}
 
     },
 
@@ -157,25 +204,55 @@ export default createStore({
 
       if (payload.url){url += payload.url}
 
-      await axios.get(url).then(response => {
-        commit('setTagsData', response.data)
-      })
+      try{
+        await axios.get(url).then(response => {
+          commit('setTagsData', response.data)
+        })
+      }
+      catch(err){console.log(err)}
+
 
     },
 
-    async auth_login({ commit, dispatch, getters }, payload={'url': '', 'userdata': {}}) {
+    async auth_login({ commit, dispatch, getters, }, payload={'url': '', 'userdata': {}}) {
 
       let url = getters.getBaseUrl
 
       if (payload.url){url += payload.url}
 
-      await axios.post(url, payload.userdata)
+      try{
+        await axios.post(url, payload.userdata)
         .then(response => {
-          console.log(response)
-          commit('setCurrUserData', response.data)
+          commit('setCurrUserResponseStatus',  response.status)
+          commit('setJWT', response.data);
+          localStorage.setItem('access_token', response.data.access);
+          localStorage.setItem('refresh_token', response.data.refresh);
         })
-
+        .catch((err) => {
+          commit('setCurrUserError',  err)
+          commit('setJWT', {'access': '', 'refresh': ''});
+        })
+      }
+      catch(err){}
     },
+
+    async create_account({ commit, dispatch, getters }, payload={'url': '', 'userdata':{}}){
+      let url = getters.getBaseUrl
+
+      if (payload.url){url += payload.url}
+
+      try{
+        await axios.post(url, payload.userdata)
+        .then(response => {
+          commit('setCurrUserData', response.data)
+          commit('setCurrUserResponseStatus',  response.status)
+        })
+        .catch((err)=>{
+          commit('setCurrUserError',  err)
+        })
+      }
+      catch(err){console.log(err)}
+    }
 
   },
 

@@ -2,8 +2,10 @@
   <v-theme-provider with-background>
     <v-app>
       <Navbar 
-        @openAuthDalog="showAuthDialog = !showAuthDialog"
-        @openMenuDrawer="main_menu_drawer = !main_menu_drawer">
+        @openAuthDialog="showAuthDialog = !showAuthDialog"
+        @openMenuDrawer="main_menu_drawer = !main_menu_drawer"
+        @changeTheme="darkTheme = !darkTheme"
+        :darkTheme="darkTheme">
       </Navbar>
 
       <v-sheet class="d-flex flex-column align-center">
@@ -14,20 +16,14 @@
 
       </v-sheet>
 
-      <AuthDialog v-model="showAuthDialog" @closeAuthDialog="showAuthDialog = false"> </AuthDialog>
+      <AuthDialog v-if='showAuthDialog' v-model="showAuthDialog" @closeAuthDialog="showAuthDialog = false"> </AuthDialog>
 
-      <FilterAside :isOpenAside="filterAsideState" @filterToolbarIsOpen="filterAsideState =! filterAsideState"></FilterAside>
+      <FilterAside v-if='filterAsideState' :isOpenAside="filterAsideState" @filterToolbarIsOpen="filterAsideState =! filterAsideState"></FilterAside>
       <v-btn class="create_post_btn" icon="mdi-plus-thick" v-if="!filterAsideState"></v-btn>
 
 
       <v-navigation-drawer v-if="width <= 740" v-model="main_menu_drawer" location="left" temporary>
-        <v-switch
-            v-model="darkMode"
-            @change="toggleDarkMode"
-            hide-details
-            inset
-            :label="`Theme: ${switchLabel} mode`"
-        ></v-switch>
+
 
       </v-navigation-drawer>
 
@@ -37,48 +33,57 @@
 </template>
 
 <script setup>
-import {ref, computed, onBeforeMount} from 'vue';
+import {ref, computed, defineAsyncComponent, onBeforeMount} from 'vue';
 import {useStore} from 'vuex';
 import { useTheme } from 'vuetify/lib/framework.mjs';
 import { useDisplay } from 'vuetify';
 
-import Navbar from '@/components/Navbar.vue';
-import Journal from '@/pages/Journal.vue';
-import Filters from '@/components/Filters/Filters.vue'
-import FilterAside from '@/components/Filters/FilterAside.vue'
-import AuthDialog from '@/pages/AuthDialog.vue';
+const Navbar = defineAsyncComponent(() => import('@/components/Navbar.vue'));
+const Journal = defineAsyncComponent(() => import('@/pages/Journal.vue'));
+const Filters = defineAsyncComponent(() => import('@/components/Filters/Filters.vue'));
+const FilterAside = defineAsyncComponent(() => import('@/components/Filters/FilterAside.vue'));
+const AuthDialog = defineAsyncComponent(() => import('@/pages/AuthDialog.vue'));
 
 const store = useStore();
+const { width } = useDisplay();
 let theme = useTheme();
-const { width } = useDisplay()
 
 let filterAsideState = ref(false);
 let showAuthDialog = ref(false);
-let darkMode = ref(false);
+let darkTheme = ref(false);
+
+
 const main_menu_drawer = ref(false);
 
 
-const LoclaStorageThemeManager = () => {
+const LocalStorageThemeManager = () => {
     if(localStorage.getItem('theme')){
         theme.global.name.value = localStorage.getItem('theme');
-        darkMode.value = theme.global.name.value == 'light'? false : true
+        darkTheme.value = theme.global.name.value == 'light'? false : true
     }
     else{
         theme.global.name.value = 'light'
-        darkMode = false
+        darkTheme = false
     }
 }
 
-const toggleDarkMode = () => {
-    theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
-    localStorage.setItem('theme', theme.global.name.value)
+const LocalStorageJWTManager = () =>{
+  if(localStorage.getItem('access_token') && localStorage.getItem('refresh_token')){
+      const access_token = localStorage.getItem('access_token');
+      const refresh_token = localStorage.getItem('refresh_token');
+      store.commit('setJWT', {'access': access_token, 'refresh':refresh_token})
+  }
+  else{
+    store.commit('setJWT', {'access': '', 'refresh':''})
+  }
 }
 
-const switchLabel = computed(() => {return darkMode.value ? 'dark' : 'light';})
+
 
 
 onBeforeMount(() => {
-  LoclaStorageThemeManager();
+  LocalStorageThemeManager();
+  LocalStorageJWTManager();
 })
 
 
