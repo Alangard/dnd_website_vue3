@@ -6,6 +6,7 @@ from django.utils.timezone import now
 
 
 class Account(AbstractUser):
+    email = models.EmailField(unique=True)
     slug = models.SlugField(max_length=150, db_index=True, blank=True, null=True)
     avatar = models.URLField(default='', blank=True)
     favorites_reaction = models.ManyToManyField('Reaction', related_name='favorites_reaction', blank=True)

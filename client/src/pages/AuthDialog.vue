@@ -1,10 +1,20 @@
 <template>
     <v-dialog class="auth_dialog" width="auto" max-width="550" min-width="350" >
         <v-card title="Log In" v-if="authOptions == 'log_in'">
+
+          <v-container v-if="login_error.state">
+              <v-alert 
+                density="compact"
+                type="error"
+                :text="login_error.text"
+              ></v-alert>
+            </v-container>
+
           <v-container>
 
             <v-text-field
                 v-model="formdata_logIn.username"
+                clearable
                 color="primary"
                 label="Username"
                 variant="underlined"
@@ -15,9 +25,7 @@
                 :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 :type="showPassword ? 'text' : 'password'"
                 @click:append="showPassword = !showPassword"
-                :rules="[rules.required, rules.min]"
-                hint="At least 8 characters"
-                counter
+                clearable
                 color="primary"
                 label="Password"
                 variant="underlined"
@@ -35,7 +43,7 @@
                 Forgot Password?
               </div>
             </div>
-
+        
             <v-card-actions class="d-flex flex-row justify-center">
               <v-btn width='95%' variant="outlined" color="success" @click="submitLoginForm(formdata_logIn)">
                   Log In
@@ -63,7 +71,7 @@
               <form>
                 <v-text-field
                     v-model="formdata_singUp.username"
-                    :error-messages="v$.username.$errors.map(e => e.$message)"
+                    :error-messages="singUpValidationErrors.username !== ''? singUpValidationErrors.username : v$.username.$errors.map(e => e.$message)"
                     @input="v$.username.$touch"
                     @blur="v$.username.$touch"
                     hint="No more than 30 characters"
@@ -76,7 +84,7 @@
 
                 <v-text-field
                     v-model="formdata_singUp.email"
-                    :error-messages="v$.email.$errors.map(e => e.$message)"
+                    :error-messages="singUpValidationErrors.email !== ''? singUpValidationErrors.email : v$.email.$errors.map(e => e.$message)"
                     @input="v$.email.$touch"
                     @blur="v$.email.$touch"
                     clearable
@@ -90,7 +98,7 @@
                     :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                     :type="showPassword ? 'text' : 'password'"
                     @click:append="showPassword = !showPassword"
-                    :error-messages="v$.password.$errors.map(e => e.$message)"
+                    :error-messages="singUpValidationErrors.password !== ''? singUpValidationErrors.password : v$.password.$errors.map(e => e.$message)"
                     @input="v$.password.$touch"
                     @blur="v$.password.$touch"
                     clearable
@@ -155,9 +163,8 @@
 </template>
 
 <script setup>
-import {ref, computed, defineProps, defineEmits, watch} from 'vue';
+import {ref, computed, defineProps, defineEmits, watch, toRaw} from 'vue';
 import {useStore} from 'vuex';
-import axios from 'axios';
 import { useVuelidate } from '@vuelidate/core'
 import { email, required, sameAs, minLength, maxLength, numeric, not, helpers} from '@vuelidate/validators'
 
@@ -187,12 +194,30 @@ const singUpValidationErrors = ref({
 const formdata_logIn = ref({
   'username': '',
   'password': '',
-  'remember': false,
+  'remember': true,
+})
+
+const login_error = ref({
+  text: '',
+  state: false,
 })
 
 
 watch(() => formdata_singUp.value, (new_obj) => {
-  if(new_obj.agree_terms) singUpValidationErrors.value = ''
+  for(const[key, value] of Object.entries(new_obj)){
+    if(new_obj[key] == '' || new_obj[key] === null || new_obj.agree_terms == true){
+      singUpValidationErrors.value[key] = ''
+    }
+  }
+},{deep: true}
+)
+
+watch(() => formdata_logIn.value, (new_obj) => {
+  for(const[key, value] of Object.entries(new_obj)){
+    if(new_obj[key] == '' || new_obj[key] === null){
+      login_error.value.state = false
+    }
+  }
 },{deep: true}
 )
 
@@ -243,21 +268,21 @@ const rules_signup = computed(() => {
 const v$ = useVuelidate(rules_signup, formdata_singUp)
 
 
-const rules = ref( {
-    required: value => !!value || 'Required.',
-    min: v => v.length >= 8 || 'Min 8 characters',
-    emailMatch: () => (`The email and password you entered don't match`),
-})
-
-
 const submitLoginForm =(data) => {
     const user_data = {'username': data.username, 'password': data.password}
 
     store.dispatch('auth_login',{'url': 'auth/token/create/', 'userdata': user_data})
     .then(() => {
-      const status = store.getters.getCurrUserResponseStatus
-      if(status == 200){
+      const status = toRaw(store.getters.getCurrUserResponseStatus)
+      const error_info = toRaw(store.getters.getCurrUserError)
+
+      if(status == 200 || status == 201){
         emit('closeAuthDialog');
+      }
+      else{
+        login_error.value.state = true
+        login_error.value.text = error_info.response.data.detail
+        console.log(error_info)
       }
     }) 
 }
@@ -268,34 +293,21 @@ const submitSignUpForm =async (data) =>{
 
   if(data.agree_terms){
     
-    store.dispatch('create_account', {'url': 'account/create/', 'userdata': user_data}).then(()=>{
-    const status = store.getters.getCurrUserResponseStatus
-    const error_info = store.getters.getCurrUserError
+    store.dispatch('create_account', {'url': 'account/create/', 'userdata': user_data})
+    .then(()=>{
+      const status = toRaw(store.getters.getCurrUserResponseStatus)
+      const error_info = toRaw(store.getters.getCurrUserError)
 
-    if(status == 200 || status == 201){
-        store.dispatch('auth_login', {'url': 'auth/token/create/', 'userdata': {'username': user_data.username, 'password': user_data.password}})
-        emit('closeAuthDialog');
+      if(status == 200 || status == 201){
+          store.dispatch('auth_login', {'url': 'auth/token/create/', 'userdata': {'username': user_data.username, 'password': user_data.password}})
+          emit('closeAuthDialog');
+        }
+      else{
+        for(const [key, value] of Object.entries(error_info.response.data)){singUpValidationErrors.value[key] = value[0]}    
       }
-    else{
-      console.log(error_info.response.data)
-    }
-  })
+    })
   }
-  else{
-    singUpValidationErrors.value.agree_terms = 'You must agree to the Terms and Privacy Policy'
-  }
-
-
-
- 
-
-
-
-
-
-  
-  
-
+  else{singUpValidationErrors.value.agree_terms = 'You must agree to the Terms and Privacy Policy'}
 }
 
 
