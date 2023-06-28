@@ -12,11 +12,11 @@ from .permisions import *
 from .serializers import *
 from .models import *
 from django.db.models import Count, OuterRef, Subquery, Prefetch, Value, CharField, F, prefetch_related_objects
-import json
-import collections
+# import json
+# import collections
 from django.db import connection
 
-from django.contrib.auth.hashers import make_password
+# from django.contrib.auth.hashers import make_password
 
 
 
@@ -27,48 +27,48 @@ from django.contrib.auth.hashers import make_password
 
 # Account's views ###################################################
 
-class AccountListView(generics.ListCreateAPIView):
-    queryset = Account.objects.all()
-    serializer_class = ShortAccountSerializer
-    permission_classes = (AllowAny, )
-    filter_backends = [DjangoFilters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['=username']
-    filterset_class = AccountFilter
-    ordering_fields  = ['id', 'date_joined']
-    ordering = ['-date_joined']
-    pagination_class = None
+# class AccountListView(generics.ListCreateAPIView):
+#     queryset = Account.objects.all()
+#     serializer_class = ShortAccountSerializer
+#     permission_classes = (AllowAny, )
+#     filter_backends = [DjangoFilters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+#     search_fields = ['=username']
+#     filterset_class = AccountFilter
+#     ordering_fields  = ['id', 'date_joined']
+#     ordering = ['-date_joined']
+#     pagination_class = None
 
-class AccountCreateView(generics.CreateAPIView):
-    serializer_class = AccountSerializer
-    permission_classes = (AllowAny,)
+# class AccountCreateView(generics.CreateAPIView):
+#     serializer_class = AccountSerializer
+#     permission_classes = (AllowAny,)
 
-    def perform_create(self, serializer):
-        # Hash password but passwords are not required
-        if ('password' in self.request.data):
-            password = make_password(self.request.data['password'])
-            serializer.save(password=password)
-        else:
-            serializer.save()
+#     def perform_create(self, serializer):
+#         # Hash password but passwords are not required
+#         if ('password' in self.request.data):
+#             password = make_password(self.request.data['password'])
+#             serializer.save(password=password)
+#         else:
+#             serializer.save()
 
-class AccountUpdateView(generics.RetrieveUpdateAPIView):
-    lookup_field = 'slug' # get slug from url
-    queryset = Account.objects.all()
-    serializer_class = ShortAccountSerializer
-    permission_classes=(IsOwnerOrReadOnly,)
+# class AccountUpdateView(generics.RetrieveUpdateAPIView):
+#     lookup_field = 'slug' # get slug from url
+#     queryset = Account.objects.all()
+#     serializer_class = ShortAccountSerializer
+#     permission_classes=(IsOwnerOrReadOnly,)
 
-    def perform_update(self, serializer):
-        # Hash password but passwords are not required
-        if ('password' in self.request.data):
-            password = make_password(self.request.data['password'])
-            serializer.save(password=password)
-        else:
-            serializer.save()
+#     def perform_update(self, serializer):
+#         # Hash password but passwords are not required
+#         if ('password' in self.request.data):
+#             password = make_password(self.request.data['password'])
+#             serializer.save(password=password)
+#         else:
+#             serializer.save()
 
-class AccountDestroyView(generics.RetrieveDestroyAPIView):
-    lookup_field = 'slug' # get slug from url
-    queryset = Account.objects.all()
-    serializer_class = AccountSerializer
-    permission_classes = (IsOwnerOrAdmin, )
+# class AccountDestroyView(generics.RetrieveDestroyAPIView):
+#     lookup_field = 'slug' # get slug from url
+#     queryset = Account.objects.all()
+#     serializer_class = AccountSerializer
+#     permission_classes = (IsOwnerOrAdmin, )
    
 # Post's views ########################################################
 
