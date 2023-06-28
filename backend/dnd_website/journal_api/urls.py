@@ -4,16 +4,15 @@ from .views import *
 from rest_framework_simplejwt.views import (TokenObtainPairView,TokenRefreshView,TokenVerifyView)
 
 urlpatterns = [
-    path('auth/', include('djoser.urls')),
-    path('auth/', include('djoser.urls.jwt')),
-    # path('auth/token/create/', TokenObtainPairView.as_view(), name='token_create'),
-    # path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    # path('auth/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path('auth/', include('rest_framework.urls')),
+    path('auth/token/create/', TokenObtainPairView.as_view(), name='token_create'),
+    path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
 
-    # path('accounts/', AccountListView.as_view(), name='accounts-list-url'),
-    # path('account/create/', AccountCreateView.as_view(), name='account-create-url'),
-    # path('account/<slug:slug>/', AccountUpdateView.as_view(), name='account-update-url'),
-    # path('account/<slug:slug>/delete/', AccountDestroyView.as_view(), name='account-delete-url'),
+    path('accounts/', AccountListView.as_view(), name='accounts-list-url'),
+    path('account/create/', AccountCreateView.as_view(), name='account-create-url'),
+    path('account/<slug:slug>/', AccountUpdateView.as_view(), name='account-update-url'),
+    path('account/<slug:slug>/delete/', AccountDestroyView.as_view(), name='account-delete-url'),
 
     path('posts/', PostListView.as_view(), name='posts-list-url'),
     path('post/<int:pk>/', PostReadUpdateView.as_view(), name='post-read_update-url'),

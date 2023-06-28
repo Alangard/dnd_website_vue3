@@ -1,7 +1,5 @@
 import { createStore } from 'vuex'
 import axios from 'axios';
-import { auth } from "./modules/auth";
-import { journal } from './modules/journal';
 
 
 export default createStore({
@@ -172,16 +170,11 @@ export default createStore({
     async fetchPostData({ commit, dispatch, getters }, payload={'url': '', 'setVariable': false}) {
 
       let url = getters.getBaseUrl
-      const yourConfig = {
-        headers: {
-           Authorization: "Bearer " + localStorage.getItem('access_token')
-        }
-     }
 
       if (payload.url){url += payload.url}
 
       try{
-        await axios.get(url, yourConfig).then(response => {
+        await axios.get(url).then(response => {
           payload.setVariable && payload.setVariable == true ? commit('setPostsList', response.data.results) : commit('extendPostsList', response.data.results)
           commit('setPostData', {'countPosts': response.data.count, 'nextPageUrl': response.data.next, 'previousPageUrl': response.data.previous})
         })
@@ -263,8 +256,5 @@ export default createStore({
 
   },
 
-  modules: {
-    auth,
-    journal
-  }
+  modules: {}
 })

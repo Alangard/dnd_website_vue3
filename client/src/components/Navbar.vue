@@ -1,13 +1,10 @@
 <template>
     <v-container fluid class="pb-12">
-        <v-app-bar class="d-flex flex-row justify-space-between" v-if="router.currentRoute.value.meta.navbar_style == 'default'">
+        <v-app-bar class="d-flex flex-row justify-space-between">
 
-            <v-app-bar-nav-icon 
-                variant="text" 
-                @click.stop="openMenuDrawer">
-            </v-app-bar-nav-icon>
+            <v-app-bar-nav-icon variant="text" @click.stop="openMenuDrawer"></v-app-bar-nav-icon>
 
-            <v-toolbar-title>{{currentRouteName }}</v-toolbar-title>
+            <v-toolbar-title>Journal</v-toolbar-title>
 
             <v-spacer></v-spacer>
 
@@ -17,39 +14,13 @@
                 </v-badge>
             </v-btn>
  
-            <v-btn stacked class="theme_btn pa-0 mr-2"  
-                width="auto" 
-                min-width="40" 
-                :icon="prop.darkTheme ? 'mdi-weather-night': 'mdi-weather-sunny'"
-                rounded="0"
-                variant="text" 
-                @click="toggleDarkMode">
-            </v-btn>
+            <v-btn stacked class="theme_btn pa-0 mr-2"  width="auto" min-width="40" :icon="prop.darkTheme ? 'mdi-weather-night': 'mdi-weather-sunny'" rounded="0" variant="text" @click="toggleDarkMode"></v-btn>
 
-            <v-btn stacked class="login_btn pa-0 mr-2 br-0" 
-                width="auto" 
-                min-width="40"
-                icon="mdi-login-variant" 
-                rounded="0" 
-                variant="text" 
-                v-if="!loggedIn" 
-                @click="router.push({ name: 'login'})">
-            </v-btn>
+            <v-btn stacked class="login_btn pa-0 mr-2 br-0" width="auto" min-width="40" v-if="hasJWT == false" icon="mdi-login-variant" rounded="0" variant="text" @click="openAuthDialog"></v-btn>
 
-            <v-menu transition="slide-y-transition" offset="16">
-                
-                <template v-slot:activator="{ props }">
-                    <v-btn stacked class="account_menu pa-0 mr-2" 
-                        width="auto" 
-                        min-width="40"
-                        icon="mdi-account-circle" 
-                        rounded="0" 
-                        variant="text"  
-                        v-bind="props" 
-                        v-if="loggedIn" >
-                    </v-btn>
-                </template>
+            <v-btn stacked class="account_menu pa-0 mr-2" width="auto" min-width="40" v-else id="menu-activator" icon="mdi-account-circle" rounded="0" variant="text"></v-btn>
 
+            <v-menu activator="#menu-activator" transition="slide-y-transition" offset="16">
                 <v-list>
 
                     <v-list-item value="0" active-color="primary">
@@ -67,12 +38,7 @@
 
                     <v-divider></v-divider>
 
-                    <v-list-item class="ml-1"
-                        active-color="primary"  
-                        v-for="(section, i) in sections" :key="i" 
-                        :value="section.section_name" 
-                        @click="clickOnSection(section.page_name)"
-                    >
+                    <v-list-item class="ml-1" v-for="(section, i) in sections" :key="i" :value="section.section_name" active-color="primary" @click="clickOnSection(section.page_name)">
                         <template v-slot:prepend>
                             <v-icon class="mr-5" :icon="section.icon"></v-icon>
                         </template>
@@ -95,20 +61,6 @@
 
         </v-app-bar>
 
-        <v-app-bar class="d-flex flex-row justify-space-between" v-else>
-
-            <v-toolbar-title>{{currentRouteName }}</v-toolbar-title>
-
-            <v-btn stacked class="theme_btn pa-0 mr-2"  
-                width="auto" 
-                min-width="40" 
-                :icon="prop.darkTheme ? 'mdi-weather-night': 'mdi-weather-sunny'"
-                rounded="0"
-                variant="text" 
-                @click="toggleDarkMode">
-            </v-btn>
-
-        </v-app-bar>
     </v-container>
 </template>
 
@@ -117,7 +69,6 @@
 import {ref, computed,  defineEmits, defineProps} from 'vue';
 import { useStore } from 'vuex';
 import { useTheme } from 'vuetify/lib/framework.mjs';
-import router from '@/router/router';
 
 let theme = useTheme();
 const store = useStore();
@@ -135,17 +86,29 @@ const sections = ref([
     { section_name: 'Settings', page_name: 'settings', icon: 'mdi-cog' },
 ])
 
-const clickOnSection = (section_name) => {console.log(section_name)}
+const clickOnSection = (section_name) => {
+    console.log(section_name)
+}
 
-const logout = () => {store.dispatch("auth/logout")}
+const logout = () => {
+    store.commit('setToDefaultCurrUserData');
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+
+}
 
 const openMenuDrawer = () => {emit('openMenuDrawer')}
 
-const currentRouteName = computed(() => {return router.currentRoute.value.meta.navbar_name})
+const openAuthDialog = () => {emit('openAuthDialog');}
 
-const loggedIn = computed(() => {return store.getters['auth/loginState']});
+const hasJWT = computed(() => {
+    const JWT_obj = store.getters.getJWT;
+    return JWT_obj.access_token != '' && JWT_obj.refresh_token != '' ? true : false
+})
 
-const currUserData = computed(() => {return store.getters.getCurrUserData;})
+const currUserData = computed(() => {
+    return store.getters.getCurrUserData;
+})
 
 
     

@@ -2,6 +2,9 @@ from rest_framework import serializers
 from .models import *
 from django.db.models import Count
 
+
+
+
 ## Accounts serializers ############################################################
 
 class AccountSerializer(serializers.ModelSerializer):

@@ -1,198 +1,165 @@
 <template>
 
-    <FilterAside 
-        v-if='filterAsideState' 
-        :isOpenAside="filterAsideState"
-        @filterToolbarIsOpen="filterAsideState =! filterAsideState">
-    </FilterAside>
+    <div class="d-flex flex-column align-center h-auto" ref="scrollComponent" v-if="store.getters.getPostListStyle=='list'">
 
-    <v-date-picker></v-date-picker>
+        <v-card class="main-container elevation-8" v-for="post in store.getters.getPostsList" :key="post">
+                    <div class="user_data d-flex flex-row align-center justify-start mb-1" style="width:max-content">
 
-    <v-container style="max-width: 750px;">
+                            <v-avatar class="avatar" size="x-small" style="cursor:pointer" 
+                                @click="$router.push({ name: 'user', params: {id: post.author.username} })">
+                                <v-img v-if="post.author.avatar != ''"
+                                    :src="post.author.avatar"
+                                    :alt="post.author.username">
+                                </v-img>
+                                <v-icon icon="mdi-account-circle" v-else></v-icon>
+                            </v-avatar>
 
-    
-        <Filters @filterToolbarIsOpen="filterAsideState =! filterAsideState"></Filters>
+                            <span class="username px-1 text-caption text-capitalize font-weight-regular" style="cursor:pointer" 
+                                @click="$router.push({ name: 'user', params: {id: post.author.username} })">
+                                {{post.author.username}}
+                            </span> 
 
-        <div class="d-flex flex-column align-center h-auto" ref="scrollComponent" v-if="store.getters.getPostListStyle=='list'">
+                            <span class="pr-1">•</span>
+                            <span class="post_date text-caption font-weight-regular" style="cursor:pointer">
+                                Posted {{DateTimeFormat(post.created_datetime)}}
+                            </span>
+                    </div>
 
-            <v-card class="main-container elevation-8" v-for="post in store.getters.getPostsList" :key="post">
-                        <div class="user_data d-flex flex-row align-center justify-start mb-1" style="width:max-content">
+                    <div class="title font-weight-bold text-justify mb-2"
+                        @click="$router.push({ name: 'postdetail', params: {id: post.id} })">
+                        {{post.title}}
+                    </div>
 
-                                <v-avatar class="avatar" size="x-small" style="cursor:pointer" 
-                                    @click="$router.push({ name: 'user', params: {id: post.author.username} })">
-                                    <v-img v-if="post.author.avatar != ''"
-                                        :src="post.author.avatar"
-                                        :alt="post.author.username">
-                                    </v-img>
-                                    <v-icon icon="mdi-account-circle" v-else></v-icon>
-                                </v-avatar>
+                    <v-img 
+                        class='thumbnail mw-100 rounded mb-2' style="cursor:pointer"
+                        v-if="post.thumbnail"
+                        @click="$router.push({ name: 'postdetail', params: {id: post.id} })"
+                        :src="post.thumbnail"
+                        alt="post_img"
+                        aspect-ratio="16/9"
+                        cover>
+                    </v-img>
+                                        
 
-                                <span class="username px-1 text-caption text-capitalize font-weight-regular" style="cursor:pointer" 
-                                    @click="$router.push({ name: 'user', params: {id: post.author.username} })">
-                                    {{post.author.username}}
-                                </span> 
+                    <div class="description text-justify mb-2">{{post.description}}</div>
 
-                                <span class="pr-1">•</span>
-                                <span class="post_date text-caption font-weight-regular" style="cursor:pointer">
-                                    Posted {{DateTimeFormat(post.created_datetime)}}
-                                </span>
-                        </div>
+                    <div class="tags_container d-flex f-row flex-wrap mb-2" v-if="post.tags.length">
+                        <v-chip
+                            class="tag_element rounded mr-1 mb-2" size="small"
+                            v-for="tag in post.tags"
+                            @click="setTagFilter(tag.slug)">
+                            {{ tag.name }}
+                        </v-chip>
+                    </div>
 
-                        <div class="title font-weight-bold text-justify mb-2"
-                            @click="$router.push({ name: 'postdetail', params: {id: post.id} })">
-                            {{post.title}}
-                        </div>
+                    <v-divider></v-divider>
 
-                        <v-img 
-                            class='thumbnail mw-100 rounded mb-2' style="cursor:pointer"
-                            v-if="post.thumbnail"
-                            @click="$router.push({ name: 'postdetail', params: {id: post.id} })"
+
+
+                    <div class="d-flex flex-row justify-space-between pt-2">
+                    
+                        <!-- <v-img 
+                            class='reaction mw-100 rounded mb-2' style="cursor:pointer"
+                            v-for="reaction in post.reactions"
                             :src="post.thumbnail"
                             alt="post_img"
                             aspect-ratio="16/9"
                             cover>
-                        </v-img>
-                                            
-
-                        <div class="description text-justify mb-2">{{post.description}}</div>
-
-                        <div class="tags_container d-flex f-row flex-wrap mb-2" v-if="post.tags.length">
-                            <v-chip
-                                class="tag_element rounded mr-1 mb-2" size="small"
-                                v-for="tag in post.tags"
-                                @click="setTagFilter(tag.slug)">
-                                {{ tag.name }}
-                            </v-chip>
-                        </div>
-
-                        <v-divider></v-divider>
-
-
-
-                        <div class="d-flex flex-row justify-space-between pt-2">
-                        
-                            <!-- <v-img 
-                                class='reaction mw-100 rounded mb-2' style="cursor:pointer"
-                                v-for="reaction in post.reactions"
-                                :src="post.thumbnail"
-                                alt="post_img"
-                                aspect-ratio="16/9"
-                                cover>
-                            </v-img> -->
-                            <v-btn class='btn' rounded="lg" icon="mdi-plus-circle-outline"
-                                    @click="openReactionModal">
-                            </v-btn>
-                
-
-                                <!-- <ReactionModal
-                                    v-if="modalIsOpen"
-                                    @close_modal='modalIsOpen = false'
-                                    :post_id='key.id'>
-                                </ReactionModal> -->
-                            
-
-
-                            <div class="d-flex flex-row align-center">
-
-                                    <v-btn class="btn mr-1" rounded="lg" icon="mdi-share-variant-outline"
-                                        @click="share"
-                                    ></v-btn>
-        
-                                    <v-btn class='btn' rounded="lg" prepend-icon="mdi-comment-text-outline" 
-                                        @click="$router.push({ name: 'postdetail', params: {id: key.id} })">
-                                        {{post.comments_count}}
-                                    </v-btn>
+                        </v-img> -->
+                        <v-btn class='btn' rounded="lg" icon="mdi-plus-circle-outline"
+                                @click="openReactionModal">
+                        </v-btn>
             
 
+                            <!-- <ReactionModal
+                                v-if="modalIsOpen"
+                                @close_modal='modalIsOpen = false'
+                                :post_id='key.id'>
+                            </ReactionModal> -->
+                        
 
 
-                            </div>
+                        <div class="d-flex flex-row align-center">
+
+                                <v-btn class="btn mr-1" rounded="lg" icon="mdi-share-variant-outline"
+                                    @click="share"
+                                ></v-btn>
+    
+                                <v-btn class='btn' rounded="lg" prepend-icon="mdi-comment-text-outline" 
+                                    @click="$router.push({ name: 'postdetail', params: {id: key.id} })">
+                                    {{post.comments_count}}
+                                </v-btn>
+        
+
+
+
                         </div>
-
-
-                
-            </v-card >
-
-        </div>
-
-        <div class=" test-grid " ref="scrollComponent" v-else>
-            <v-card class="main-container-grid elevation-8" v-for="post in store.getters.getPostsList" :key="post">
-                <v-img 
-                    class='thumbnail mw-100 rounded mb-2' style="cursor:pointer"
-                    v-if="post.thumbnail"
-                    @click="$router.push({ name: 'postdetail', params: {id: post.id} })"
-                    :src="post.thumbnail"
-                    alt="post_img"
-                    aspect-ratio="4/3"
-                    cover>
-                </v-img>
-
-                <div class="title text-subtitle-2 font-weight-bold text-left mt-4 mx-3 mb-2"
-                    @click="$router.push({ name: 'postdetail', params: {id: post.id} })">
-                    {{post.title}}
-                </div>
-
-                <div class="user_data d-flex flex-row align-center justify-space-between mb-3 mx-3 w-auto">
-
-                    <div class='d-flex flex-column'>
-                        <span class="username text-subtitle-1 font-weight-bold text-capitalize" style="cursor:pointer" 
-                            @click="$router.push({ name: 'user', params: {id: post.author.username} })">
-                            {{post.author.username}}
-                        </span> 
-
-                        <span class="post_date text-caption font-weight-regular" style="cursor:pointer">
-                            {{DateTimeFormat(post.created_datetime)}}
-                        </span>   
                     </div>
 
-                    <v-avatar class="avatar" size="large" style="cursor:pointer" 
+
+            
+        </v-card >
+
+    </div>
+
+    <div class=" test-grid " ref="scrollComponent" v-else>
+        <v-card class="main-container-grid elevation-8" v-for="post in store.getters.getPostsList" :key="post">
+            <v-img 
+                class='thumbnail mw-100 rounded mb-2' style="cursor:pointer"
+                v-if="post.thumbnail"
+                @click="$router.push({ name: 'postdetail', params: {id: post.id} })"
+                :src="post.thumbnail"
+                alt="post_img"
+                aspect-ratio="4/3"
+                cover>
+            </v-img>
+
+            <div class="title text-subtitle-2 font-weight-bold text-left mt-4 mx-3 mb-2"
+                @click="$router.push({ name: 'postdetail', params: {id: post.id} })">
+                {{post.title}}
+            </div>
+
+            <div class="user_data d-flex flex-row align-center justify-space-between mb-3 mx-3 w-auto">
+
+                <div class='d-flex flex-column'>
+                    <span class="username text-subtitle-1 font-weight-bold text-capitalize" style="cursor:pointer" 
                         @click="$router.push({ name: 'user', params: {id: post.author.username} })">
-                        <v-img v-if="post.author.avatar != ''"
-                            :src="post.author.avatar"
-                            :alt="post.author.username">
-                        </v-img>
-                        <v-icon icon="mdi-account-circle" size='48' v-else></v-icon>
-                    </v-avatar>
+                        {{post.author.username}}
+                    </span> 
+
+                    <span class="post_date text-caption font-weight-regular" style="cursor:pointer">
+                        {{DateTimeFormat(post.created_datetime)}}
+                    </span>   
                 </div>
 
-            </v-card>
+                <v-avatar class="avatar" size="large" style="cursor:pointer" 
+                    @click="$router.push({ name: 'user', params: {id: post.author.username} })">
+                    <v-img v-if="post.author.avatar != ''"
+                        :src="post.author.avatar"
+                        :alt="post.author.username">
+                    </v-img>
+                    <v-icon icon="mdi-account-circle" size='48' v-else></v-icon>
+                </v-avatar>
+            </div>
 
-        </div>
-    </v-container>
-    <v-theme-provider :theme="theme.global.name.value =='dark' ? 'light' : 'dark'">
-        <v-btn 
-            v-if="!filterAsideState"
-            class="create_post_btn"
-            icon="mdi-plus-thick"
-            position="fixed"
-            style="bottom: 14px; right: 43%; z-index: 9999;">
-        </v-btn>
-    </v-theme-provider>
+        </v-card>
+
+    </div>
     
 </template>
 
 <script setup>
 import { defineAsyncComponent, onMounted, onUnmounted, ref, defineEmits, computed, onBeforeMount} from 'vue';
 import { useStore } from 'vuex';
-import { useTheme } from 'vuetify/lib/framework.mjs';
-import DateTimeFormat from '@/helpers'
-
-const Filters = defineAsyncComponent(() => import('@/components/Filters/Filters.vue'));
-const FilterAside = defineAsyncComponent(() => import('@/components/Filters/FilterAside.vue'));
-
-let dates = ref(['2022-03-05', '2022-03-15'])
+import { DateTimeFormat } from '@/helpers'
 
 const store = useStore();
-let theme = useTheme();
-
-let filterAsideState = ref(false);
 
 // to do: check out infinity scroll for mobile version
 /*Fetch post_list_data ****************************************************/ 
 
 let scrollComponent = ref(null)
 let isLoading = ref(false);
-
 
 /*Filter post_list by one tag*/
 const setTagFilter = async (tag_slug) => {

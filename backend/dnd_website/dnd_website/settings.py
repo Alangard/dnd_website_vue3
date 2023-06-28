@@ -31,9 +31,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-FRONTEND_AUTHORITY = "http://localhost:8080"
-
 CORS_ALLOWED_ORIGINS = [
+    "https://example.com",
+    "https://sub.example.com",
     "http://localhost:8080",
     "http://127.0.0.1:8000",
 ]
@@ -56,7 +56,6 @@ INSTALLED_APPS = [
     "mptt",
     "rest_framework",
     'rest_framework_simplejwt',
-    'djoser',
     'django_filters',
     "debug_toolbar",
 ]
@@ -115,22 +114,6 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
-DJOSER = {
-    'PASSWORD_RESET_CONFIRM_URL': '{FRONTEND_AUTHORITY}/password/reset/confirm/{uid}/{token}',
-    'USERNAME_RESET_CONFIRM_URL': '{FRONTEND_AUTHORITY}/username/reset/confirm/{uid}/{token}',
-    'ACTIVATION_URL': 'http://localhost:8080/activate/{uid}/{token}',
-    'SEND_ACTIVATION_EMAIL': True,
-    'SERIALIZERS': {},
-}
-
-#gmail_send/settings.py
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'testdndwebsite@gmail.com'
-EMAIL_HOST_PASSWORD = 'szdtkatedafugosy' #past the key or password app here
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = 'test'
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
