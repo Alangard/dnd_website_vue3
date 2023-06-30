@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from . import models
-from mptt.admin import MPTTModelAdmin
 
 class CustomAccountAdmin(UserAdmin):
     search_fields = ('username',)
@@ -18,7 +17,7 @@ class CustomAccountAdmin(UserAdmin):
             "Advanced info",
             {
                 "classes": ["collapse"],
-                "fields": ['slug', "avatar", "favorites_reaction", "recent_reaction"],
+                "fields": ['slug', "avatar"],
             },
         ),
     ]
@@ -26,7 +25,7 @@ class CustomAccountAdmin(UserAdmin):
 
 
 class PostReactionAdmin(admin.ModelAdmin):
-    list_display = ['reaction', 'post', 'author']
+    list_display = ['post', 'author']
 
 class PostReactionsInline(admin.TabularInline):
     model = models.PostReaction
@@ -44,19 +43,15 @@ class TagAdmin(admin.ModelAdmin):
     list_display = ['id', 'name']
     prepopulated_fields = {'slug': ('name',)}
 
-class CommentAdmin(MPTTModelAdmin):
-    mptt_level_indent = 15
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ['id', 'text', 'author', 'parent', 'created_datetime']
+    list_filter = ('author', 'created_datetime')
+    search_fields = ('text', 'author__username')
+    ordering = ('-created_datetime',)
+    readonly_fields = ('created_datetime',)
 
 class ReportReasonAdmin(admin.ModelAdmin):
     list_display = ['id', 'formulation']
-
-class ReactionCategoryAdmin(admin.ModelAdmin):
-    list_display = ['id', 'category_name']
-
-class ReactionAdmin(admin.ModelAdmin):
-    list_display = ['id', 'reaction_name', 'reaction_category', 'reaction_url']
-
-
 
 
 admin.site.register(models.Account, CustomAccountAdmin)
@@ -64,7 +59,5 @@ admin.site.register(models.Post, PostAdmin)
 admin.site.register(models.Tag, TagAdmin)
 admin.site.register(models.Comment, CommentAdmin)
 admin.site.register(models.ReportReason, ReportReasonAdmin)
-admin.site.register(models.ReactionCategory, ReactionCategoryAdmin)
-admin.site.register(models.Reaction, ReactionAdmin)
 admin.site.register(models.PostReaction, PostReactionAdmin)
 

@@ -17,6 +17,13 @@ const routes = [
   },
 
   {
+    path: '/journal_1',
+    name: 'journal_detail',
+    meta: {navbar_name: 'Journal', navbar_style: 'default'},
+    component: () => import('@/pages/JournalPostDetail.vue'),
+  },
+
+  {
     path: '/login',
     name: 'login',
     meta: {navbar_name: 'Login', navbar_style: 'auth'},

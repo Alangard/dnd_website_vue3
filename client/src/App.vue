@@ -31,10 +31,6 @@ import { useDisplay } from 'vuetify';
 import router from '@/router/router';
 
 const Navbar = defineAsyncComponent(() => import('@/components/Navbar.vue'));
-// const Journal = defineAsyncComponent(() => import('@/pages/Journal.vue'));
-// const Filters = defineAsyncComponent(() => import('@/components/Filters/Filters.vue'));
-// const FilterAside = defineAsyncComponent(() => import('@/components/Filters/FilterAside.vue'));
-// const AuthDialog = defineAsyncComponent(() => import('@/pages/AuthDialog.vue'));
 
 const store = useStore();
 const { width } = useDisplay();
@@ -50,8 +46,9 @@ const main_menu_drawer = ref(false);
 
 
 const checkExpirationToken = () => {
-  const isExpired = store.dispatch("auth/checkExpirationToken", JSON.parse(localStorage.getItem('user')).access);
-  if(isExpired){store.dispatch("auth/refreshToken")}
+  store.dispatch("auth/verifyToken").catch(error => {
+    store.dispatch("auth/refreshToken")
+  });
 };
 
 

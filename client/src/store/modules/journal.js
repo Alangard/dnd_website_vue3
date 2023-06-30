@@ -1,53 +1,55 @@
-import AuthService from '@/api/AuthAPI/auth';
-import authHeader from '@/api/AuthAPI/auth-header';
-
+import JournalService from '@/api/JournalAPI/index'
 
 
 const user = JSON.parse(localStorage.getItem('user'));
 const initialState = user
-  ? { status: { loggedIn: true }, user }
-  : { status: { loggedIn: false }, user: null };
+  ? { status: { loggedIn: true }, user, haveInitialPosts: false, PostsList: [] }
+  : { status: { loggedIn: false }, user: null, haveInitialPosts: false, PostsList: [] };
 
 export const journal = {
   namespaced: true,
   state: initialState,
   actions: {
-    get_posts({ commit }, user) {
-        if(user && user.refresh){
-            if(AuthService.expired_token(user.refresh)){dispatch("auth/login", user_data)}
-            else{
-                if(AuthService.expired_token(user.access)){AuthService.refresh_access_token()}
-            }
+    get_posts({ commit }, url) {
+      return JournalService.get_posts(url).then(
+        posts_data => {
+          commit('gettingPostSuccess', posts_data.data);
+          return Promise.resolve(posts_data.data);
+        },
+        error => {
+          commit('gettingPostFailure');
+          return Promise.reject(error);
         }
+      );
+    },
 
-        return axios.get(BASE_URL + 'posts/', { headers: authHeader() })
-    }
+
   },
 
 
   mutations: {
-    loginSuccess(state, user) {
-      state.status.loggedIn = true;
-      state.user = user;
+
+    gettingPostSuccess(state, posts_data){
+      state.haveInitialPosts = true;
+      state.PostsList = posts_data
     },
-    loginFailure(state) {
-      state.status.loggedIn = false;
-      state.user = null;
+
+    gettingPostFailure(state){
+      state.haveInitialPosts = false;
     },
-    logout(state) {
-      state.status.loggedIn = false;
-      state.user = null;
-    },
-    registerSuccess(state) {
-      state.status.loggedIn = false;
-    },
-    registerFailure(state) {
-      state.status.loggedIn = false;
-    }
   },
+
   getters: {
     loginState(state){
       return state.status.loggedIn
+    },
+
+    getPostsData(state){
+      return state.PostsList
+    },
+
+    getPosts(state){
+      return state.PostsList.results
     }
   }
 

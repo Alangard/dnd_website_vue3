@@ -1,6 +1,17 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from .models import *
 from django.db.models import Count
+
+## JWT serializers ################################################################
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        refresh = self.get_token(self.user)
+
+        # Add extra responses here
+        data['user_data'] = {'username': self.user.username}
+        return data
 
 ## Accounts serializers ############################################################
 
@@ -25,33 +36,19 @@ class ShortAccountSerializer(serializers.ModelSerializer):
         fields = ["id", "username", "avatar"]
 
 ## Utils #########################################################################
-
-class RecursiveCommentSerializer(serializers.Serializer):
-    # Output recursive children comments
-    def to_representation(self, value):
-        serializer = self.parent.parent.__class__(value, context=self.context)
-        return serializer.data
-    
-
-class FilterCommentListSerializer(serializers.ListSerializer):
-    # Drop double comments
-    def to_representation(self, data):
-        data = data.filter(parent=None)
-        return super().to_representation(data)
-    
- ## Comments serializers ########################################################
-
-
-class CommentsSerializer(serializers.ModelSerializer):
-    author = ShortAccountSerializer()
-    children = RecursiveCommentSerializer(many=True)
-    replies_count = serializers.IntegerField(source='get_childrens_comment_count', read_only=True)
+class CommentSerializer(serializers.ModelSerializer):
+    replies = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ['id', 'parent', 'author', 'status', 'created_datetime', 'report_reasons', 'comment_text', 'replies_count', 'children']
-        list_serializer_class = FilterCommentListSerializer
-    
+        fields = ['id', 'post', 'parent', 'author', 'text', 'created_datetime', 'updated_datetime', 'replies']
+
+    def get_replies(self, obj):
+        replies = Comment.objects.filter(parent=obj)
+        if replies:
+            serializer = CommentSerializer(replies, many=True)
+            return serializer.data
+        return None
 
 ## Tags serializers ################################################################
 
@@ -65,99 +62,65 @@ class TagDetailSerializer(serializers.ModelSerializer):
         model = Tag
         fields = ['id','name']
 
-# Reactions serializers ########################################################
-
-class ReactionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Reaction
-        fields = '__all__'
-
-        
 # Post reactions serializers ###################################################
 
 class PostReactionSerializer(serializers.ModelSerializer):
-    author = AccountSerializer()
-    reaction = ReactionSerializer()
     class Meta:
         model = PostReaction
         fields = '__all__'
-        include = ['author', 'reaction']
-
 ## Posts serilizers #################################################################
-class PostShortReactionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Reaction
-        # exclude = ['reaction_category']
-
-    id = serializers.IntegerField(source='reaction__id')
-    reaction_name = serializers.CharField(source='reaction__reaction_name')
-    reaction_url = serializers.CharField(source='reaction__reaction_url')
-
-    class Meta:
-        model = Reaction
-        fields = ['id', 'reaction_name', 'reaction_url']
-
 
 class PostDetailSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)
     # reactions = PostReactionSerializer(many=True, read_only=True)
     # author = ShortAccountSerializer(read_only=True)
     post_author_username = serializers.CharField(source='author.username', default='', read_only=True)
-    comments_count = serializers.IntegerField(source='get_comments_count', read_only = True)
 
     class Meta:
         model = Post
         fields = '__all__'
 
 # Post list preview on feed
+
+
+
 class PostListReadSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)
     author = ShortAccountSerializer(read_only=True)
-    reactions = PostShortReactionSerializer(many=True, read_only=True)
+    num_comments = serializers.IntegerField()
+    reacted = serializers.SerializerMethodField()
+    commented = serializers.SerializerMethodField()
+    reactions = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        # fields=['id', 'author', 'tags', 'title', 'created_datetime','description','thumbnail', 'comments_count','commented','reacted', 'reactions']
-        fields = '__all__'
+        fields = ['id', 'author', 'title', 'description', 'thumbnail', 'is_publish', 'publish_datetime',
+                  'created_datetime', 'updated_datetime', 'body', 'tags', 'num_comments', 'reacted',
+                  'commented', 'reactions']
 
+    def get_reactions(self, obj):
+        post_reactions = obj.reactions.all()
+        num_likes = post_reactions.filter(reaction_type='like').count()
+        num_dislikes = post_reactions.filter(reaction_type='dislike').count()
+        total_reactions = post_reactions.count()
+        return {'num_likes': num_likes, 'num_dislikes': num_dislikes, 'total_reactions': total_reactions}
 
-    # It's corectly work, but having n+1 issue#
+    def get_reacted(self, obj):
+        if 'request' in self.context:
+            user = self.context['request'].user.id
+            return obj.reactions.filter(author=user).exists()
+        return False
 
-    # tags = TagListSerializer(many=True, read_only=True)
-
-    # author = ShortAccountSerializer(read_only=True)
-
-    # reactions = serializers.SerializerMethodField()
-
+    def get_commented(self, obj):
+        if 'request' in self.context:
+            user = self.context['request'].user.id
+            return obj.comments.filter(author=user).exists()
+        return False
   
-    # def get_reactions(self, obj):
-    #     # todo: optimizing this
-    #     objs = PostReaction.objects.filter(post=obj.id).values('reaction__id', 'reaction__reaction_name', 'reaction__reaction_url').annotate(reaction_count=Count('reaction__id')).order_by('-reaction_count')[:3]
-    #     return PostShortReactionSerializer(objs, many=True, read_only=True).data
-        
-
-
-    # class Meta:
-    #     model = Post
-    #     fields=['author', 'title', 'description','thumbnail', 'created_datetime', 'tags','reactions','comments_count','commented','reacted']
-
-  
-
 class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['author', 'title', 'description', 'body', 'tags', 'is_publish', 'publish_datetime']
-
-# Reaction's categories  serializers ##########################################
-
-class ReactionCategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ReactionCategory
-        fields = '__all__'
-
-
-
-
 
 
 class ReportReasonSerializer(serializers.ModelSerializer):

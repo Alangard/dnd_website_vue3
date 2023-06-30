@@ -78,7 +78,7 @@
                         <a class='text-primary' target="_blank" :href="item.link" v-bind="props" @click.stop>
                         {{item.document_name}}
                         </a>
-                        {{helper.Separator(index, terms_services)}}
+                        {{Separator(index, terms_services)}}
                     </template>
                   </v-tooltip>
               </div>
@@ -108,7 +108,7 @@ import { useVuelidate } from '@vuelidate/core'
 import { email, required, sameAs, minLength, maxLength, numeric, not, helpers} from '@vuelidate/validators'
 import {useDisplay} from 'vuetify'
 import router from '@/router/router';
-import helper from '@/helpers'
+import {Separator} from '@/helpers'
 
 const { width } = useDisplay();
 const props = defineProps(['currURLObj'])

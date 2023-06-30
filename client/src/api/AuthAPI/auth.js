@@ -88,7 +88,8 @@ class AuthService {
     }
 
     refresh_access_token(){
-        const refresh = JSON.parse(localStorage.getItem('user')).refresh 
+        const refresh = JSON.parse(localStorage.getItem('user')).refresh
+        const user_data = JSON.parse(localStorage.getItem('user')).user_data
 
         return axios.post(BASE_URL + 'jwt/refresh/', 
             {
@@ -96,9 +97,19 @@ class AuthService {
             }
         )
         .then(response => {
-            localStorage.setItem('user', JSON.stringify({'access': response.data.access, 'refresh': refresh}))
+            localStorage.setItem('user', JSON.stringify({'user_data': user_data, 'access': response.data.access, 'refresh': refresh}))
             return response.data;
         });
+    }
+
+    verify_access_token(){
+        const access = JSON.parse(localStorage.getItem('user')).access
+
+        return axios.post(BASE_URL + 'jwt/verify/', 
+            {
+                token: access
+            }
+        )
     }
 
     expired_token(token){
@@ -115,7 +126,10 @@ class AuthService {
         const now_datetime = new Date();
         const delta_datetime = Math.abs(expiration_datetime - now_datetime) * 1000;
         
-        if(delta_datetime < 60){return true}
+        if(delta_datetime < 60){
+            
+            console.log(`exp: ${expiration_datetime}   now: ${now_datetime}   delta: ${delta_datetime}`)
+            return true}
         else{return false}
           
     }
