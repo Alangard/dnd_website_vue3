@@ -46,11 +46,15 @@ const main_menu_drawer = ref(false);
 
 
 const checkExpirationToken = () => {
-  store.dispatch("auth/verifyToken").catch(error => {
-    store.dispatch("auth/refreshToken")
-  });
+  if(localStorage.getItem('user')){
+    const isExpired = store.dispatch("auth/checkExpirationToken", JSON.parse(localStorage.getItem('user')).access);
+    if(isExpired){store.dispatch("auth/refreshToken")}
+    store.dispatch("auth/verifyToken").catch(error => {
+      store.dispatch("auth/refreshToken")
+    });
+  }
+  
 };
-
 
 const CurrentURLManager = () => {
   const currentURL = window.location;
@@ -66,6 +70,7 @@ const CurrentURLManager = () => {
 
   currURLObj.value = link_obj
 }
+
 
 const ActivationManager = () => {
   if(currURLObj.value.pathname == 'activate'){

@@ -75,7 +75,7 @@
                   I agree to
                   <v-tooltip location="bottom" v-for="(item, index) in terms_services" :key="index">
                     <template v-slot:activator="{ props }">
-                        <a class='text-primary' target="_blank" :href="item.link" v-bind="props" @click.stop>
+                        <a class='text-info font-weight-bold' target="_blank" :href="item.link" v-bind="props" @click.stop>
                         {{item.document_name}}
                         </a>
                         {{Separator(index, terms_services)}}
@@ -92,7 +92,7 @@
           </v-card-actions>
 
           <div class='d-flex text_social_media justify-center w-100 font-weight-regular text-medium-emphasis text-subtitle-1' style=" white-space: pre-wrap;">
-              Already have an account? <span class="text-primary text-decoration-underline" style="cursor: pointer" @click="router.push({ name: 'login'})">Log In</span>  
+              Already have an account? <span class="text-info font-weight-bold" style="cursor: pointer" @click="router.push({ name: 'login'})">Log In</span>  
           </div>
       </form>
       </v-container>

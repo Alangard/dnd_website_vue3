@@ -25,11 +25,19 @@ class CustomAccountAdmin(UserAdmin):
 
 
 class PostReactionAdmin(admin.ModelAdmin):
-    list_display = ['post', 'author']
+    list_display = ['id', 'reaction_type', 'author', 'reacted_at', 'post', ]
+
+class CommentReactionAdmin(admin.ModelAdmin):
+    list_display = ['id', 'reaction_type', 'author', 'reacted_at', 'comment', ]
 
 class PostReactionsInline(admin.TabularInline):
     model = models.PostReaction
     extra = 1
+
+class CommentReactionsInline(admin.TabularInline):
+    model = models.CommentReaction
+    extra = 1
+
 
 class CommentInline(admin.TabularInline):
     model = models.Comment
@@ -44,6 +52,7 @@ class TagAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
 
 class CommentAdmin(admin.ModelAdmin):
+    inlines = (CommentReactionsInline,)
     list_display = ['id', 'text', 'author', 'parent', 'created_datetime']
     list_filter = ('author', 'created_datetime')
     search_fields = ('text', 'author__username')
@@ -60,4 +69,6 @@ admin.site.register(models.Tag, TagAdmin)
 admin.site.register(models.Comment, CommentAdmin)
 admin.site.register(models.ReportReason, ReportReasonAdmin)
 admin.site.register(models.PostReaction, PostReactionAdmin)
+admin.site.register(models.CommentReaction, CommentReactionAdmin)
+
 

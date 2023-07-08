@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 import os
 from pathlib import Path
 from datetime import timedelta
-
 from django.conf import settings
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -51,6 +50,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    'channels',
+    'django_eventstream',
     "journal_api.apps.JournalApiConfig",
     "corsheaders",
     "mptt",
@@ -127,7 +128,7 @@ DJOSER = {
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'testdndwebsite@gmail.com'
-EMAIL_HOST_PASSWORD = 'szdtkatedafugosy' #past the key or password app here
+EMAIL_HOST_PASSWORD = 'qpnjaussafsckmnk' #past the key or password app here
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'test'
@@ -142,6 +143,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
+    'django_grip.GripMiddleware',
 ]
 
 ROOT_URLCONF = "dnd_website.urls"
@@ -163,6 +165,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "dnd_website.wsgi.application"
+ASGI_APPLICATION = 'dnd_website.asgi.application'
 
 
 # Database

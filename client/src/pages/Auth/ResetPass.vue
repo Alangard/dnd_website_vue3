@@ -28,7 +28,7 @@
         </v-card-actions>
 
         <div class='d-flex text_social_media justify-center w-100 font-weight-regular text-medium-emphasis text-subtitle-1' style="white-space: pre-wrap;">
-          <span class="link text-primary text-decoration-underline" style="cursor: pointer" @click="$router.push({ name: 'login'})" >Back to Login</span>  
+          <span class="link text-info font-weight-bold" style="cursor: pointer" @click="$router.push({ name: 'login'})" >Back to Login</span>  
         </div>
       </form>
     </v-container>

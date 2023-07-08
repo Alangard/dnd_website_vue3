@@ -46,7 +46,7 @@
                 hide-details="true"
             ></v-checkbox>
 
-            <div class='d-flex font-weight-regular text-capitalize text-medium-emphasis text-subtitle-1 text-primary text-decoration-underline'  
+            <div class='d-flex font-weight-regular text-capitalize text-medium-emphasis text-subtitle-1 text-info'  
               style="margin-top: 14px; cursor: pointer;" 
               @click="router.push({ name: 'reset_password'})">
                 Forgot Password?
@@ -60,7 +60,7 @@
             </v-card-actions>
 
             <div class='d-flex text_social_media justify-center w-100 font-weight-regular text-medium-emphasis text-subtitle-1' style="white-space: pre-wrap;">
-                Don't have an account? <span class="link text-primary text-decoration-underline" style="cursor: pointer" @click="router.push({ name: 'signup'})" >Sign up</span>  
+                Don't have an account? <span class="link text-info font-weight-bold" style="cursor: pointer" @click="router.push({ name: 'signup'})" >Sign up</span>  
             </div>
         </form>
     </v-container>

@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
+
+from django.shortcuts import get_object_or_404, get_list_or_404
 from .models import *
 from django.db.models import Count
 
@@ -10,7 +12,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         refresh = self.get_token(self.user)
 
         # Add extra responses here
-        data['user_data'] = {'username': self.user.username}
+        data['user_data'] = {'id': self.user.id, 'username': self.user.username, 'avatar': self.user.avatar}
         return data
 
 ## Accounts serializers ############################################################
@@ -35,20 +37,46 @@ class ShortAccountSerializer(serializers.ModelSerializer):
         model = Account
         fields = ["id", "username", "avatar"]
 
-## Utils #########################################################################
-class CommentSerializer(serializers.ModelSerializer):
-    replies = serializers.SerializerMethodField()
+## Comment Serializer #########################################################################
 
-    class Meta:
-        model = Comment
-        fields = ['id', 'post', 'parent', 'author', 'text', 'created_datetime', 'updated_datetime', 'replies']
+class CommentSerializer(serializers.ModelSerializer):
+    author = ShortAccountSerializer(read_only=True)
+    user_reaction = serializers.SerializerMethodField()  
+    replies = serializers.SerializerMethodField() 
+    comment_reactions = serializers.SerializerMethodField()
+    
+  
+    class Meta:  
+        model = Comment  
+        fields = ['id', 'status', 'post', 'parent', 'author', 'text', 'created_datetime', 'updated_datetime', 'user_reaction', 'replies', 'comment_reactions']
+        read_only_fields = ['author', 'user_reaction', 'comment_reactions']
+
+
+    def get_user_reaction(self, obj):
+        if 'request' in self.context:
+            user = self.context['request'].user.id
+  
+            if obj.comment_reactions.filter(author=user).exists():
+                for comment in obj.comment_reactions.filter(author=user):
+                    return {'reacted': True, 'reaction_type': comment.reaction_type}
+            else:
+                return {'reacted': False, 'reaction_type': ''}
 
     def get_replies(self, obj):
-        replies = Comment.objects.filter(parent=obj)
-        if replies:
-            serializer = CommentSerializer(replies, many=True)
-            return serializer.data
+        if 'request' in self.context:
+            request = self.context['request']
+            replies = Comment.objects.filter(parent=obj)
+            if replies.exists():
+                serializer = CommentSerializer(replies, many=True, context={'request': request})
+                return serializer.data
         return None
+    
+    def get_comment_reactions(self, obj):
+        comment_reactions = obj.comment_reactions.all()
+        num_likes = comment_reactions.filter(reaction_type='like').count()
+        num_dislikes = comment_reactions.filter(reaction_type='dislike').count()
+        total_reactions = comment_reactions.count()
+        return {'num_likes': num_likes, 'num_dislikes': num_dislikes, 'total_reactions': total_reactions}
 
 ## Tags serializers ################################################################
 
@@ -65,51 +93,99 @@ class TagDetailSerializer(serializers.ModelSerializer):
 # Post reactions serializers ###################################################
 
 class PostReactionSerializer(serializers.ModelSerializer):
+    author = ShortAccountSerializer(read_only=True)
+
     class Meta:
         model = PostReaction
-        fields = '__all__'
+        fields = ['id', 'reaction_type', 'author', 'reacted_at', 'post', ]
+        read_only_fields = ['post']
+    
+    def create(self, validated_data):
+        post_id = self.context.get('post_id')
+        post = get_object_or_404(Post, id=post_id, reacted=False)
+        validated_data['post'] = post
+        return super().create(validated_data)
+
+    
+# class PostReactionDetailSerializer(serializers.ModelSerializer):
+#     author = ShortAccountSerializer(read_only=True)
+#     class Meta:
+#         model = PostReaction
+#         fields = ['id', 'reaction_type', 'author', 'reacted_at', 'post', ]
+
+# Comment reactions serializers ###################################################
+
+class CommentReactionSerializer(serializers.ModelSerializer):
+    author = ShortAccountSerializer(read_only=True)
+    comment_reactions = serializers.SerializerMethodField()
+    replies = serializers.SerializerMethodField() 
+
+    class Meta:
+        model = CommentReaction
+        fields = ['id', 'post', 'parent', 'author', 'text', 'created_datetime', 'updated_datetime', 'replies', 'comment_reactions']
+        read_only_fields = ['author', 'comment_reactions']
+    
+    def create(self, validated_data):
+        comment_id = self.context.get('comment_id')
+        comment = get_object_or_404(Comment, id=comment_id, reacted=False)
+        validated_data['comment'] = comment
+        return super().create(validated_data)
+    
+    def get_comment_reactions(self, obj):
+        comment_reactions = obj.comment_reactions.all()
+        num_likes = comment_reactions.filter(reaction_type='like').count()
+        num_dislikes = comment_reactions.filter(reaction_type='dislike').count()
+        total_reactions = comment_reactions.count()
+        return {'num_likes': num_likes, 'num_dislikes': num_dislikes, 'total_reactions': total_reactions}
+
+class CommentReactionDetailSerializer(serializers.ModelSerializer):
+    author = ShortAccountSerializer(read_only=True)
+    class Meta:
+        model = CommentReaction
+        fields = ['id', 'reaction_type', 'author', 'reacted_at', 'comment', ]
+
+    
 ## Posts serilizers #################################################################
 
 class PostDetailSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)
-    # reactions = PostReactionSerializer(many=True, read_only=True)
-    # author = ShortAccountSerializer(read_only=True)
-    post_author_username = serializers.CharField(source='author.username', default='', read_only=True)
 
     class Meta:
         model = Post
         fields = '__all__'
-
-# Post list preview on feed
-
-
 
 class PostListReadSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)
     author = ShortAccountSerializer(read_only=True)
     num_comments = serializers.IntegerField()
-    reacted = serializers.SerializerMethodField()
+    user_reaction = serializers.SerializerMethodField()
     commented = serializers.SerializerMethodField()
-    reactions = serializers.SerializerMethodField()
+    post_reactions = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
         fields = ['id', 'author', 'title', 'description', 'thumbnail', 'is_publish', 'publish_datetime',
-                  'created_datetime', 'updated_datetime', 'body', 'tags', 'num_comments', 'reacted',
-                  'commented', 'reactions']
+                  'created_datetime', 'updated_datetime', 'body', 'tags', 'num_comments', 'user_reaction',
+                  'commented', 'post_reactions']
+        read_only_fields = ['tags','author', 'user_reaction', 'post_reactions']
 
-    def get_reactions(self, obj):
-        post_reactions = obj.reactions.all()
+    def get_post_reactions(self, obj):
+        post_reactions = obj.post_reactions.all()
         num_likes = post_reactions.filter(reaction_type='like').count()
         num_dislikes = post_reactions.filter(reaction_type='dislike').count()
         total_reactions = post_reactions.count()
         return {'num_likes': num_likes, 'num_dislikes': num_dislikes, 'total_reactions': total_reactions}
 
-    def get_reacted(self, obj):
+    
+    def get_user_reaction(self, obj):
+        print(self.context)
         if 'request' in self.context:
             user = self.context['request'].user.id
-            return obj.reactions.filter(author=user).exists()
-        return False
+            if obj.post_reactions.filter(author=user).exists():
+                for post in obj.post_reactions.filter(author=user):
+                    return {'reacted': True, 'reaction_type': post.reaction_type}
+            else:
+                return {'reacted': False, 'reaction_type': ''}
 
     def get_commented(self, obj):
         if 'request' in self.context:

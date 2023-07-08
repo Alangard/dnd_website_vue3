@@ -17,10 +17,17 @@ const routes = [
   },
 
   {
-    path: '/journal_1',
-    name: 'journal_detail',
-    meta: {navbar_name: 'Journal', navbar_style: 'default'},
+    path: '/journal/:id',
+    name: 'post_detail',
+    meta: {navbar_name: 'Post detail', navbar_style: 'default'},
     component: () => import('@/pages/JournalPostDetail.vue'),
+  },
+
+  {
+    path: '/user/:username',
+    name: 'user_profile',
+    meta: {navbar_name: 'User profile', navbar_style: 'default' },
+    component: () => import('@/pages/User.vue'),
   },
 
   {

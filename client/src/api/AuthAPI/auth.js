@@ -57,15 +57,15 @@ class AuthService {
     }
 
     user_put(user_data){
-        return axios.put(BASE_URL + 'users/me/', { headers: authHeader(), body: user_data })
+        return axios.put(BASE_URL + 'users/me/', user_data, { headers: authHeader()})
     }
 
     user_patch(user_data){
-        return axios.put(BASE_URL + 'users/me/', { headers: authHeader(), body: user_data })
+        return axios.put(BASE_URL + 'users/me/', user_data, { headers: authHeader()})
     }
 
     user_delete(user_data){
-        return axios.put(BASE_URL + 'users/me/', { headers: authHeader(), body: {current_password: user_data.current_password} })
+        return axios.put(BASE_URL + 'users/me/', {current_password: user_data.current_password}, { headers: authHeader()})
     }
 
     reset_password(user_data){

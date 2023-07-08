@@ -29,3 +29,25 @@ class PostListFilter(DjangoFilters.FilterSet):
         queryset = Account.objects.all(),
         conjoined=False,
     )
+
+class PostReactionsFilter(DjangoFilters.FilterSet):
+
+    created_datetime = DjangoFilters.DateTimeFromToRangeFilter(field_name='reacted_at',)
+    reaction_type = DjangoFilters.ChoiceFilter(choices=PostReaction.REACTION_CHOICES)
+    username = DjangoFilters.ModelMultipleChoiceFilter(
+        to_field_name='username',
+        field_name='author__username',
+        queryset = Account.objects.all(),
+        conjoined=False,
+    )
+
+class CommentReactionsFilter(DjangoFilters.FilterSet):
+
+    created_datetime = DjangoFilters.DateTimeFromToRangeFilter(field_name='reacted_at',)
+    reaction_type = DjangoFilters.ChoiceFilter(choices=PostReaction.REACTION_CHOICES)
+    username = DjangoFilters.ModelMultipleChoiceFilter(
+        to_field_name='username',
+        field_name='author__username',
+        queryset = Account.objects.all(),
+        conjoined=False,
+    )

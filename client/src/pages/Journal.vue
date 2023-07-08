@@ -13,9 +13,11 @@
         <div class="d-flex flex-column align-center h-auto" ref="scrollComponent" v-if="postListStyle == 'list'">
 
             <v-card class="main-container elevation-8 w-100" v-for="post in postsList" :key="post">
-                        <div class="user_data d-flex flex-row align-center justify-start mb-1" style="width:max-content">
+                        <div class="user_data d-flex flex-row align-center justify-start mb-1" style="width:max-content"
+                           >
 
-                            <v-avatar class="avatar" size="x-small" style="cursor:pointer" >
+                            <v-avatar class="clickable transformable avatar" size="x-small"
+                                @click="routes.push({name: 'user_profile', params: { username: post.author.username }})">
                                 <v-img v-if="post.author.avatar != ''"
                                     :src="post.author.avatar"
                                     :alt="post.author.username">
@@ -23,25 +25,25 @@
                                 <v-icon icon="mdi-account-circle" v-else></v-icon>
                             </v-avatar>
 
-                            <span 
-                                class="username px-1 text-caption text-capitalize font-weight-regular"
-                                :class="{ 'text-info': post.author.username == 'admin' }"
-                                style="cursor:pointer">
+                            <span class="username clickable transformable px-1 text-caption text-capitalize font-weight-regular"
+                                @click="routes.push({name: 'user_profile', params: { username: post.author.username }})">
                                 {{post.author.username}}
                             </span> 
 
                             <span class="pr-1">•</span>
-                            <span class="post_date text-caption font-weight-regular" style="cursor:pointer">
+                            <span class="post_date clickable text-caption font-weight-regular">
                                 Posted {{DateTimeFormat(post.created_datetime)}}
                             </span>
                         </div>
 
-                        <div class="title font-weight-bold text-justify mb-2">
+                        <div class="title clickable font-weight-bold text-justify text-subtitle-1 mb-2"
+                            @click="routes.push({name: 'post_detail', params: { id: post.id }})">
                             {{post.title}}
                         </div>
 
                         <v-img 
-                            class='thumbnail mw-100 rounded mb-2' style="cursor:pointer"
+                            class='thumbnail clickable mw-100 rounded mb-2'
+                            @click="routes.push({name: 'post_detail', params: { id: post.id }})"
                             v-if="post.thumbnail"
                             :src="post.thumbnail"
                             alt="post_img"
@@ -49,14 +51,17 @@
                             cover>
                         </v-img>
                                             
-                        <div class="description text-justify mb-2">{{post.description}}</div>
+                        <div class="description clickable text-justify text-subtitle-1 mb-2 "
+                            @click="routes.push({name: 'post_detail', params: { id: post.id }})">
+                            {{post.description}}
+                        </div>
 
                         <div class="tags_container d-flex f-row flex-wrap mb-2" v-if="post.tags.length">
                             <v-chip
-                                class="tag_element rounded mr-1 mb-2" size="small"
+                                class="tag_element clickable transformable rounded mr-2 mb-2" size="small"
                                 v-for="tag in post.tags"
                                 @click="setTagFilter(tag.slug)">
-                                {{ tag.name }}
+                                #{{ tag.name }}
                             </v-chip>
                         </div>
 
@@ -64,42 +69,81 @@
 
 
 
-                        <div class="d-flex flex-row justify-space-between pt-2">
-                        
-                            <!-- <v-img 
-                                class='reaction mw-100 rounded mb-2' style="cursor:pointer"
-                                v-for="reaction in post.reactions"
-                                :src="post.thumbnail"
-                                alt="post_img"
-                                aspect-ratio="16/9"
-                                cover>
-                            </v-img> -->
-                            <v-btn class='btn' rounded="lg" icon="mdi-plus-circle-outline"
-                                    @click="openReactionModal">
-                            </v-btn>
-                
+                        <div class="d-flex flex-row justify-space-between pt-2 w-100">
 
-                                <!-- <ReactionModal
-                                    v-if="modalIsOpen"
-                                    @close_modal='modalIsOpen = false'
-                                    :post_id='key.id'>
-                                </ReactionModal> -->
-                            
+                            <div class="reactions_container">
+                                <!-- <div class="d-flex flex-row align-center">
+                                    <div class="like clickable transformable d-flex flex-column align-center justify-space-between"
+                                        :class="{ 'text-info': post.user_reaction.reaction_type == 'like' }" 
+                                        :id="`post_${post.id}_like_btn`" 
+                                        @click="pressReaction({'post_id':post.id, 'reaction_type': 'like', 'user_reaction': post.user_reaction})">
+                                            <v-icon class="like">mdi-arrow-up-bold-circle-outline</v-icon>
+                                    </div>
 
+                                    <span class="mx-3" :class="{ 'text-info': post.user_reaction.reacted}">{{ post.post_reactions.total_reactions }}</span>
+
+                                    <div class="dislike clickable transformable d-flex flex-column align-center justify-space-between"
+                                        :class="{ 'text-info': post.user_reaction.reaction_type == 'dislike' }"
+                                        :id="`post_${post.id}_dislike_btn`" 
+                                        @click="pressReaction({'post_id':post.id, 'reaction_type': 'dislike', 'user_reaction': post.user_reaction})">
+                                            <v-icon class="dislike">mdi-arrow-down-bold-circle-outline</v-icon>
+                                    </div>
+                                </div> -->
+
+
+
+                                <div class="d-flex flex-row align-center">
+                                    <v-btn
+                                        size="24"
+                                        class="like mx-0" 
+                                        :id="`post_${post.id}_like_btn`" 
+                                        @click="pressReaction({'post_id':post.id, 'reaction_type': 'like', 'user_reaction': post.user_reaction})">
+                                            <v-icon 
+                                                size="24" 
+                                                class="like"  
+                                                :class="{ 'text-info': post.user_reaction.reaction_type == 'like'}">
+                                                mdi-arrow-up-bold-circle-outline
+                                            </v-icon>
+                                    </v-btn>
+
+                                    <span class="mx-3" :class="{ 'text-info': post.user_reaction.reacted}">{{ post.post_reactions.total_reactions }}</span>
+
+                                    <v-btn
+                                        size="24"
+                                        class="dislike mx-0"
+                                        :id="`post_${post.id}_dislike_btn`" 
+                                        @click="pressReaction({'post_id':post.id, 'reaction_type': 'dislike', 'user_reaction': post.user_reaction})">
+                                            <v-icon 
+                                                size="24" 
+                                                class="dislike" 
+                                                :class="{ 'text-info': post.user_reaction.reaction_type == 'dislike' }">
+                                                mdi-arrow-down-bold-circle-outline
+                                            </v-icon>
+                                    </v-btn>
+                                </div>
+                              
+                                <v-progress-linear
+                                    class="mt-1"
+                                    :model-value="ratingPercentage(post.post_reactions)"
+                                    color="green"
+                                    bg-color="red"
+                                    bg-opacity="1"
+                                ></v-progress-linear>
+                            </div>
 
                             <div class="d-flex flex-row align-center">
 
-                                    <v-btn class="btn mr-1" rounded="lg" icon="mdi-share-variant-outline"
-                                        @click="share"
-                                    ></v-btn>
+                                    <v-btn class="btn clickable transformable mr-2 px-0" @click="share">
+                                        <v-icon size='large' icon="mdi-share-variant-outline"></v-icon>         
+                                    </v-btn>
         
-                                    <v-btn class='btn' rounded="lg">
-                                        <v-icon :color="post.commented ? 'info' : ''" class="pr-2" icon="mdi-comment-text-outline"></v-icon>
+                                    <v-btn class='btn clickable transformable' 
+                                        rounded="lg" 
+                                        :class="{'text-info': post.commented}"
+                                        @click="routes.push({name: 'post_detail', params: { id: post.id }})">
+                                            <v-icon class="pr-2" icon="mdi-comment-text-outline"></v-icon>
                                         {{post.num_comments}}
                                     </v-btn>
-            
-
-
 
                             </div>
                         </div>
@@ -171,6 +215,7 @@ import { defineAsyncComponent, onMounted, onUnmounted, ref, defineEmits, compute
 import { useStore } from 'vuex';
 import { useTheme } from 'vuetify/lib/framework.mjs';
 import {DateTimeFormat} from '@/helpers'
+import routes from '@/router/router' 
 
 const Filters = defineAsyncComponent(() => import('@/components/Filters/Filters.vue'));
 const FilterAside = defineAsyncComponent(() => import('@/components/Filters/FilterAside.vue'));
@@ -178,9 +223,34 @@ const FilterAside = defineAsyncComponent(() => import('@/components/Filters/Filt
 const store = useStore();
 let theme = useTheme();
 
+let toggleReaction = ref(null);
 let filterAsideState = ref(false);
 let postListStyle = ref('list');
 const postsList = computed(() => {return store.getters['journal/getPosts']});
+
+const ratingPercentage = (post_reactions_obj) => {
+    let totalVotes = post_reactions_obj.num_likes + post_reactions_obj.num_dislikes;
+    if (totalVotes === 0) {return 0; }
+    const rating = (post_reactions_obj.num_likes / totalVotes) * 100;
+    return Math.round(rating);
+}
+
+const pressReaction = (data) =>{
+
+    store.dispatch('journal/set_reaction', 
+        {
+            'post_id': data.post_id,
+            'reaction_type': data.reaction_type,
+            'user_reaction': data.user_reaction
+        }
+    )
+
+    
+    
+
+}
+
+
 
 // to do: check out infinity scroll for mobile version
 /*Fetch post_list_data ****************************************************/ 
@@ -213,11 +283,7 @@ const handleScroll = (e) => {
     }
 }
 
-
-// const isExpired = store.dispatch("auth/checkExpirationToken", JSON.parse(localStorage.getItem('user')).access);
-
 onMounted(async () => {
-
     store.dispatch('journal/get_posts', 'posts/?page=1&page_size=7')
     window.addEventListener('scroll', handleScroll);
 })
@@ -225,6 +291,10 @@ onMounted(async () => {
 onUnmounted(() => {
     window.removeEventListener("scroll", handleScroll)
 })
+
+const openReactionModal = () => {
+
+}
 
 </script>
 
@@ -260,6 +330,14 @@ onUnmounted(() => {
         grid-template-columns: repeat(auto-fill, minmax(150px, 2fr));
         grid-gap: 15px;
         align-items: stretch;
+    }
+
+    .clickable{
+        &:hover{cursor: pointer;}
+    }
+
+    .transformable{
+        &:hover{transform: scale(1.1);}
     }
 
     

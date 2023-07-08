@@ -1,6 +1,6 @@
 <template>
     <v-container fluid class="pb-12">
-        <v-app-bar class="d-flex flex-row justify-space-between" v-if="router.currentRoute.value.meta.navbar_style == 'default'">
+        <v-app-bar class="d-flex flex-row justify-space-between" v-if="routes.currentRoute.value.meta.navbar_style == 'default'">
 
             <v-app-bar-nav-icon 
                 variant="text" 
@@ -32,8 +32,8 @@
                 icon="mdi-login-variant" 
                 rounded="0" 
                 variant="text" 
-                v-if="!loggedIn" 
-                @click="router.push({ name: 'login'})">
+                v-if="loggedIn == false" 
+                @click="routes.push({name:'login'})">
             </v-btn>
 
             <v-menu transition="slide-y-transition" offset="16">
@@ -117,7 +117,7 @@
 import {ref, computed,  defineEmits, defineProps} from 'vue';
 import { useStore } from 'vuex';
 import { useTheme } from 'vuetify/lib/framework.mjs';
-import router from '@/router/router';
+import routes from '@/router/router';
 
 let theme = useTheme();
 const store = useStore();
@@ -141,7 +141,7 @@ const logout = () => {store.dispatch("auth/logout")}
 
 const openMenuDrawer = () => {emit('openMenuDrawer')}
 
-const currentRouteName = computed(() => {return router.currentRoute.value.meta.navbar_name})
+const currentRouteName = computed(() => {return routes.currentRoute.value.meta.navbar_name})
 
 const loggedIn = computed(() => {return store.getters['auth/loginState']});
 

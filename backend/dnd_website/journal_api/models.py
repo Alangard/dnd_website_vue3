@@ -31,7 +31,7 @@ class Post(models.Model):
     updated_datetime = models.DateTimeField(auto_now=True)
     is_publish = models.BooleanField(default=True)
     publish_datetime = models.DateTimeField(blank=True, null=True)
-    author = models.ForeignKey('Account', on_delete=models.SET_NULL, null=True )
+    author = models.ForeignKey('Account', null=True, on_delete=models.SET_DEFAULT, default="user doesn't exist")
     tags = models.ManyToManyField('Tag', blank=True)
     commented = models.BooleanField(default=False)
     reacted = models.BooleanField(default=False)
@@ -49,9 +49,9 @@ class Post(models.Model):
 class PostReaction(models.Model):
     REACTION_CHOICES = (('like', 'Like'),('dislike', 'Dislike'))
     reaction_type = models.CharField(max_length=10, null=True, choices = REACTION_CHOICES)  #like or dislike
-    post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='reactions')
+    post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='post_reactions')
     reacted_at = models.DateTimeField(auto_now_add=True)
-    author = models.ForeignKey('Account', on_delete=models.CASCADE)
+    author = models.ForeignKey('Account', on_delete=models.SET_DEFAULT, default="user doesn't exist")
 
     def __str__(self):
         return f'{self.post}/{self.reaction_type}'
@@ -82,7 +82,7 @@ class Comment(models.Model):
     status = models.CharField(max_length=5, choices=(('n','normal'), ('b','banned'), ('d','deleted')), default='n')
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')    
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
-    author = models.ForeignKey('Account', on_delete=models.CASCADE)    
+    author = models.ForeignKey('Account', on_delete=models.SET_DEFAULT, default="user doesn't exist")    
     text = models.TextField()
     created_datetime = models.DateTimeField(auto_now_add=True)    
     updated_datetime = models.DateTimeField(auto_now=True)
@@ -97,6 +97,21 @@ class Comment(models.Model):
         verbose_name = "Comment"
         verbose_name_plural = "Comment"
         ordering = ['-created_datetime'] #likes it's second param to ordering
+
+class CommentReaction(models.Model):
+    REACTION_CHOICES = (('like', 'Like'),('dislike', 'Dislike'))
+    reaction_type = models.CharField(max_length=10, null=True, choices = REACTION_CHOICES)  #like or dislike
+    comment = models.ForeignKey('Comment', on_delete=models.CASCADE, related_name='comment_reactions')
+    reacted_at = models.DateTimeField(auto_now_add=True)
+    author = models.ForeignKey('Account', on_delete=models.SET_DEFAULT, default="user doesn't exist")
+
+    def __str__(self):
+        return f'{self.comment}/{self.reaction_type}'
+    
+    class Meta:
+        db_table = "Comment_reaction"
+        verbose_name = "Comment_reaction"
+        verbose_name_plural = "Comment_reaction"
 
 class ReportReason(models.Model):
     formulation = models.CharField(max_length=250, unique=True)
