@@ -5,8 +5,6 @@ from .views import *
 
 urlpatterns = [
 
-
-
     path('auth/', include('djoser.urls')),
     # path('auth/', include('djoser.urls.jwt')),
 
@@ -16,7 +14,7 @@ urlpatterns = [
 
     path('posts/', PostListView.as_view(), name='posts-list-url'),
     path('post/<int:pk>/', PostReadUpdateView.as_view(), name='post-read_update-url'),
-    path('post/create', PostCreateView.as_view(), name='post-create-url'),
+    path('post/create/', PostCreateView.as_view(), name='post-create-url'),
     path('post/<int:pk>/delete/', PostDestroyView.as_view(), name='post-delete-url'),
 
     path('post/<int:post_id>/comments/', CommentsListView.as_view(), name='post_comments-list-url'),

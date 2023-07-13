@@ -211,11 +211,13 @@
 </template>
 
 <script setup>
-import { defineAsyncComponent, onMounted, onUnmounted, ref, defineEmits, computed, onBeforeMount, toRaw} from 'vue';
+import { getCurrentInstance, defineAsyncComponent, onMounted, onUnmounted, ref, defineEmits, computed, onBeforeMount, toRaw} from 'vue';
 import { useStore } from 'vuex';
 import { useTheme } from 'vuetify/lib/framework.mjs';
 import {DateTimeFormat} from '@/helpers'
 import routes from '@/router/router' 
+
+import authHeader from '@/api/AuthAPI/auth-header';
 
 const Filters = defineAsyncComponent(() => import('@/components/Filters/Filters.vue'));
 const FilterAside = defineAsyncComponent(() => import('@/components/Filters/FilterAside.vue'));
@@ -283,10 +285,51 @@ const handleScroll = (e) => {
     }
 }
 
+const token = authHeader()['Authorization'].split('Bearer ')[1]
+let url = `ws://127.0.0.1:8000/api/v1/ws/socket-server/?token=${token}`
+const socket = new WebSocket(url)
+
+// const instance = getCurrentInstance();
+// instance?.proxy?.$forceUpdate();
+
+
 onMounted(async () => {
     store.dispatch('journal/get_posts', 'posts/?page=1&page_size=7')
     window.addEventListener('scroll', handleScroll);
+
+
+    // socket.onmessage = function(e){
+    //     let data = JSON.parse(e.data)
+    //     if(data.action === 'list'){
+    //         postsList.value = data.data
+    //     }
+    //     else if(data.action === 'create'){
+    //         postsList.value.unshift(data.data)
+    //         console.log(data.data)
+    //     }
+    // }
+
 })
+
+const share =() => {
+    
+    console.log(authHeader()['Authorization'])
+    chatSocket.send(JSON.stringify(
+        {   
+            'operation_type': 'create_post',
+            'auth_header': authHeader()['Authorization'].split(),
+            'post_data': 
+                {
+                    'title': 't',
+                    'description': 'test_d',
+                    'body': 'test_b'
+                }
+            
+        }
+
+    
+    ))
+}
 
 onUnmounted(() => {
     window.removeEventListener("scroll", handleScroll)

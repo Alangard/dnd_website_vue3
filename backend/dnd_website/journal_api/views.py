@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, get_list_or_404
+from django.shortcuts import get_object_or_404, get_list_or_404, render
 from datetime import datetime
 from django.utils.dateparse import parse_datetime
 from rest_framework.pagination import PageNumberPagination
@@ -20,6 +20,10 @@ from django.db import connection
 
 
 
+def lobby(request):
+    return render(request, 'journal/lobby.html')
+
+
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
@@ -36,8 +40,8 @@ class PostListView(generics.ListAPIView):
     def get_queryset(self):
         queryset = Post.objects.filter(is_publish=True).\
             select_related('author').\
-            prefetch_related('tags','post_reactions','comments').\
-            annotate(num_comments=Count('comments'))
+            prefetch_related('tags','post_reactions','comments')
+            # annotate(num_comments=Count('comments'))
         return queryset
     
     serializer_class = PostListReadSerializer
@@ -49,9 +53,11 @@ class PostListView(generics.ListAPIView):
     ordering = ['-created_datetime']
     pagination_class = PostListPagination
 
+
+
 class PostCreateView(generics.CreateAPIView):
     serializer_class = PostCreateSerializer
-    permission_classes = (IsAuthenticated, IsAdminUser) 
+    permission_classes = (IsAuthenticated,) 
 
 class PostReadUpdateView(generics.RetrieveUpdateAPIView):
     def get_queryset(self):

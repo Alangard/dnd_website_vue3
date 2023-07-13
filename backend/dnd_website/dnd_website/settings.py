@@ -43,6 +43,8 @@ CORS_ORIGIN_ALLOW_ALL = True
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
+
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -50,8 +52,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    'channels',
-    'django_eventstream',
     "journal_api.apps.JournalApiConfig",
     "corsheaders",
     "mptt",
@@ -143,8 +143,26 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
-    'django_grip.GripMiddleware',
 ]
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     'root': {
+#         'handlers': ['console'],
+#         'level': 'DEBUG',
+#     },
+#     'loggers': {
+#         'journal_api': {  
+#             'level': 'DEBUG',
+#         },
+#     },
+# }
 
 ROOT_URLCONF = "dnd_website.urls"
 
@@ -165,7 +183,13 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "dnd_website.wsgi.application"
-ASGI_APPLICATION = 'dnd_website.asgi.application'
+ASGI_APPLICATION = "dnd_website.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 
 # Database

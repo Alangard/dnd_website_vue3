@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import User
 from django.utils.timezone import now
+from django.db.models.signals import *
 
 
 class Account(AbstractUser):
@@ -35,6 +36,7 @@ class Post(models.Model):
     tags = models.ManyToManyField('Tag', blank=True)
     commented = models.BooleanField(default=False)
     reacted = models.BooleanField(default=False)
+    num_comments = models.IntegerField(default=0, blank=True)
 
     def __str__(self):
         return f'{self.id} - {self.title}'
@@ -81,9 +83,9 @@ class Tag(models.Model):
 class Comment(models.Model):
     status = models.CharField(max_length=5, choices=(('n','normal'), ('b','banned'), ('d','deleted')), default='n')
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')    
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, related_name='replies', blank=True)
     author = models.ForeignKey('Account', on_delete=models.SET_DEFAULT, default="user doesn't exist")    
-    text = models.TextField()
+    text = models.TextField(blank=True)
     created_datetime = models.DateTimeField(auto_now_add=True)    
     updated_datetime = models.DateTimeField(auto_now=True)
     report_reasons = models.ManyToManyField('ReportReason', through="CommentReport", blank=True)

@@ -157,10 +157,10 @@ class PostDetailSerializer(serializers.ModelSerializer):
 class PostListReadSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)
     author = ShortAccountSerializer(read_only=True)
-    num_comments = serializers.IntegerField()
     user_reaction = serializers.SerializerMethodField()
     commented = serializers.SerializerMethodField()
     post_reactions = serializers.SerializerMethodField()
+    num_comments = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -184,14 +184,16 @@ class PostListReadSerializer(serializers.ModelSerializer):
             if obj.post_reactions.filter(author=user).exists():
                 for post in obj.post_reactions.filter(author=user):
                     return {'reacted': True, 'reaction_type': post.reaction_type}
-            else:
-                return {'reacted': False, 'reaction_type': ''}
+        return {'reacted': False, 'reaction_type': ''}
 
     def get_commented(self, obj):
         if 'request' in self.context:
             user = self.context['request'].user.id
             return obj.comments.filter(author=user).exists()
         return False
+    
+    def get_num_comments(self, obj):
+        return Comment.objects.count()
   
 class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
