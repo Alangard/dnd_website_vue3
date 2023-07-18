@@ -87,29 +87,29 @@ from asgiref.sync import sync_to_async
 
 
 
-# class TokenAuthMiddleware:
+class TokenAuthMiddleware:
 
-#     def __init__(self, inner):
-#         self.inner = inner
+    def __init__(self, inner):
+        self.inner = inner
 
-#     async def __call__(self, scope, receive, send):
+    async def __call__(self, scope, receive, send):
 
-#         await sync_to_async(close_old_connections)()
+        await sync_to_async(close_old_connections)()
 
-#         token = parse_qs(scope["query_string"].decode("utf8"))["token"][0]
+        token = parse_qs(scope["query_string"].decode("utf8"))["token"][0]
 
-#         try:
+        try:
            
-#             UntypedToken(token)
-#         except (InvalidToken, TokenError) as e:
+            UntypedToken(token)
+        except (InvalidToken, TokenError) as e:
      
-#             print(e)
-#             return None
-#         else:
-#             decoded_data = jwt_decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            print(e)
+            return None
+        else:
+            decoded_data = jwt_decode(token, settings.SECRET_KEY, algorithms=["HS256"])
             
-#             user = await sync_to_async(get_user_model().objects.get)(id=decoded_data["user_id"])
-#             scope['user'] = user
+            user = await sync_to_async(get_user_model().objects.get)(id=decoded_data["user_id"])
+            scope['user'] = user
 
-#         return await self.inner(scope, receive, send)
+        return await self.inner(scope, receive, send)
 

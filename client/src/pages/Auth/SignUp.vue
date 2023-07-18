@@ -183,12 +183,12 @@ const validator = useVuelidate(validator_rules, formdata)
 
 const submitForm =(data) =>{
 
-  const user_data = {'username': data.username, 'email': data.email, 'password': data.password, 're_password': data.confirm_password}
+  const user_data = {'username': data.username, 'email': data.email, 'password': data.password}
 
   if(data.agree_terms){
       store.dispatch("auth/register", user_data)
       .then(
-        () => {authOptions.value = 'log_in'},
+        () => {router.push({ name: 'user_activation'})},
         (error) => {
           for(const [key, value] of Object.entries(error.response.data)){validationErrors.value[key] = value[0]}
         }

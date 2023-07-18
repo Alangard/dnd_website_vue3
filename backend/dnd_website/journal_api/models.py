@@ -9,6 +9,7 @@ class Account(AbstractUser):
     email = models.EmailField(unique=True)
     slug = models.SlugField(max_length=150, db_index=True, blank=True, null=True)
     avatar = models.URLField(default='', blank=True)
+    confirmation_code = models.CharField(max_length=6, null=True, blank=True)
 
     class Meta:
         db_table = "Account"

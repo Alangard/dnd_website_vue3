@@ -5,7 +5,7 @@ from . import models
 class CustomAccountAdmin(UserAdmin):
     search_fields = ('username',)
     readonly_fields = ['slug']
-    list_display = ['username', 'email', 'date_joined', 'is_staff']
+    list_display = ['username', 'email', 'date_joined', 'is_staff', 'is_active']
     fieldsets = [
         (
             None,

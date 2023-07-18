@@ -45,6 +45,22 @@ const routes = [
   },
 
   {
+    path: '/user_activation',
+    name: 'user_activation',
+    meta: {navbar_name: 'User activation', navbar_style: 'auth'},
+    component: () => import('@/pages/Auth/UserActivation.vue')
+  },
+
+  // {
+  //   path: '/activate/:uid/:token',
+  //   name: 'activation_user_link',
+  //   redirect: (to) => {
+  //     const { uid, token } = to.params;
+  //     return `/user_activation_status?uid=${uid}&token=${token}`;
+  //   },
+  // },
+
+  {
     path: '/reset_password',
     name: 'reset_password',
     meta: {navbar_name: 'Reset Password', navbar_style: 'auth'},
@@ -52,9 +68,22 @@ const routes = [
   },
 
   {
-    path: '/activate*',
-    name: 'activation_link',
-  }
+    path: '/reset_password_confirmation',
+    name: 'reset_password_confirmation',
+    meta: {navbar_name: 'Reset Password Confirmation', navbar_style: 'auth'},
+    component: () => import('@/pages/Auth/ResetPassConfirm.vue'),
+  },
+
+
+
+  // {
+  //   path: '/password/reset/confirm/:uid/:token',
+  //   name: 'activation_pass_link',
+  //   redirect: (to) => {
+  //     const { uid, token } = to.params;
+  //     return `/reset_password_confirmation?uid=${uid}&token=${token}`;
+  //   },
+  // }
 ]
 
 const router = createRouter({

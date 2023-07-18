@@ -47,8 +47,8 @@ const main_menu_drawer = ref(false);
 
 const checkExpirationToken = () => {
   if(localStorage.getItem('user')){
-    const isExpired = store.dispatch("auth/checkExpirationToken", JSON.parse(localStorage.getItem('user')).access);
-    if(isExpired){store.dispatch("auth/refreshToken")}
+    // const isExpired = store.dispatch("auth/checkExpirationToken", JSON.parse(localStorage.getItem('user')).access);
+    // if(isExpired){store.dispatch("auth/refreshToken")}
     store.dispatch("auth/verifyToken").catch(error => {
       store.dispatch("auth/refreshToken")
     });
@@ -56,37 +56,40 @@ const checkExpirationToken = () => {
   
 };
 
-const CurrentURLManager = () => {
-  const currentURL = window.location;
-  const originURL = currentURL.origin;
-  const pathnameURL = currentURL.pathname.substring(1);
+// const CurrentURLManager = () => {
+//   const currentURL = window.location;
+//   const originURL = currentURL.origin;
+//   const pathnameURL = currentURL.pathname.substring(1);
 
-  const link_obj = {
-      'origin': originURL,
-      'pathname': pathnameURL.split('/')[0],
-      'uid': pathnameURL.split('/').slice(-2)[0],
-      'token': pathnameURL.split('/').slice(-1)[0],
-  }
+//   const link_obj = {
+//       'origin': originURL,
+//       'pathname': pathnameURL.split('/')[0],
+//       'uid': pathnameURL.split('/').slice(-2)[0],
+//       'token': pathnameURL.split('/').slice(-1)[0],
+//   }
 
-  currURLObj.value = link_obj
-}
+//   currURLObj.value = link_obj
+// }
 
 
-const ActivationManager = () => {
-  if(currURLObj.value.pathname == 'activate'){
-    store.dispatch("auth/user_activate", {uid: currURLObj.value.uid, token:currURLObj.value.token}).then(
-      () => {ActivationState.value = {state: true, variant:'user-activated'}},
-      (error) => {ActivationState.value = {state: true, variant:'user-activated-error'}}
-    )
-  }
-  else if(currURLObj.value.pathname == 'password'){
-    store.dispatch("auth/user_activate", {uid: currURLObj.value.uid, token: currURLObj.value.token}).then(
-      () => {ActivationState.value = {state: true, variant:'user-activated'}},
-      (error) => {ActivationState.value = {state: true, variant:'user-activated-error'}}
-    )
-  }
+// const ActivationManager = () => {
+//   if(currURLObj.value.pathname == 'activate'){
+//     store.dispatch("auth/user_activate", {uid: currURLObj.value.uid, token:currURLObj.value.token}).then(
+//       () => {},
+//       (error) => {}
+//     )
+    
+//     router.push({ name: 'login'})
+//   }
+//   else if(currURLObj.value.pathname == 'password'){
+//     // через путь передаём uid, token {uid: currURLObj.value.uid, token:currURLObj.value.token}
+//     // router.push({ name: 'reset_pass_confirm'})    
+//   }
 
-}
+
+  
+
+// }
 
 const LocalStorageThemeManager = () => {
     if(localStorage.getItem('theme')){
@@ -102,8 +105,8 @@ const LocalStorageThemeManager = () => {
 
 onBeforeMount(() => {
   checkExpirationToken();
-  CurrentURLManager();
-  ActivationManager();
+  // CurrentURLManager();
+  // ActivationManager();
   LocalStorageThemeManager();
 })
 

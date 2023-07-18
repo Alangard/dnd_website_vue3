@@ -2,8 +2,8 @@ import AuthService from '@/api/AuthAPI/auth';
 
 const user = JSON.parse(localStorage.getItem('user'));
 const initialState = user
-  ? { status: { loggedIn: true }, user }
-  : { status: { loggedIn: false }, user: null };
+  ? { status: { loggedIn: true }, user}
+  : { status: { loggedIn: false }, user: null};
 
 export const auth = {
   namespaced: true,
@@ -47,6 +47,13 @@ export const auth = {
       )
     },
 
+    resend_activation_email({commit}, email){
+      return AuthService.resend_activation_email(email).then(
+        response => {return Promise.resolve(response.data)},
+        error => {return Promise.reject(error)}
+      )
+    },
+
     reset_password({commit}, user_email){
       return AuthService.reset_password(user_email).then(
         response => { return Promise.resolve(response.data)},
@@ -55,7 +62,7 @@ export const auth = {
     },
 
     reset_password_confirm({commit}, user_data){
-      return AuthService.reset_password(user_data).then(
+      return AuthService.reset_password_confirmation(user_data).then(
         response => { return Promise.resolve(response.data)},
         error => { return Promise.reject(error) }
       )
@@ -103,12 +110,11 @@ export const auth = {
     registerFailure(state) {
       state.status.loggedIn = false;
     },
-
   },
   getters: {
     loginState(state){
       return state.status.loggedIn;
-    }
+    },  
   }
 
 };

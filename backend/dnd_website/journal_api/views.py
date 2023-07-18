@@ -15,14 +15,122 @@ from .filters import *
 from .permisions import *
 from .serializers import *
 from .models import *
-from django.db.models import Count, OuterRef, Subquery, Prefetch, Value, CharField, F, prefetch_related_objects
-from django.db import connection
+from django.db.models import Count
 
 
 
-def lobby(request):
-    return render(request, 'journal/lobby.html')
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from rest_framework.views import APIView
 
+
+
+def SendConfirmationCode(email):
+    try:
+        user = Account.objects.get(email=email)
+    except Account.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Invalid email'})
+    
+    # Генерация и сохранение кода активации
+    confirmation_code = default_token_generator.make_token(user)[::2][:6]
+    user.confirmation_code = confirmation_code
+    user.save()
+
+    email_subject = 'Confirmation code'
+    email_message = f'To execute the operation, insert this confirmation code {confirmation_code} in the "confirmation code" field'
+    send_mail(email_subject, email_message, settings.DEFAULT_FROM_EMAIL, [email])
+
+
+class ResendConfirmationCodeView(APIView):
+    def post(self, request):
+        serializer = ConfirmationCodeSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            
+            SendConfirmationCode(email)
+
+            return JsonResponse({'status': 'success'})
+        else:
+            return JsonResponse({'status': 'error', 'message': serializer.errors})
+
+class UserRegisterView(APIView):
+    def post(self, request):
+        serializer = AccountSerializer(data=request.data)
+        if serializer.is_valid():
+            username = serializer.validated_data['username']
+            email = serializer.validated_data['email']
+            password = serializer.validated_data['password']
+
+            # Создание пользователя
+            Account.objects.create_user(username=username, email=email, password=password)
+
+            SendConfirmationCode(email)
+
+            return JsonResponse({'status': 'success'})
+        else:
+            return JsonResponse({'status': 'error', 'message': serializer.errors})
+
+
+class UserActivateView(APIView):
+    def post(self, request):
+        serializer = ConfirmationCodeSerializer(data=request.data)
+        if serializer.is_valid():
+            confirmation_code = serializer.validated_data['confirmation_code']
+
+            try:
+                user = Account.objects.get(confirmation_code=confirmation_code)
+            except Account.DoesNotExist:
+                return JsonResponse({'status': 'error', 'message': 'Invalid activation code'})
+
+            # Активация учетной записи пользователя
+            user.confirmation_code = None
+            user.is_active = True
+            user.save()
+
+            return JsonResponse({'status': 'success'})
+        else:
+            return JsonResponse({'status': 'error', 'message': serializer.errors})
+
+class ResetPassword(APIView):
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            
+            SendConfirmationCode(email)
+
+            return JsonResponse({'status': 'success'})
+        else:
+            return JsonResponse({'status': 'error', 'message': serializer.errors})
+
+class ResetPasswordConfirm(APIView):
+    def post(self, request):
+        serializer = ResetPasswordConfirmSerializer(data=request.data)
+        if serializer.is_valid():
+            confirmation_code = serializer.validated_data['confirmation_code']
+            new_password = serializer.validated_data['new_password']
+            
+            try:
+                user = Account.objects.get(confirmation_code=confirmation_code)
+            except Account.DoesNotExist:
+                return JsonResponse({'status': 'error', 'message': 'Invalid activation code'})
+
+            # Активация учетной записи пользователя
+            user.set_password = new_password
+            user.confirmation_code = None
+            user.save()
+
+            return JsonResponse({'status': 'success'})
+        else:
+            return JsonResponse({'status': 'error', 'message': serializer.errors})
+
+
+        
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
@@ -45,7 +153,7 @@ class PostListView(generics.ListAPIView):
         return queryset
     
     serializer_class = PostListReadSerializer
-    permission_classess = [IsAuthenticated]
+    permission_classess = [AllowAny,]
     filter_backends = [DjangoFilters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class  = PostListFilter
     search_fields = ['title', 'description', 'body']

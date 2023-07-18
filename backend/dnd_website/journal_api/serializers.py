@@ -1,9 +1,11 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
-
+from django.contrib.auth.password_validation import validate_password
 from django.shortcuts import get_object_or_404, get_list_or_404
-from .models import *
 from django.db.models import Count
+
+from .models import *
+
 
 ## JWT serializers ################################################################
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -25,12 +27,32 @@ class AccountSerializer(serializers.ModelSerializer):
                     "password",
                     "avatar",
                     "email",
-                    "favorites_reaction",
-                    "recent_reaction",
                     "is_staff",
-                    "is_active"]
+                    "is_active",
+                    'activation_code']
         
+class ConfirmationCodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = ['confirmation_code']
 
+class ResetPasswordSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField()
+    class Meta:
+        model = Account
+        fields = ['email']
+
+class ResetPasswordConfirmSerializer(serializers.ModelSerializer):
+    new_password = serializers.CharField()
+    confirmation_code = serializers.CharField()
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value
+
+    class Meta:
+        model = Account
+        fields = ['confirmation_code', 'new_password']
         
 class ShortAccountSerializer(serializers.ModelSerializer):
     class Meta:

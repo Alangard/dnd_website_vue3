@@ -25,29 +25,28 @@ class AuthService {
     }
 
     user_create(user_data){
-        return axios.post(BASE_URL + 'users/', 
+        return axios.post(BASE_URL + 'user/register/', 
             {
                 username: user_data.username,
                 email: user_data.email,
                 password: user_data.password,
-                re_password: user_data.re_password
             }
         )
     }
 
     user_activate(user_data){
-        return axios.post(BASE_URL + 'users/activation/',
+        return axios.post(BASE_URL + 'user/activation/',
             {
-                uid: user_data.uid,
-                token: user_data.token 
+                email: user_data.email,
+                confirmation_code: user_data.activation_code 
             }
         )
     }
 
-    resend_activation_email(user_data){
-        return axios.post(BASE_URL + 'users/resend_activation/', 
+    resend_confirmation_code(email){
+        return axios.post(BASE_URL + 'user/resend_confirmation_code/', 
             {
-                email: user_data.email
+                email: email
             }
         )
     }
@@ -69,7 +68,7 @@ class AuthService {
     }
 
     reset_password(user_data){
-        return axios.patch(BASE_URL + 'users/reset_password/', 
+        return axios.patch(BASE_URL + 'user/reset_password/', 
             {
                 email: user_data.email,
             }
@@ -77,12 +76,10 @@ class AuthService {
     }
 
     reset_password_confirmation(user_data){
-        return axios.patch(BASE_URL + 'users/reset_password_confirm/', 
+        return axios.patch(BASE_URL + 'user/reset_password_confirm/', 
             {   
-                uid: user_data.uid,
-                token: user_data.token,
+                confirmation_code: user_data.confirmation_code,
                 new_password:  user_data.new_password,
-                re_new_password: user_data.re_new_password
             }
         );
     }

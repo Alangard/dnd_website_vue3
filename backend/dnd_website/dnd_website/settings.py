@@ -15,6 +15,7 @@ from pathlib import Path
 from datetime import timedelta
 from django.conf import settings
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -29,6 +30,10 @@ SECRET_KEY = "django-insecure-3+n@28ce9p$%*k^=z#5s0%j43vmn0wjvrb6uz2&^2saqvtfz@h
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+
+
+
 
 FRONTEND_AUTHORITY = "http://localhost:8080"
 

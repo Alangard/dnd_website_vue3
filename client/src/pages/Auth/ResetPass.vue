@@ -62,6 +62,13 @@ const validator_rules = computed(() => {
 
 const reset_pass_validator = useVuelidate(validator_rules, formdata)
 
+const submitResetForm = () => {
+  store.dispatch("auth/reset_password", formdata.value.email).then(
+      () => {},
+      (error) => {}
+  )
+  router.push({ name: 'reset_pass_confirm'})
+}
 </script>
 
 <style lang='scss' scoped></style>
