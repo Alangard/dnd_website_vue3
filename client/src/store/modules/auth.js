@@ -40,15 +40,15 @@ export const auth = {
       );
     },
 
-    user_activate({commit}, activation_data){
-      return AuthService.user_activate(activation_data).then(
+    user_activate({commit}, confirmation_code){
+      return AuthService.user_activate(confirmation_code).then(
         response => {return Promise.resolve(response.data)},
         error => {return Promise.reject(error)}
       )
     },
 
-    resend_activation_email({commit}, email){
-      return AuthService.resend_activation_email(email).then(
+    send_confirmation_code({commit}, email){
+      return AuthService.send_confirmation_code(email).then(
         response => {return Promise.resolve(response.data)},
         error => {return Promise.reject(error)}
       )

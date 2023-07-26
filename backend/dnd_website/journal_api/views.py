@@ -25,38 +25,42 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseNotFound, HttpResponseBadRequest
 from rest_framework.views import APIView
-
+from django.core.exceptions import ObjectDoesNotExist
+import json
 
 
 def SendConfirmationCode(email):
+    # user = get_object_or_404(Account, email = email)
     try:
-        user = Account.objects.get(email=email)
-    except Account.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': 'Invalid email'})
+        user = Account.objects.get(email = email)
     
-    # Генерация и сохранение кода активации
-    confirmation_code = default_token_generator.make_token(user)[::2][:6]
-    user.confirmation_code = confirmation_code
-    user.save()
+        # Генерация и сохранение кода активации
+        confirmation_code = default_token_generator.make_token(user)[::2][:6]
+        user.confirmation_code = confirmation_code
+        user.save()
 
-    email_subject = 'Confirmation code'
-    email_message = f'To execute the operation, insert this confirmation code {confirmation_code} in the "confirmation code" field'
-    send_mail(email_subject, email_message, settings.DEFAULT_FROM_EMAIL, [email])
+        email_subject = 'Confirmation code'
+        email_message = f'To execute the operation, insert this confirmation code {confirmation_code} in the "confirmation code" field'
+        send_mail(email_subject, email_message, settings.DEFAULT_FROM_EMAIL, [email])
+        
+        return JsonResponse({'status': 'success'})
+    
+    except ObjectDoesNotExist:
+        return HttpResponseNotFound(json.dumps({'status': 'error', 'message': 'User with this email address was not found'}), content_type="application/json")
 
 
-class ResendConfirmationCodeView(APIView):
+class SendConfirmationCodeView(APIView):
     def post(self, request):
-        serializer = ConfirmationCodeSerializer(data=request.data)
+        serializer = ResetPasswordSerializer(data=request.data)
         if serializer.is_valid():
             email = serializer.validated_data['email']
             
-            SendConfirmationCode(email)
-
-            return JsonResponse({'status': 'success'})
+            resposne = SendConfirmationCode(email)
+            return resposne
         else:
-            return JsonResponse({'status': 'error', 'message': serializer.errors})
+            return HttpResponseNotFound(json.dumps({'status': 'error', 'message': serializer.errors}), content_type="application/json")
 
 class UserRegisterView(APIView):
     def post(self, request):
@@ -73,7 +77,9 @@ class UserRegisterView(APIView):
 
             return JsonResponse({'status': 'success'})
         else:
-            return JsonResponse({'status': 'error', 'message': serializer.errors})
+            return HttpResponseBadRequest(json.dumps({'status': 'error', 'message': serializer.errors}), content_type="application/json")
+        
+        # JsonResponse()
 
 
 class UserActivateView(APIView):
@@ -85,7 +91,7 @@ class UserActivateView(APIView):
             try:
                 user = Account.objects.get(confirmation_code=confirmation_code)
             except Account.DoesNotExist:
-                return JsonResponse({'status': 'error', 'message': 'Invalid activation code'})
+                return HttpResponseNotFound(json.dumps({'status': 'error', 'message': 'Invalid confirmation code'}), content_type="application/json")
 
             # Активация учетной записи пользователя
             user.confirmation_code = None
@@ -94,7 +100,7 @@ class UserActivateView(APIView):
 
             return JsonResponse({'status': 'success'})
         else:
-            return JsonResponse({'status': 'error', 'message': serializer.errors})
+            return HttpResponseBadRequest(json.dumps({'status': 'error', 'message': serializer.errors}), content_type="application/json")
 
 class ResetPassword(APIView):
     def post(self, request):
@@ -102,11 +108,11 @@ class ResetPassword(APIView):
         if serializer.is_valid():
             email = serializer.validated_data['email']
             
-            SendConfirmationCode(email)
+            response = SendConfirmationCode(email)
 
-            return JsonResponse({'status': 'success'})
+            return response
         else:
-            return JsonResponse({'status': 'error', 'message': serializer.errors})
+            return HttpResponseBadRequest(json.dumps({'status': 'error', 'message': serializer.errors}), content_type="application/json")
 
 class ResetPasswordConfirm(APIView):
     def post(self, request):
@@ -118,7 +124,7 @@ class ResetPasswordConfirm(APIView):
             try:
                 user = Account.objects.get(confirmation_code=confirmation_code)
             except Account.DoesNotExist:
-                return JsonResponse({'status': 'error', 'message': 'Invalid activation code'})
+                return HttpResponseNotFound(json.dumps({'status': 'error', 'message': 'Invalid confirmation code'}), content_type="application/json")
 
             # Активация учетной записи пользователя
             user.set_password = new_password
@@ -127,7 +133,7 @@ class ResetPasswordConfirm(APIView):
 
             return JsonResponse({'status': 'success'})
         else:
-            return JsonResponse({'status': 'error', 'message': serializer.errors})
+            return HttpResponseBadRequest(json.dumps({'status': 'error', 'message': serializer.errors}), content_type="application/json")
 
 
         

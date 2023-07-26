@@ -17,6 +17,11 @@ import routes from '@/router/router'
 import Comment from './Comment.vue'
 
 const store = useStore();
+
+const token = authHeader()['Authorization'].split('Bearer ')[1]
+let url = `ws://${axios.defaults.baseURL}ws/comment_socket-server/?token=${token}`
+const socket = new WebSocket(url)
+
 const loggedIn = computed(() => {return store.getters['auth/loginState']})
 const comments = computed(() => {return store.getters['journal/getComments']})
 
@@ -24,6 +29,20 @@ const comments = computed(() => {return store.getters['journal/getComments']})
 onBeforeMount(() => {
   const post_id = routes.currentRoute.value.params.id
   store.dispatch("journal/getPostsComments", post_id)
+
+  socket.onmessage = function(e){
+        // let data = JSON.parse(e.data)
+        // if(data.action === 'list'){
+        //     store.commit('journal/setPostsList', data.data)
+            
+        //     // postsList.value = data.data
+        // }
+        // else if(data.action === 'create'){
+        //     store.commit('journal/updatePostsList', data.data)
+        //     // postsList.value.unshift(data.data)
+        //     console.log(data.data)
+        // }
+  }
 })
 
 </script>

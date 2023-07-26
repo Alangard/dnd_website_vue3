@@ -20,6 +20,11 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 ## Accounts serializers ############################################################
 
 class AccountSerializer(serializers.ModelSerializer):
+
+    def validate_password(self, value):
+        validate_password(value)
+        return value
+
     class Meta:
         model = Account
         fields = [  'id',
@@ -29,7 +34,9 @@ class AccountSerializer(serializers.ModelSerializer):
                     "email",
                     "is_staff",
                     "is_active",
-                    'activation_code']
+                    'confirmation_code']
+        
+
         
 class ConfirmationCodeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -195,7 +202,7 @@ class PostListReadSerializer(serializers.ModelSerializer):
         post_reactions = obj.post_reactions.all()
         num_likes = post_reactions.filter(reaction_type='like').count()
         num_dislikes = post_reactions.filter(reaction_type='dislike').count()
-        total_reactions = post_reactions.count()
+        total_reactions = num_likes + num_dislikes
         return {'num_likes': num_likes, 'num_dislikes': num_dislikes, 'total_reactions': total_reactions}
 
     
@@ -215,7 +222,7 @@ class PostListReadSerializer(serializers.ModelSerializer):
         return False
     
     def get_num_comments(self, obj):
-        return Comment.objects.count()
+        return obj.comments.count()
   
 class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:

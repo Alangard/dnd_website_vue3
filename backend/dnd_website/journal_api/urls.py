@@ -13,7 +13,7 @@ urlpatterns = [
     path('auth/user/activation/', UserActivateView.as_view(), name='user_activate'),
     path('auth/user/reset_password/', ResetPassword.as_view(), name='reset_password'),
     path('auth/user/reset_password_confirm/', ResetPasswordConfirm.as_view(), name='reset_password_confrim'),
-    path('auth/user/resend_confirmation_code/', ResendConfirmationCodeView.as_view(), name='resend_confirmation_code'),
+    path('auth/user/send_confirmation_code/', SendConfirmationCodeView.as_view(), name='send_confirmation_code'),
 
     path('auth/jwt/create/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/jwt/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

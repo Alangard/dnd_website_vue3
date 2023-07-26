@@ -134,6 +134,14 @@ export const journal = {
       state.haveInitialPosts = false;
     },
 
+    setPostsList(state, posts_list){
+      state.PostsList = posts_list
+    },
+
+    updatePostsList(state, post_data){
+      state.PostsList.unshift(post_data)
+    },
+
     gettingReactionsSuccess(state, reactions_data){
       state.Reactions = reactions_data;
     },

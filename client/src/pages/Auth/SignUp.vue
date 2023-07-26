@@ -86,7 +86,7 @@
           </v-checkbox>
 
           <v-card-actions class="d-flex flex-row justify-center">
-          <v-btn width='95%' variant="outlined" color="success" @click="submitForm(formdata)">
+          <v-btn width='95%' variant="outlined" color="success" :disabled = 'validator.$errors.length > 0' @click="submitForm(formdata)">
               Complete Registration
           </v-btn>
           </v-card-actions>
@@ -186,13 +186,17 @@ const submitForm =(data) =>{
   const user_data = {'username': data.username, 'email': data.email, 'password': data.password}
 
   if(data.agree_terms){
+    if(validator.$errors == undefined){
       store.dispatch("auth/register", user_data)
-      .then(
-        () => {router.push({ name: 'user_activation'})},
-        (error) => {
-          for(const [key, value] of Object.entries(error.response.data)){validationErrors.value[key] = value[0]}
-        }
-      );
+        .then(
+          () => {
+            router.push({ name: 'user_activation', params: {'email' : formdata.value.email }})
+          },
+          (error) => {
+            for(const [key, value] of Object.entries(error.response.data.message)){validationErrors.value[key] = value[0]}
+          }
+        );
+    }   
   }
   else{validationErrors.value.agree_terms = 'You must agree to the Terms and Privacy Policy'}
 }

@@ -45,7 +45,7 @@ const routes = [
   },
 
   {
-    path: '/user_activation',
+    path: '/user_activation/:email',
     name: 'user_activation',
     meta: {navbar_name: 'User activation', navbar_style: 'auth'},
     component: () => import('@/pages/Auth/UserActivation.vue')

@@ -217,7 +217,8 @@ import { useTheme } from 'vuetify/lib/framework.mjs';
 import {DateTimeFormat} from '@/helpers'
 import routes from '@/router/router' 
 
-import authHeader from '@/api/AuthAPI/auth-header';
+import interceptorsInstance, {authHeader} from '@/api/main'
+
 
 const Filters = defineAsyncComponent(() => import('@/components/Filters/Filters.vue'));
 const FilterAside = defineAsyncComponent(() => import('@/components/Filters/FilterAside.vue'));
@@ -225,10 +226,15 @@ const FilterAside = defineAsyncComponent(() => import('@/components/Filters/Filt
 const store = useStore();
 let theme = useTheme();
 
+const token = authHeader()['Authorization'].split('Bearer ')[1]
+let url = `ws://${axios.defaults.baseURL}ws/post_socket-server/?token=${token}`
+const socket = new WebSocket(url)
+
 let toggleReaction = ref(null);
 let filterAsideState = ref(false);
 let postListStyle = ref('list');
 const postsList = computed(() => {return store.getters['journal/getPosts']});
+const test = ref([])
 
 const ratingPercentage = (post_reactions_obj) => {
     let totalVotes = post_reactions_obj.num_likes + post_reactions_obj.num_dislikes;
@@ -245,13 +251,8 @@ const pressReaction = (data) =>{
             'reaction_type': data.reaction_type,
             'user_reaction': data.user_reaction
         }
-    )
-
-    
-    
-
+    )   
 }
-
 
 
 // to do: check out infinity scroll for mobile version
@@ -285,29 +286,29 @@ const handleScroll = (e) => {
     }
 }
 
-const token = authHeader()['Authorization'].split('Bearer ')[1]
-let url = `ws://127.0.0.1:8000/api/v1/ws/socket-server/?token=${token}`
-const socket = new WebSocket(url)
 
-// const instance = getCurrentInstance();
-// instance?.proxy?.$forceUpdate();
+
+
 
 
 onMounted(async () => {
+
     store.dispatch('journal/get_posts', 'posts/?page=1&page_size=7')
     window.addEventListener('scroll', handleScroll);
 
-
-    // socket.onmessage = function(e){
-    //     let data = JSON.parse(e.data)
-    //     if(data.action === 'list'){
-    //         postsList.value = data.data
-    //     }
-    //     else if(data.action === 'create'){
-    //         postsList.value.unshift(data.data)
-    //         console.log(data.data)
-    //     }
-    // }
+    socket.onmessage = function(e){
+        let data = JSON.parse(e.data)
+        if(data.action === 'list'){
+            store.commit('journal/setPostsList', data.data)
+            
+            // postsList.value = data.data
+        }
+        else if(data.action === 'create'){
+            store.commit('journal/updatePostsList', data.data)
+            // postsList.value.unshift(data.data)
+            console.log(data.data)
+        }
+    }
 
 })
 

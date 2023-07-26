@@ -1,7 +1,8 @@
 import axios from 'axios'
-import authHeader from './auth-header';
+import interceptorsInstance, {authHeader} from '@/api/main'
 
-const BASE_URL = 'api/v1/auth/'
+
+const BASE_URL = axios.defaults.baseURL + 'auth/'
 
 class AuthService {
     login(user_data){
@@ -34,37 +35,36 @@ class AuthService {
         )
     }
 
-    user_activate(user_data){
+    user_activate(confirmation_code){
         return axios.post(BASE_URL + 'user/activation/',
             {
-                email: user_data.email,
-                confirmation_code: user_data.activation_code 
+                confirmation_code: confirmation_code 
             }
         )
     }
 
-    resend_confirmation_code(email){
-        return axios.post(BASE_URL + 'user/resend_confirmation_code/', 
+    send_confirmation_code(email){
+        return axios.post(BASE_URL + 'user/send_confirmation_code/', 
             {
                 email: email
             }
         )
     }
 
-    user_get(){
-        return axios.get(BASE_URL + 'users/me/', { headers: authHeader() })
+    async user_get(){
+        return await interceptorsInstance.get('auth/users/me/', { headers: authHeader() })
     }
 
-    user_put(user_data){
-        return axios.put(BASE_URL + 'users/me/', user_data, { headers: authHeader()})
+    async user_put(user_data){
+        return await interceptorsInstance.put('auth/users/me/', user_data, { headers: authHeader()})
     }
 
-    user_patch(user_data){
-        return axios.put(BASE_URL + 'users/me/', user_data, { headers: authHeader()})
+    async user_patch(user_data){
+        return await interceptorsInstance.put('auth/users/me/', user_data, { headers: authHeader()})
     }
 
-    user_delete(user_data){
-        return axios.put(BASE_URL + 'users/me/', {current_password: user_data.current_password}, { headers: authHeader()})
+    async user_delete(user_data){
+        return await interceptorsInstance.put('auth/users/me/', {current_password: user_data.current_password}, { headers: authHeader()})
     }
 
     reset_password(user_data){
@@ -76,7 +76,7 @@ class AuthService {
     }
 
     reset_password_confirmation(user_data){
-        return axios.patch(BASE_URL + 'user/reset_password_confirm/', 
+        return axios.post(BASE_URL + 'user/reset_password_confirm/', 
             {   
                 confirmation_code: user_data.confirmation_code,
                 new_password:  user_data.new_password,

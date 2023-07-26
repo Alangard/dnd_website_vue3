@@ -10,7 +10,7 @@ class Account(AbstractUser):
     slug = models.SlugField(max_length=150, db_index=True, blank=True, null=True)
     avatar = models.URLField(default='', blank=True)
     confirmation_code = models.CharField(max_length=6, null=True, blank=True)
-
+    is_active = models.BooleanField(default=False)
     class Meta:
         db_table = "Account"
         verbose_name = "Account"
@@ -51,8 +51,8 @@ class Post(models.Model):
 
 class PostReaction(models.Model):
     REACTION_CHOICES = (('like', 'Like'),('dislike', 'Dislike'))
-    reaction_type = models.CharField(max_length=10, null=True, choices = REACTION_CHOICES)  #like or dislike
-    post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='post_reactions')
+    reaction_type = models.CharField(max_length=10, blank=True, null=True, choices = REACTION_CHOICES)  #like or dislike
+    post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='post_reactions', null=True, blank=True)
     reacted_at = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey('Account', on_delete=models.SET_DEFAULT, default="user doesn't exist")
 
@@ -83,7 +83,7 @@ class Tag(models.Model):
 
 class Comment(models.Model):
     status = models.CharField(max_length=5, choices=(('n','normal'), ('b','banned'), ('d','deleted')), default='n')
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')    
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments', null=True, blank=True)    
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, related_name='replies', blank=True)
     author = models.ForeignKey('Account', on_delete=models.SET_DEFAULT, default="user doesn't exist")    
     text = models.TextField(blank=True)
