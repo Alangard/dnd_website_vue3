@@ -17,17 +17,36 @@ import os
 from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
+from journal_api.middleware import TokenAuthMiddleware
 import journal_api.routing
 
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dnd_website.settings')
 
-application = ProtocolTypeRouter({
-    "http": get_asgi_application(),
-    'websocket': AuthMiddlewareStack(
-        URLRouter(
-            journal_api.routing.websocket_urlpatterns
-        )
-    )
+
+
+
+
+
+# application = ProtocolTypeRouter({
+#     "http": get_asgi_application(),
+#     'websocket': 
+    
+#     AuthMiddlewareStack(
+#         URLRouter(
+#             journal_api.routing.websocket_urlpatterns
+#         )
+#     )
+# })
+
+application = ProtocolTypeRouter({ 
+    "http": get_asgi_application(), 
+    'websocket': TokenAuthMiddleware( 
+        AuthMiddlewareStack( 
+            URLRouter( 
+                journal_api.routing.websocket_urlpatterns 
+            ) 
+        ) 
+    ) 
 })

@@ -213,6 +213,7 @@
 <script setup>
 import { getCurrentInstance, defineAsyncComponent, onMounted, onUnmounted, ref, defineEmits, computed, onBeforeMount, toRaw} from 'vue';
 import { useStore } from 'vuex';
+import axios from 'axios';
 import { useTheme } from 'vuetify/lib/framework.mjs';
 import {DateTimeFormat} from '@/helpers'
 import routes from '@/router/router' 
@@ -227,7 +228,7 @@ const store = useStore();
 let theme = useTheme();
 
 const token = authHeader()['Authorization'].split('Bearer ')[1]
-let url = `ws://${axios.defaults.baseURL}ws/post_socket-server/?token=${token}`
+let url = `ws://${axios.defaults.baseURL.split('http://')[1]}ws/post_socket-server/?token=${token}`
 const socket = new WebSocket(url)
 
 let toggleReaction = ref(null);
@@ -292,7 +293,6 @@ const handleScroll = (e) => {
 
 
 onMounted(async () => {
-
     store.dispatch('journal/get_posts', 'posts/?page=1&page_size=7')
     window.addEventListener('scroll', handleScroll);
 
@@ -333,6 +333,7 @@ const share =() => {
 }
 
 onUnmounted(() => {
+    socket.close()
     window.removeEventListener("scroll", handleScroll)
 })
 

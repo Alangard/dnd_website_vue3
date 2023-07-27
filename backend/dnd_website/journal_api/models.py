@@ -83,7 +83,7 @@ class Tag(models.Model):
 
 class Comment(models.Model):
     status = models.CharField(max_length=5, choices=(('n','normal'), ('b','banned'), ('d','deleted')), default='n')
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments', null=True, blank=True)    
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')    
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, related_name='replies', blank=True)
     author = models.ForeignKey('Account', on_delete=models.SET_DEFAULT, default="user doesn't exist")    
     text = models.TextField(blank=True)

@@ -317,7 +317,7 @@ class CommentDeleteView(generics.DestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
         
-class CommentDeleteDeleteBranchView(generics.DestroyAPIView):
+class CommentDeleteBranchView(generics.DestroyAPIView):
     queryset = Comment.objects.all()
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
     serializer_class = CommentSerializer

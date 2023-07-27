@@ -28,7 +28,7 @@ urlpatterns = [
     path('post/<int:post_id>/comment/create/', CommentCreateView.as_view(), name='post_comment-create-url'),
     path('comment/<int:comment_id>/create/', CommentCreateReplyView.as_view(), name='comment-create_reply-url'),
     path('comment/<int:comment_id>/delete/', CommentDeleteView.as_view(), name='comment-delete-url'),
-    path('comment/<int:pk>/delete_branch/', CommentDeleteDeleteBranchView.as_view(), name='comment-delete_branch-url'),
+    path('comment/<int:pk>/delete_branch/', CommentDeleteBranchView.as_view(), name='comment-delete_branch-url'),
     path('comment/<int:comment_id>/update/', CommentUpdateView.as_view(), name='comment-update-url'),
     path('comment/<int:pk>/', CommentDetailView.as_view(), name='comment-read-url'),
     
