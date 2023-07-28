@@ -84,10 +84,7 @@ export const auth = {
     },
 
     verifyToken({commit}){
-      return AuthService.verify_access_token().then(
-        response => { return Promise.resolve(response.data)},
-        error => { return Promise.reject(error) }
-      )
+      return AuthService.verify_access_token()
     }
 
   },

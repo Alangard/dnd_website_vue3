@@ -26,27 +26,12 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dnd_website.settings')
 
 
 
-
-
-
-# application = ProtocolTypeRouter({
-#     "http": get_asgi_application(),
-#     'websocket': 
-    
-#     AuthMiddlewareStack(
-#         URLRouter(
-#             journal_api.routing.websocket_urlpatterns
-#         )
-#     )
-# })
-
 application = ProtocolTypeRouter({ 
     "http": get_asgi_application(), 
-    'websocket': TokenAuthMiddleware( 
+    'websocket': 
         AuthMiddlewareStack( 
             URLRouter( 
                 journal_api.routing.websocket_urlpatterns 
             ) 
-        ) 
-    ) 
+        )
 })

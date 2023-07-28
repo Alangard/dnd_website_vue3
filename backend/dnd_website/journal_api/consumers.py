@@ -18,6 +18,29 @@ from channels.db import database_sync_to_async
 
 from urllib.parse import parse_qs
 from django.conf import settings
+    
+
+from django.db import close_old_connections
+from rest_framework_simplejwt.tokens import UntypedToken
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from jwt import decode as jwt_decode
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from urllib.parse import parse_qs
+from asgiref.sync import sync_to_async
+
+
+async def get_user_obj(token):
+    try:
+        UntypedToken(token)
+    except (InvalidToken, TokenError) as e:
+        print(e)
+        return None
+    else:
+        decoded_data = jwt_decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+        user = await sync_to_async(get_user_model().objects.get)(id=decoded_data["user_id"])
+    return user
+
 
 
 class PostConsumer(GenericAsyncAPIConsumer):
@@ -53,33 +76,37 @@ class CommentConsumer(GenericAsyncAPIConsumer):
         await super().connect()  
 
     @action()
-    async def create_comment(self, payload, **kwargs):
-
-        user = self.scope['user']
-        post_id  = payload['post']
-        comment_data = {**payload, 'author': user.id}
-
-        #Check auth user
-        #Change frontend request (get 1-st post and comments through websocket and verify token before it)
+    async def create_comment(self, payload, token, request_id, action, **kwargs):
 
         try:
-            serialized_data = CommentSerializer(data=comment_data)
-            await sync_to_async(serialized_data.is_valid)()
-            if not serialized_data.is_valid():
-                raise serializers.ValidationError(serialized_data.errors)
+            user = await get_user_obj(token)
+            user_id = user.id
+
+            post_id  = payload['post']
+            comment_data = {**payload, 'author': user_id}
+
+            #Check auth user
+            #Change frontend request (get 1-st post and comments through websocket and verify token before it)
 
             try:
-                post = await sync_to_async(Post.objects.get)(id=post_id)                  
-                comment = Comment(author=user, text=payload['text'], post=post)
-                await sync_to_async(comment.save)()
+                serialized_data = CommentSerializer(data=comment_data)
+                await sync_to_async(serialized_data.is_valid)()
+                if not serialized_data.is_valid():
+                    raise serializers.ValidationError(serialized_data.errors)
 
-                await self.send_json({'status': 'OK 200', 'status_message': 'Comment was created'})
+                try:
+                    post = await sync_to_async(Post.objects.get)(id=post_id)                  
+                    comment = Comment(author=user, text=payload['text'], post=post)
+                    await sync_to_async(comment.save)()
 
-            except Post.DoesNotExist:
-                await self.send_json({'error': 'Error 404', 'error_message': 'Post objects does not exist'})
+                except Post.DoesNotExist:
+                    await self.send_json({'request_id': request_id, 'error': 'Error 404', 'error_message': 'Post objects does not exist'})
 
-        except serializers.ValidationError as e:
-            await self.send_json({'error': 'Error 400', 'error_message': e.detail})
+            except serializers.ValidationError as e:
+                await self.send_json({'request_id': request_id, 'error': 'Error 400', 'error_message': e.detail})
+
+        except:
+            await self.send_json({'request_id': request_id, 'error': 'Error 401', 'error_message': 'Token is invalid or expired'})
 
     @action()
     async def create_reply_comment(self, payload, **kwargs):
@@ -97,12 +124,22 @@ class CommentConsumer(GenericAsyncAPIConsumer):
     @model_observer(Comment)
     async def model_change(self, message, observer=None, **kwargs):
         await self.send_json(message)
-
+    
     @model_change.serializer
-    def model_serializer(self, instance, action, **kwargs):
-        return dict(data=CommentSerializer(instance=instance).data, action=action.value)
-    
-    
+    def model_serializer(self, instance, action, status_message=None, **kwargs):
+        data = CommentSerializer(instance=instance).data
+
+        match action.value:
+            case 'create':
+                status_message = "Comment was created"
+
+        return {
+            'status': 'OK 200',
+            'status_message': status_message,
+            'data': data,
+            'action': action.value
+        }
+
 
    
 

@@ -1,4 +1,5 @@
 import JournalService from '@/api/JournalAPI/index'
+import AuthService from '@/api/AuthAPI/auth'
 
 
 const user = JSON.parse(localStorage.getItem('user'));
@@ -103,15 +104,18 @@ export const journal = {
       }
     },
 
-    createComment({commit}, comment_data){
+    // createComment({commit}, comment_data){
 
-      JournalService.add_comment(comment_data).then(
-        response => {
-          commit('', comment_data)
-          return Promise.resolve(response.data);},
-        error => {return Promise.reject(error);}
-      );   
-    },
+    //   JournalService.add_comment(comment_data).then(
+    //     response => {
+    //       commit('', comment_data)
+    //       return Promise.resolve(response.data);},
+    //     error => {return Promise.reject(error);}
+    //   );   
+    // },
+
+
+
 
     createCommentReply({commit}, ){},
 

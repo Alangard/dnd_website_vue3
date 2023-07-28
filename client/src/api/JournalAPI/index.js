@@ -48,7 +48,6 @@ class JournalService {
         return axios.get(BASE_URL + `comment/${comment_id}/`,)
     }
 
-
     async add_comment(data){
         return await interceptorsInstance.post(`post/${data.post_id}/comment/create/`,
             {'text': data.text},
