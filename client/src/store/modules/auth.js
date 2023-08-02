@@ -76,16 +76,26 @@ export const auth = {
       return AuthService.expired_token(token);
     },
 
-    refreshToken({commit}){
-      return AuthService.refresh_access_token().then(
-        response => { return Promise.resolve(response.data)},
-        error => { return Promise.reject(error) }
-      )
+
+    refreshToken({commit,getters, dispatch}){
+      const response = AuthService.refresh_access_token()
+      response.then(resp => {
+        commit('setUser', JSON.parse(localStorage.getItem('user')))
+      }).catch(error => {
+        if(getters.loginState){
+          dispatch('logout')
+        }
+        
+      })
+      return response
     },
 
     verifyToken({commit}){
       return AuthService.verify_access_token()
     }
+
+
+
 
   },
   mutations: {
@@ -107,11 +117,28 @@ export const auth = {
     registerFailure(state) {
       state.status.loggedIn = false;
     },
+
+    setUser(state, user){
+      state.user = user
+    }
   },
   getters: {
     loginState(state){
       return state.status.loggedIn;
-    },  
-  }
+    },
+    
+    getAccessToken(state){
+      if(state.user && state.user.access){
+        return state.user.access
+      }
+      return null 
+    },
 
+    getUserData(state){
+      if(state.user && state.user.user_data){
+        return state.user.user_data
+      }
+      return null 
+    },
+  }
 };

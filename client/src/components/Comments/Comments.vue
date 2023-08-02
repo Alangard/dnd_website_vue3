@@ -1,7 +1,7 @@
 
 <template>
   <v-card class="comment_container mt-4 pa-4">
-    <v-card-title class="pl-0" @click="test">Comments {{ comments.num_comments }}</v-card-title>
+    <v-card-title class="pl-0" @click="deleteCommentWithReplies">Comments {{ comments.num_comments }}</v-card-title>
     <v-card-subtitle class="pl-0 mb-2" v-if="!loggedIn">
       <span class="text-info font-weight-bold" style="cursor: pointer" @click="routes.push({ name: 'login'})">Log In</span>
       to leave comments
@@ -21,51 +21,72 @@ import Comment from './Comment.vue'
 
 const store = useStore();
 
-// const token = authHeader()['Authorization'].split('Bearer ')[1]
-let url = `ws://${axios.defaults.baseURL.split('http://')[1]}ws/comment_socket-server/`
+const url = `ws://${axios.defaults.baseURL.split('http://')[1]}ws/comment_socket-server/`
 const socket = new WebSocket(url)
 
 const loggedIn = computed(() => {return store.getters['auth/loginState']})
 const comments = computed(() => {return store.getters['journal/getComments']})
 
-const test = () => {
+const createComment =() => {
+  const payload = {
+    text: 'test comment',
+    post: 1,
+  }
+  store.dispatch('journal/createComment', {'socket': socket, 'payload': payload})
+}
 
-  store.dispatch('auth/verifyToken').then(response => {
-    socket.send(JSON.stringify(message))
-  }).catch(error => {
-    store.dispatch('auth/refreshToken').then(response => {
-      socket.send(JSON.stringify(message))
-    }).catch(error => {console.log('get refresh error in a component')})
-  })
-
-  // try{
-  //   store.dispatch('auth/verifyToken')
-  // }
-  // catch (err){
-  //   console.log('get error')
-  // }
-
-
-  const message =   {
-    request_id: Date.now(),
-    action: 'create_comment',
-    token: authHeader()['Authorization'].split('Bearer ')[1],
-    payload: {
-      text: 'suck pinus',
-      post: 1,
-    }
+const createCommentReply =() => {
+  const payload = {
+    text: 'reply to test comment id = 3',
+    parent: 1,
+    post: 1,
   }
 
-  // socket.send(JSON.stringify(message))
-  
+  store.dispatch('journal/createCommentReply', {'socket': socket, 'payload': payload})
 }
+
+const deleteCommentWithReplies =() => {
+  const payload = {
+    id: 62,
+    author:{
+      avatar:"",
+      id:1,
+      username:"admin",
+    }
+  }
+  store.dispatch('journal/deleteCommentWithReplies', {'socket': socket, 'payload': payload})
+}
+
+
+
+
 
 onMounted(() => {
   const post_id = routes.currentRoute.value.params.id
   store.dispatch("journal/getPostsComments", post_id)
 
   socket.onmessage = function(e){
-        // let data = JSON.parse(e.data)
+        let data = JSON.parse(e.data)
+
+        switch (data.action){
+          case 'create':
+            store.commit('journal/addCommentInStore', data.data)
+          case 'create_reply':
+            store.commit('journal/addCommentReplyInStore', data.data)
+          case 'delete_with_replies':
+            store.commit('journal/deleteCommentWithRepliesInStore', data.data)
+          case 'delete':
+            store.commit('journal/deleteCommentInStore', data.data)
+          case 'partial_update':
+            store.commit('journal/partialUpdateCommentInStore', data.data)
+          case 'get_list':
+            store.commit('journal/getListCommentInStore', data.data)
+
+        }
+
+
+
+
         // if(data.action === 'list'){
         //     store.commit('journal/setPostsList', data.data)
             
@@ -80,6 +101,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+    clearInterval(interval);
     socket.close()
 })
 

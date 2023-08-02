@@ -1,8 +1,10 @@
 import JournalService from '@/api/JournalAPI/index'
 import AuthService from '@/api/AuthAPI/auth'
+import axios from 'axios';
 
 
 const user = JSON.parse(localStorage.getItem('user'));
+
 const initialState = user
   ? { status: { loggedIn: true }, user, haveInitialPosts: false, PostsList: [], Reactions: [], Comments: [], Comment: {}}
   : { status: { loggedIn: false }, user: null, haveInitialPosts: false, PostsList: [], Reactions: [], Comments: [], Comment: {} };
@@ -79,50 +81,137 @@ export const journal = {
       )
     },
 
-    getComment({commit}, comment_id){
-      JournalService.get_comment(comment_id).then(
-        comment_data => {
-          commit('gettingCommentSuccess', comment_data.data);
-          return Promise.resolve(comment_data.data);},
-        error => {return Promise.reject(error);}
-      ); 
-    },
-
-    deleteComment({ commit }, comment_id) {
-     
-      if(comment.replies && comment.replies.length > 0){
-        JournalService.delete_comment(comment_id).then(
-          response => {return Promise.resolve(response.data);},
-          error => {return Promise.reject(error);}
-        );   
-      }
-      else{
-        JournalService.delete_comment_branch(comment_id).then(
-          response => {return Promise.resolve(response.data);},
-          error => {return Promise.reject(error);}
-        ); 
-      }
-    },
-
-    // createComment({commit}, comment_data){
-
-    //   JournalService.add_comment(comment_data).then(
-    //     response => {
-    //       commit('', comment_data)
-    //       return Promise.resolve(response.data);},
+    // getComment({commit}, comment_id){
+    //   JournalService.get_comment(comment_id).then(
+    //     comment_data => {
+    //       commit('gettingCommentSuccess', comment_data.data);
+    //       return Promise.resolve(comment_data.data);},
     //     error => {return Promise.reject(error);}
-    //   );   
+    //   ); 
     // },
 
+    // deleteComment({ commit }, comment_id) {
+     
+    //   if(comment.replies && comment.replies.length > 0){
+    //     JournalService.delete_comment(comment_id).then(
+    //       response => {return Promise.resolve(response.data);},
+    //       error => {return Promise.reject(error);}
+    //     );   
+    //   }
+    //   else{
+    //     JournalService.delete_comment_branch(comment_id).then(
+    //       response => {return Promise.resolve(response.data);},
+    //       error => {return Promise.reject(error);}
+    //     ); 
+    //   }
+    // },
 
+    async createComment({dispatch, rootGetters}, data){
+      const socket = data.socket
 
+      if (rootGetters['auth/getAccessToken'] != null) {
+        dispatch('auth/verifyToken', '', {root:true}).then(response => {
+            
+            let message = {
+              request_id: Date.now(),
+              action: 'create_comment',
+              token: rootGetters['auth/getAccessToken'],
+              payload: data.payload
+            }
+            socket.send(JSON.stringify(message))
+        }).catch(error => {
+            dispatch('auth/refreshToken','', {root:true}).then(response => {
 
-    createCommentReply({commit}, ){},
-
-    editComment({commit}, ){
-
-
+              let message = {
+                request_id: Date.now(),
+                action: 'create_comment',
+                token: rootGetters['auth/getAccessToken'],
+                payload: data.payload
+              }
+              socket.send(JSON.stringify(message))
+            })
+          })
+      }
+      else{
+        console.log('You are logout')
+      }
     },
+
+    async createCommentReply({dispatch, rootGetters}, data){
+      const socket = data.socket
+
+      if (rootGetters['auth/getAccessToken'] != null) {
+        dispatch('auth/verifyToken', '', {root:true}).then(response => {
+
+          let message = {
+            request_id: Date.now(),
+            action: 'delete_comment_with_replies',
+            token: rootGetters['auth/getAccessToken'],
+            payload: data.payload
+          }
+
+          socket.send(JSON.stringify(message))
+        }).catch(error => {
+          dispatch('auth/refreshToken','', {root:true}).then(response => {
+
+            let message = {
+              request_id: Date.now(),
+              action: 'delete_comment_with_replies',
+              token: rootGetters['auth/getAccessToken'],
+              payload: data.payload
+            }
+            socket.send(JSON.stringify(message))
+          })
+        })
+      }
+      else{
+        console.log('You are logout')
+      }
+    },
+
+    async deleteCommentWithReplies({dispatch, rootGetters}, data){
+      const socket = data.socket
+      const user_data = rootGetters['auth/getUserData'] 
+
+      if(user_data!= null && user_data.username == data.payload.author.username){
+        if (rootGetters['auth/getAccessToken'] != null) {
+          dispatch('auth/verifyToken', '', {root:true}).then(response => {
+            let message = {
+              request_id: Date.now(),
+              action: 'delete_comment_with_replies',
+              token: rootGetters['auth/getAccessToken'],
+              payload: {'id': data.payload['id']}
+            }
+
+            socket.send(JSON.stringify(message))
+
+          }).catch(error => {
+            dispatch('auth/refreshToken','', {root:true}).then(response => {
+              let message = {
+                request_id: Date.now(),
+                action: 'delete_comment_with_replies',
+                token: rootGetters['auth/getAccessToken'],
+                payload: {'id': data.payload['id']}
+              }
+    
+              socket.send(JSON.stringify(message))
+            })
+          })
+        }
+        else{
+          console.log('You are logout')
+        }
+      }
+      else{
+        console.log('You are dont have permission')
+      }
+    
+
+
+    }
+
+
+
 
   },
 
@@ -140,6 +229,10 @@ export const journal = {
 
     setPostsList(state, posts_list){
       state.PostsList = posts_list
+    },
+
+    setAccessToken(state, token){
+      state.user.access = token
     },
 
     updatePostsList(state, post_data){
@@ -204,46 +297,75 @@ export const journal = {
       state.Comment = comment_data;
     },
 
-    deleteComment(state, comment_id) {
-      function removeCommentById(comments, commentId) {
-        return comments.filter(comment => {
-          if (comment.id === commentId) {
-            if(comment.replies && comment.replies.length > 0){
-              comment.status = 'd'
-              comment.text = 'Комментарий удалён'
-              return true
-            }
-            else{           
-              return false; // Удалить комментарий с заданным id
-            }
+    // deleteComment(state, comment_id) {
+    //   function removeCommentById(comments, commentId) {
+    //     return comments.filter(comment => {
+    //       if (comment.id === commentId) {
+    //         if(comment.replies && comment.replies.length > 0){
+    //           comment.status = 'd'
+    //           comment.text = 'Комментарий удалён'
+    //           return true
+    //         }
+    //         else{           
+    //           return false; // Удалить комментарий с заданным id
+    //         }
             
+    //       }
+    //       if (comment.replies && comment.replies.length > 0) {
+    //         comment.replies = removeCommentById(comment.replies, commentId); // Удалить комментарии из ответов комментария
+    //       }
+    //       return true;
+    //     });
+    //   }
+
+    //   state.Comments.comments = removeCommentById(state.Comments.comments, comment_id);
+    // },
+
+    // addCommentReply(state, comment_id){
+
+    // },
+
+    addCommentInStore(state, data){
+      state.Comments.comments.unshift(data)
+    },
+
+    addCommentReplyInStore(state, newReply) {
+      // Обходим список комментариев с помощью массива методов
+      function traverseComments(comments) {
+        for (let comment of comments) {
+          if (comment.id === newReply.parent) {
+            // Найден комментарий, к которому добавляем новый ответ
+            if (!comment.replies) {
+              // Если у комментария еще нет списка ответов, создаем его
+              comment.replies = [];
+            }
+            comment.replies.unshift(newReply);
+            return;
+          } 
+          else if (comment.replies) {
+            // Рекурсивно ищем комментарий с нужным id в ответах
+            traverseComments(comment.replies);
           }
-          if (comment.replies && comment.replies.length > 0) {
-            comment.replies = removeCommentById(comment.replies, commentId); // Удалить комментарии из ответов комментария
-          }
-          return true;
-        });
+        }
       }
-
-      state.Comments.comments = removeCommentById(state.Comments.comments, comment_id);
+    
+      traverseComments(state.Comments.comments);
     },
 
-    addCommentReply(state, comment_id){
+    deleteCommentWithReplies(){},
 
-    },
 
-    addComment(state, post_id){
-      state.Comments.comments.push(
-      )
-    },
-
-    editCommentText(state, comment_data){
-    }
   },
 
   getters: {
     loginState(state){
       return state.status.loggedIn
+    },
+
+    getAccessToken(state){
+      if(state.user && state.user.access){
+        return state.user.access
+      } 
     },
 
     getPostsData(state){

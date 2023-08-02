@@ -108,7 +108,7 @@
 </template>
   
 <script setup>
-import { ref, defineProps } from 'vue';
+import { ref, defineProps, onMounted, onUnmounted } from 'vue';
 import routes from '@/router/router'
 import { useStore } from 'vuex'
 import {DateTimeFormat} from '@/helpers'
@@ -116,6 +116,16 @@ import {DateTimeFormat} from '@/helpers'
 const props = defineProps(['comment'])
 const store = useStore();
 const comment = ref(props.comment);
+
+
+onMounted(() => {
+  // DateTimeFormat(comment.created_datetime);
+  // const DateFormat = setInterval(updateTime, 5000);
+})
+
+onUnmounted(() => {
+  // clearInterval(DateFormat);
+})
 
 const ratingPercentage = (comment_reactions_obj) => {
     let totalVotes = comment_reactions_obj.num_likes + comment_reactions_obj.num_dislikes;

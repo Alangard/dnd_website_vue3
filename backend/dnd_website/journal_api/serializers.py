@@ -88,8 +88,8 @@ class CommentSerializer(serializers.ModelSerializer):
             if obj.comment_reactions.filter(author=user).exists():
                 for comment in obj.comment_reactions.filter(author=user):
                     return {'reacted': True, 'reaction_type': comment.reaction_type}
-            else:
-                return {'reacted': False, 'reaction_type': ''}
+
+        return {'reacted': False, 'reaction_type': ''}
 
     def get_replies(self, obj):
         if 'request' in self.context:

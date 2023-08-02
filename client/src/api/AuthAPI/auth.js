@@ -84,30 +84,23 @@ class AuthService {
         );
     }
 
-    refresh_access_token(){
+
+    async refresh_access_token(){
         const refresh = JSON.parse(localStorage.getItem('user')).refresh
         const user_data = JSON.parse(localStorage.getItem('user')).user_data
 
-        return axios.post(BASE_URL + 'jwt/refresh/', 
-            {
-                refresh: refresh
-            }
-        )
+        return await axios.post(BASE_URL + 'jwt/refresh/', {refresh: refresh})
         .then(response => {
-            console.log(response.data.access)
             localStorage.setItem('user', JSON.stringify({'user_data': user_data, 'access': response.data.access, 'refresh': refresh}))
+            console.log('response of refresh', response.data.access)
             return response.data;
         });
     }
 
-    verify_access_token(){
+    async verify_access_token(){
         const access = JSON.parse(localStorage.getItem('user')).access
-
-        return axios.post(BASE_URL + 'jwt/verify/', 
-            {
-                token: access
-            }
-        )
+        const response = await axios.post(BASE_URL + 'jwt/verify/', {token: access})
+        return response
     }
 
     expired_token(token){

@@ -63,6 +63,7 @@ class JournalService {
     }
 
     async delete_comment(comment_id){
+        console.log('delete')
         return await interceptorsInstance.delete(`comment/${comment_id}/delete/`,
             {headers: authHeader()}
         )
