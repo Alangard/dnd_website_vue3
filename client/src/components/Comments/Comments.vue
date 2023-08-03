@@ -1,7 +1,7 @@
 
 <template>
   <v-card class="comment_container mt-4 pa-4">
-    <v-card-title class="pl-0" @click="deleteCommentWithReplies">Comments {{ comments.num_comments }}</v-card-title>
+    <v-card-title class="pl-0" @click="banComment">Comments {{ comments.num_comments }}</v-card-title>
     <v-card-subtitle class="pl-0 mb-2" v-if="!loggedIn">
       <span class="text-info font-weight-bold" style="cursor: pointer" @click="routes.push({ name: 'login'})">Log In</span>
       to leave comments
@@ -47,7 +47,8 @@ const createCommentReply =() => {
 
 const deleteCommentWithReplies =() => {
   const payload = {
-    id: 62,
+    id: 71,
+    post: 1,
     author:{
       avatar:"",
       id:1,
@@ -55,6 +56,46 @@ const deleteCommentWithReplies =() => {
     }
   }
   store.dispatch('journal/deleteCommentWithReplies', {'socket': socket, 'payload': payload})
+}
+
+const deleteComment =() => {
+  const payload = {
+    id: 69,
+    post: 1,
+    author:{
+      avatar:"",
+      id:1,
+      username:"admin",
+    }
+  }
+  store.dispatch('journal/deleteComment', {'socket': socket, 'payload': payload})
+}
+
+const partialUpdateComment =() => {
+  const payload = {
+    id: 68,
+    post: 1,
+    text: 'this is a normal test comment text',
+    author:{
+      avatar:"",
+      id:1,
+      username:"admin",
+    }
+  }
+  store.dispatch('journal/partialUpdateComment', {'socket': socket, 'payload': payload})
+}
+
+const banComment =() => {
+  const payload = {
+    id: 102,
+    post: 1,
+    author:{
+      avatar:"",
+      id:1,
+      username:"Alagard",
+    }
+  }
+  store.dispatch('journal/banComment', {'socket': socket, 'payload': payload})
 }
 
 
@@ -73,30 +114,19 @@ onMounted(() => {
             store.commit('journal/addCommentInStore', data.data)
           case 'create_reply':
             store.commit('journal/addCommentReplyInStore', data.data)
-          case 'delete_with_replies':
-            store.commit('journal/deleteCommentWithRepliesInStore', data.data)
-          case 'delete':
+          case 'delete_comment':
             store.commit('journal/deleteCommentInStore', data.data)
-          case 'partial_update':
-            store.commit('journal/partialUpdateCommentInStore', data.data)
-          case 'get_list':
-            store.commit('journal/getListCommentInStore', data.data)
+          case 'update_comment':
+            store.commit('journal/updateCommentInStore', data.data)
+          // case 'partial_update':
+          //   store.commit('journal/partialUpdateCommentInStore', data.data)
+          // case 'get_list':
+          //   store.commit('journal/getListCommentInStore', data.data)
 
+          // case 'delete_comment':
+          //   store.commit('journal/deleteCommentWithRepliesInStore', data.data)
         }
 
-
-
-
-        // if(data.action === 'list'){
-        //     store.commit('journal/setPostsList', data.data)
-            
-        //     // postsList.value = data.data
-        // }
-        // else if(data.action === 'create'){
-        //     store.commit('journal/updatePostsList', data.data)
-        //     // postsList.value.unshift(data.data)
-        //     console.log(data.data)
-        // }
   }
 })
 

@@ -45,7 +45,7 @@
       </v-card-text>
       <v-card-actions>
         <div class="d-flex flex-row justify-space-between w-100">
-          <v-btn v-if="comment.status != 'd'" class="pb-1" variant="text">
+          <v-btn v-if="comment.status == 'n'" class="pb-1" variant="text">
             Reply
           </v-btn>
 
@@ -56,7 +56,7 @@
           <div class="reactions_container px-3">
             <div class="d-flex flex-row align-center">
               <v-btn
-                  :disabled="comment.status == 'd'"
+                  :disabled="comment.status == 'd' || comment.status == 'b'"
                   class="mx-0" 
                   size="24"
                   :id="`post_${comment.post}_comment_${comment.id}_like_btn`" 
@@ -72,7 +72,7 @@
               <span class="mx-3" :class="{ 'text-info': comment.user_reaction.reacted}">{{ comment.comment_reactions.total_reactions }}</span>
 
               <v-btn
-                  :disabled="comment.status == 'd'"
+                  :disabled="comment.status == 'd' || comment.status == 'b'"
                   class="mx-0"
                   size="24"
                   :id="`post_${comment.post}_comment_${comment.id}_dislike_btn`"

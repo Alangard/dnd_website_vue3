@@ -169,18 +169,59 @@ export const journal = {
       }
     },
 
-    async deleteCommentWithReplies({dispatch, rootGetters}, data){
+    // async deleteCommentWithReplies({dispatch, rootGetters}, data){
+    //   const socket = data.socket
+    //   const user_data = rootGetters['auth/getUserData'] 
+
+    //   if(user_data!= null && user_data.username == data.payload.author.username){
+    //     if (rootGetters['auth/getAccessToken'] != null) {
+    //       dispatch('auth/verifyToken', '', {root:true}).then(response => {
+    //         let message = {
+    //           request_id: Date.now(),
+    //           action: 'delete_comment_with_replies',
+    //           token: rootGetters['auth/getAccessToken'],
+    //           payload: data.payload
+    //         }
+
+    //         socket.send(JSON.stringify(message))
+
+    //       }).catch(error => {
+    //         dispatch('auth/refreshToken','', {root:true}).then(response => {
+    //           let message = {
+    //             request_id: Date.now(),
+    //             action: 'delete_comment_with_replies',
+    //             token: rootGetters['auth/getAccessToken'],
+    //             payload: data.payload
+    //           }
+    
+    //           socket.send(JSON.stringify(message))
+    //         })
+    //       })
+    //     }
+    //     else{
+    //       console.log('You are logout')
+    //     }
+    //   }
+    //   else{
+    //     console.log('You are dont have permission')
+    //   }
+    
+
+
+    // },
+
+    async deleteComment({dispatch, rootGetters}, data){
       const socket = data.socket
       const user_data = rootGetters['auth/getUserData'] 
 
-      if(user_data!= null && user_data.username == data.payload.author.username){
-        if (rootGetters['auth/getAccessToken'] != null) {
+      if (rootGetters['auth/getAccessToken'] != null) {
+        if(user_data?.username == data.payload.author.username){
           dispatch('auth/verifyToken', '', {root:true}).then(response => {
             let message = {
               request_id: Date.now(),
-              action: 'delete_comment_with_replies',
+              action: 'delete_comment',
               token: rootGetters['auth/getAccessToken'],
-              payload: {'id': data.payload['id']}
+              payload: data.payload
             }
 
             socket.send(JSON.stringify(message))
@@ -189,9 +230,9 @@ export const journal = {
             dispatch('auth/refreshToken','', {root:true}).then(response => {
               let message = {
                 request_id: Date.now(),
-                action: 'delete_comment_with_replies',
+                action: 'delete_comment',
                 token: rootGetters['auth/getAccessToken'],
-                payload: {'id': data.payload['id']}
+                payload: data.payload
               }
     
               socket.send(JSON.stringify(message))
@@ -199,16 +240,98 @@ export const journal = {
           })
         }
         else{
-          console.log('You are logout')
+          console.log('You are dont have permission')
         }
       }
       else{
-        console.log('You are dont have permission')
+        console.log('You are logout')
+      }
+
+    },
+
+    async partialUpdateComment({dispatch, rootGetters}, data){
+      const socket = data.socket
+      const user_data = rootGetters['auth/getUserData'] 
+
+      
+      if (rootGetters['auth/getAccessToken'] != null) {
+        if(user_data?.username == data.payload.author.username){
+          dispatch('auth/verifyToken', '', {root:true}).then(response => {
+            let message = {
+              request_id: Date.now(),
+              action: 'partial_update_comment',
+              token: rootGetters['auth/getAccessToken'],
+              payload: data.payload
+            }
+
+            socket.send(JSON.stringify(message))
+
+          }).catch(error => {
+            dispatch('auth/refreshToken','', {root:true}).then(response => {
+              let message = {
+                request_id: Date.now(),
+                action: 'partial_update_comment',
+                token: rootGetters['auth/getAccessToken'],
+                payload: data.payload
+              }
+    
+              socket.send(JSON.stringify(message))
+            })
+          })
+        }
+        else{
+          console.log('You are dont have permission')
+        }
+      }
+      else{
+        console.log('You are logout')
       }
     
+    },
+
+    async banComment({dispatch, rootGetters}, data){
+      const socket = data.socket
+      const user_data = rootGetters['auth/getUserData'] 
+
+  
+      if (rootGetters['auth/getAccessToken'] != null) {
+        if(user_data?.username != data.payload.author.username){
+          dispatch('auth/verifyToken', '', {root:true}).then(response => {
+            let message = {
+              request_id: Date.now(),
+              action: 'ban_comment',
+              token: rootGetters['auth/getAccessToken'],
+              payload: data.payload
+            }
+
+            socket.send(JSON.stringify(message))
+
+          }).catch(error => {
+            dispatch('auth/refreshToken','', {root:true}).then(response => {
+              let message = {
+                request_id: Date.now(),
+                action: 'ban_comment',
+                token: rootGetters['auth/getAccessToken'],
+                payload: data.payload
+              }
+    
+              socket.send(JSON.stringify(message))
+            })
+          })
+        }
+        else{
+          console.log('You cant ban yourself')
+        }
+      }
+      else{
+        console.log('You are logout')
+      }
+      
+    },
 
 
-    }
+
+    
 
 
 
@@ -352,9 +475,77 @@ export const journal = {
       traverseComments(state.Comments.comments);
     },
 
-    deleteCommentWithReplies(){},
+    // deleteCommentWithRepliesInStore(state, comment_obj){
+    //   const commentId = comment_obj.id;
 
+    //   // Обходим список комментариев с помощью массива методов
+    //   function traverseComments(comments) {
+    //     for (let i = 0; i < comments.length; i++) {
+    //       if (comments[i].id === commentId) {
+    //         // Найден комментарий, удаляем его из списка
+    //         comments.splice(i, 1);
+    //         return;
+    //       } 
+    //       else if (comments[i].replies) {
+    //         // Рекурсивно ищем комментарий с нужным id в ответах
+    //         traverseComments(comments[i].replies);
+    //       }
+    //     }
+    //   }
+    
+    //   traverseComments(state.Comments.comments);
+    // },
+    
 
+    deleteCommentInStore(state, comment_data){
+      const commentId = comment_data.id;
+
+      // Обходим список комментариев с помощью массива методов
+      function traverseComments(comments) {
+        for (let i = 0; i < comments.length; i++) {
+          if (comments[i].id === commentId) {
+            if(comments[i]?.replies?.length > 0){
+              // Найденный комментарий с ответами, изменяем его статус
+              comments[i].status = comment_data.status
+              comments[i].text = comment_data.text
+            }
+            else{
+              // Найденный комментарий без ответов, удаляем его из списка
+              comments.splice(i, 1);
+              state.Comments.num_comments -= 1
+            }
+            return;
+          } 
+          else if (comments[i].replies) {
+            // Рекурсивно ищем комментарий с нужным id в ответах
+            traverseComments(comments[i].replies);
+          }
+        }
+      }
+    
+      traverseComments(state.Comments.comments);
+    },
+
+    updateCommentInStore(state, comment_data){
+      // Обходим список комментариев с помощью массива методов
+      function traverseComments(comments) {
+        for (let comment of comments) {
+          if (comment.id === comment_data.id) {
+            // Найден комментарий, который обновляем
+            comment.text = comment_data.text;
+            comment.updated_datetime = comment_data.updated_datetime;
+            comment.status = comment_data.status;
+            return;
+          } 
+          else if (comment.replies) {
+            // Рекурсивно ищем комментарий с нужным id в ответах
+            traverseComments(comment.replies);
+          }
+        }
+      }
+    
+      traverseComments(state.Comments.comments);
+    }
   },
 
   getters: {
