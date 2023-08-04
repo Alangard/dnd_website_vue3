@@ -49,6 +49,45 @@ async def get_user_obj(token):
         user = await sync_to_async(get_user_model().objects.get)(id=decoded_data["user_id"])
     return user
 
+async def test(self, request_id, token, payload):
+    try:
+        user = await get_user_obj(token)
+        user_id = user.id
+
+        post_id  = payload['post']
+        parent_id = payload['parent']
+        comment_id = payload['id']
+        comment_data = {**payload, 'author': user_id}
+
+        serialized_data = CommentSerializer(data=comment_data)
+        await sync_to_async(serialized_data.is_valid)()
+        if not serialized_data.is_valid():
+            raise serializers.ValidationError(serialized_data.errors)
+        
+        post = await sync_to_async(Post.objects.get)(id=post_id)
+        parent_comment  = await sync_to_async(Comment.objects.get)(id=parent_id, post=post_id) 
+
+        try:
+            comment = await sync_to_async(Comment.objects.get)(id=comment_id, post=post_id)         
+        except Comment.DoesNotExist:
+            await self.send_json({'request_id': request_id, 'status': '404', 'error_message': 'Comment object does not exist'})
+            return
+
+
+    except serializers.ValidationError as e:
+        await self.send_json({'request_id': request_id, 'status': '400', 'error_message': e.detail})
+    
+    except Post.DoesNotExist:
+        await self.send_json({'request_id': request_id, 'status': '404', 'error_message': 'Post object does not exist'})
+
+    except Comment.DoesNotExist:
+        await self.send_json({'request_id': request_id, 'status': '404', 'error_message': 'Parent comment object does not exist'})
+
+    except:
+        await self.send_json({'request_id': request_id, 'status': '401', 'error_message': 'User object does not exist/token is invalid or expired'})
+
+    return {'user': user, 'post': post, 'parent_comment': parent_comment, 'comment': comment}
+
 
 
 class PostConsumer(GenericAsyncAPIConsumer):
@@ -82,206 +121,68 @@ class CommentConsumer(GenericAsyncAPIConsumer):
         await super().connect()  
 
     @action()
-    async def create_comment(self, payload, token, request_id, action, **kwargs):
-
+    async def create_comment(self, payload, token, request_id, action, **kwarg):
         try:
-            user = await get_user_obj(token)
-            user_id = user.id
-        
-        except:
-            await self.send_json({'request_id': request_id, 'status': '401', 'error_message': 'User object does not exist/token is invalid or expired'})
-
-        post_id  = payload['post']
-        comment_data = {**payload, 'author': user_id}
-
-        try:
-            serialized_data = CommentSerializer(data=comment_data)
-            await sync_to_async(serialized_data.is_valid)()
-            if not serialized_data.is_valid():
-                raise serializers.ValidationError(serialized_data.errors)
-            
-        except serializers.ValidationError as e:
-            await self.send_json({'request_id': request_id, 'status': '400', 'error_message': e.detail})
-
-        try:
-            post = await sync_to_async(Post.objects.get)(id=post_id)                  
-        except Post.DoesNotExist:
-            await self.send_json({'request_id': request_id, 'status': '404', 'error_message': 'Post object does not exist'})
-    
-
-        comment = Comment(author=user, text=payload['text'], post=post)
-        await sync_to_async(comment.save)()
-
+            response = await test(self=self, request_id=request_id, token=token, payload=payload)
+            comment = Comment(author=response['user'], text=payload['text'], post=response['post'])
+            await sync_to_async(comment.save)()
+        except Exception as e:
+            return
 
     @action()
     async def create_reply_comment(self, payload, token, request_id, action, **kwarg):
         try:
-            user = await get_user_obj(token)
-            user_id = user.id
-        
-        except:
-            await self.send_json({'request_id': request_id, 'status': '401', 'error_message': 'User object does not exist/token is invalid or expired'})
-
-        post_id  = payload['post']
-        parent_id = payload['parent']
-        comment_data = {**payload, 'author': user_id}
-
-        try:
-            serialized_data = CommentSerializer(data=comment_data)
-            await sync_to_async(serialized_data.is_valid)()
-            if not serialized_data.is_valid():
-                raise serializers.ValidationError(serialized_data.errors)
-            
-        except serializers.ValidationError as e:
-            await self.send_json({'request_id': request_id, 'status': '400', 'error_message': e.detail})
-
-        try:
-            post = await sync_to_async(Post.objects.get)(id=post_id)
-            parent_comment  = await sync_to_async(Comment.objects.get)(id=parent_id, post=post_id)                
-
-        except Post.DoesNotExist:
-            await self.send_json({'request_id': request_id, 'status': '404', 'error_message': 'Post object does not exist'})
-        except Comment.DoesNotExist:
-            await self.send_json({'request_id': request_id, 'status': '404', 'error_message': 'Parent comment object does not exist'})
-
-        comment = Comment(author=user, parent=parent_comment, text=payload['text'], post=post)
-        await sync_to_async(comment.save)()
+            response = await test(self=self, request_id=request_id, token=token, payload=payload)
+            comment = Comment(author=response['user'], parent=response['parent_comment'], text=payload['text'], post=response['post'])
+            await sync_to_async(comment.save)()
+        except Exception as e:
+            return
 
     
-    @action()
-    async def delete_comment_with_replies(self, payload, token, request_id, action, **kwarg):
-        try:
-            user = await get_user_obj(token)
-            user_id = user.id
-        
-        except:
-            await self.send_json({'request_id': request_id, 'status': '401', 'error_message': 'User object does not exist/token is invalid or expired'})
-
-        comment_id = payload['id']
-        comment_data = {**payload, 'author': user_id}
-
-        try:
-            serialized_data = CommentSerializer(data=comment_data)
-            await sync_to_async(serialized_data.is_valid)()
-            if not serialized_data.is_valid():
-                raise serializers.ValidationError(serialized_data.errors)
-            
-        except serializers.ValidationError as e:
-            await self.send_json({'request_id': request_id, 'status': '400', 'error_message': e.detail})
-
-        try:
-
-            comment = await sync_to_async(Comment.objects.get)(id=comment_id)
-
-            if comment.author.id == user_id:
-                await sync_to_async(comment.delete)()
-            else:
-                await self.send_json({'request_id': request_id, 'status': '403', 'error_message': 'You are not owner of this comment'})                
-
-        except Comment.DoesNotExist:
-            await self.send_json({'request_id': request_id, 'status': '404', 'error_message': 'Comment object does not exist'})
-
-
     @action()
     async def delete_comment(self, payload, token, request_id, action, **kwarg):
         try:
-            user = await get_user_obj(token)
-            user_id = user.id
-        
-        except:
-            await self.send_json({'request_id': request_id, 'status': '401', 'error_message': 'User object does not exist/token is invalid or expired'})
+            response = await test(self=self, request_id=request_id, token=token, payload=payload)
+            comment = response['comment']
 
-        comment_id = payload['id']
-        comment_data = {**payload, 'author': user_id}
-
-        try:
-            serialized_data = CommentSerializer(data=comment_data)
-            await sync_to_async(serialized_data.is_valid)()
-            if not serialized_data.is_valid():
-                raise serializers.ValidationError(serialized_data.errors)
-            
-        except serializers.ValidationError as e:
-            await self.send_json({'request_id': request_id, 'status': '400', 'error_message': e.detail})
-
-        try:
-            comment = await sync_to_async(Comment.objects.get)(id=comment_id)
-                
-            if comment.author.id == user_id:
-
-                if comment.replies.exists():
-                    comment.status = 'd'
-                    comment.text = '*this comment was deleted by author*'
-                    await sync_to_async(comment.save)()
-                else:
-                    await sync_to_async(comment.delete)()
-
+            if comment.author.id == response['user'].id:
+                    if comment.replies.exists():
+                        comment.status = 'd'
+                        comment.text = '*this comment was deleted by author*'
+                        await sync_to_async(comment.save)()
+                    else:
+                        await sync_to_async(comment.delete)()
             else:
                 await self.send_json({'request_id': request_id, 'status': '403', 'error_message': 'You are not owner of this comment'})    
 
-        except Comment.DoesNotExist:
-            await self.send_json({'request_id': request_id, 'status': '404', 'error_message': 'Comment object does not exist'})
+        except Exception as e:
+            return
         
+
     @action()
     async def partial_update_comment(self, payload, token, request_id, action, **kwarg):
-
         try:
-            user = await get_user_obj(token)
-            user_id = user.id
-        
-        except:
-            await self.send_json({'request_id': request_id, 'status': '401', 'error_message': 'User object does not exist/token is invalid or expired'})
+            response = await test(self=self, request_id=request_id, token=token, payload=payload)
+            comment = response['comment']
 
-        comment_id = payload['id']
-        comment_data = {**payload, 'author': user_id}
-
-        try:
-            serialized_data = CommentSerializer(data=comment_data)
-            await sync_to_async(serialized_data.is_valid)()
-            if not serialized_data.is_valid():
-                raise serializers.ValidationError(serialized_data.errors)
-            
-        except serializers.ValidationError as e:
-            await self.send_json({'request_id': request_id, 'status': '400', 'error_message': e.detail})
-
-        try:
-            comment = await sync_to_async(Comment.objects.get)(id=comment_id)
-                
-            if comment.author.id == user_id:
-                    comment.text = payload['text']
-                    await sync_to_async(comment.save)()
-
+            if comment.author.id == response['user'].id:
+                comment.text = payload['text']
+                await sync_to_async(comment.save)()
             else:
-                await self.send_json({'request_id': request_id, 'status': '403', 'error_message': 'You are not owner of this comment'})    
+                await self.send_json({'request_id': request_id, 'status': '403', 'error_message': 'You are not owner of this comment'})
 
-        except Comment.DoesNotExist:
-            await self.send_json({'request_id': request_id, 'status': '404', 'error_message': 'Comment object does not exist'})
-    
+        except Exception as e:
+            return
+
+
     @action()
     async def ban_comment(self, payload, token, request_id, action, **kwarg):
-
         try:
-            user = await get_user_obj(token)
-            user_id = user.id
-        
-        except:
-            await self.send_json({'request_id': request_id, 'status': '401', 'error_message': 'User object does not exist/token is invalid or expired'})
+            response = await test(self=self, request_id=request_id, token=token, payload=payload)
+            comment = response['comment']
+            user = response['user']
 
-        comment_id = payload['id']
-        comment_data = {**payload, 'author': user_id}
-
-        try:
-            serialized_data = CommentSerializer(data=comment_data)
-            await sync_to_async(serialized_data.is_valid)()
-            if not serialized_data.is_valid():
-                raise serializers.ValidationError(serialized_data.errors)
-            
-        except serializers.ValidationError as e:
-            await self.send_json({'request_id': request_id, 'status': '400', 'error_message': e.detail})
-
-        try:
-            comment = await sync_to_async(Comment.objects.get)(id=comment_id)
-                
-            if comment.author.id != user_id:
+            if comment.author.id != user.id:
                 if user.is_staff:
                     comment.status = 'b'
                     comment.text = f'*this comment was banned by {user.username}*'
@@ -289,11 +190,27 @@ class CommentConsumer(GenericAsyncAPIConsumer):
                 else:
                     await self.send_json({'request_id': request_id, 'status': '403', 'error_message': 'You are dont have permissions'})  
             else:
-                await self.send_json({'request_id': request_id, 'status': '403', 'error_message': 'You are not owner of this comment'})    
+                await self.send_json({'request_id': request_id, 'status': '403', 'error_message': 'You are not owner of this comment'})   
 
-        except Comment.DoesNotExist:
-            await self.send_json({'request_id': request_id, 'status': '404', 'error_message': 'Comment object does not exist'})
+        except Exception as e:
+            return
 
+
+    # @action()
+    # async def delete_comment_with_replies(self, payload, token, request_id, action, **kwarg):
+    #     try:
+    #         response = await test(self, request_id, token, payload)
+    #         comment = response['comment']
+
+    #         if comment.author.id == response['user'].id:
+    #             await sync_to_async(comment.delete)()
+    #         else:
+    #             await self.send_json({'request_id': request_id, 'status': '403', 'error_message': 'You are not owner of this comment'}) 
+
+    #     except Exception as e:
+    #         return
+
+    
     @model_observer(Comment)
     async def model_change(self, message, observer=None, **kwargs):
         await self.send_json(message)
