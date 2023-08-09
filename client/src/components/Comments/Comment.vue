@@ -49,7 +49,7 @@
             Reply
           </v-btn>
 
-          <v-btn class="pb-1" variant="text" @click="deleteComment(comment.id)">
+          <v-btn class="pb-1" variant="text">
             Delete
           </v-btn>
 
@@ -102,7 +102,7 @@
     </v-card>
 
     <div class="ml-5">
-      <Comment v-for="reply in comment.replies" :key="reply.id" :comment="reply" />
+      <Comment v-for="reply in comment.replies" :key="reply.id" :comment="reply" :websocket="websocket"/>
     </div>
   </div>
 </template>
@@ -111,21 +111,34 @@
 import { ref, defineProps, onMounted, onUnmounted } from 'vue';
 import routes from '@/router/router'
 import { useStore } from 'vuex'
+import axios from 'axios';
 import {DateTimeFormat} from '@/helpers'
 
-const props = defineProps(['comment'])
+const props = defineProps(['comment', 'websocket'])
 const store = useStore();
 const comment = ref(props.comment);
+const websocket = ref(props.websocket);
+
+
 
 
 onMounted(() => {
-  // DateTimeFormat(comment.created_datetime);
-  // const DateFormat = setInterval(updateTime, 5000);
+  websocket.value.onmessage = function(e){
+        let data = JSON.parse(e.data)
+
+        switch (data.action){
+          case 'create':
+            store.commit('journal/addCommentInStore', data.data)
+          case 'create_reply':
+            store.commit('journal/addCommentReplyInStore', data.data)
+          case 'delete_comment':
+            store.commit('journal/deleteCommentInStore', data.data)
+          case 'update_comment':
+            store.commit('journal/updateCommentInStore', data.data)
+        }
+  }
 })
 
-onUnmounted(() => {
-  // clearInterval(DateFormat);
-})
 
 const ratingPercentage = (comment_reactions_obj) => {
     let totalVotes = comment_reactions_obj.num_likes + comment_reactions_obj.num_dislikes;
@@ -134,10 +147,65 @@ const ratingPercentage = (comment_reactions_obj) => {
     return Math.round(rating);
 }
 
-const deleteComment = (comment_id) => {
-  store.dispatch("journal/deleteComment", comment_id)
+
+const pressReaction = (data) => {
+  
 }
 
+const createComment =(comment_data) => {
+  const payload = {
+    text: 'test comment',
+    post: comment_data.post,
+  }
+  store.dispatch('journal/createComment', {'socket': websocket.value, 'payload': payload})
+}
+
+const createCommentReply =(comment_data) => {
+  const payload = {
+    text: 'reply to test comment id = 3',
+    parent: comment_data.parent,
+    post: comment_data.post,
+  }
+
+  store.dispatch('journal/createCommentReply', {'socket': websocket.value, 'payload': payload})
+}
+
+const deleteCommentWithReplies =(comment_data) => {
+  const payload = {
+    id: comment_data.id,
+    post: comment_data.post,
+    author: comment_data.author
+  }
+  store.dispatch('journal/deleteCommentWithReplies', {'socket': websocket.value, 'payload': payload})
+}
+
+const deleteComment =(comment_data) => {
+  const payload = {
+    id: comment_data.id,
+    post: comment_data.post,
+    author: comment_data.author
+  }
+  store.dispatch('journal/deleteComment', {'socket': websocket.value, 'payload': payload})
+}
+
+const partialUpdateComment =(comment_data) => {
+  const payload = {
+    id: comment_data.id,
+    post: comment_data.post,
+    text: 'this is a normal test comment text',
+    author: comment_data.author
+  }
+  store.dispatch('journal/partialUpdateComment', {'socket': websocket.value, 'payload': payload})
+}
+
+const banComment =(comment_data) => {
+  const payload = {
+    id: comment_data.id,
+    post: comment_data.post,
+    author: comment_data.author
+  }
+  store.dispatch('journal/banComment', {'socket': websocket.value, 'payload': payload})
+}
 
 
 

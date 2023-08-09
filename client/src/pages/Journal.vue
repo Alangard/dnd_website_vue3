@@ -6,6 +6,10 @@
         @filterToolbarIsOpen="filterAsideState =! filterAsideState">
     </FilterAside>
 
+    <QuillEditor :options="options" v-model:content="inputValue" content-type="html" class="mb-5"/>
+
+    <button @click="test()"> save </button>
+
     <v-container style="max-width: 750px;">
     
         <Filters @filterToolbarIsOpen="filterAsideState =! filterAsideState"></Filters>
@@ -53,7 +57,8 @@
                                             
                         <div class="description clickable text-justify text-subtitle-1 mb-2 "
                             @click="routes.push({name: 'post_detail', params: { id: post.id }})">
-                            {{post.description}}
+                            <div v-html="post.description" :text-data="post.description"></div>
+                            <!-- {{post.description}} -->
                         </div>
 
                         <div class="tags_container d-flex f-row flex-wrap mb-2" v-if="post.tags.length">
@@ -235,7 +240,6 @@ let toggleReaction = ref(null);
 let filterAsideState = ref(false);
 let postListStyle = ref('list');
 const postsList = computed(() => {return store.getters['journal/getPosts']});
-const test = ref([])
 
 const ratingPercentage = (post_reactions_obj) => {
     let totalVotes = post_reactions_obj.num_likes + post_reactions_obj.num_dislikes;
@@ -288,6 +292,62 @@ const handleScroll = (e) => {
 }
 
 
+
+const inputValue = ref('<h1>This is header</h1><p>This is paragraph</p>')
+const test =() =>{
+
+console.log(inputValue , inputValue.value)
+const text = inputValue.value
+
+const data ={
+    author:{
+        avatar:"",
+        id:1,
+        username:"admin"
+    },
+    body:"asda",
+    commented:false,
+    created_datetime:"2023-07-22T12:10:50.666272Z",
+    description: inputValue.value,
+    id:4,
+    is_publish:true,
+    num_comments:0,
+    post_reactions:{
+        num_dislikes:0,
+        num_likes:0,
+        total_reactions:0
+    },
+    publish_datetime:null,
+    tags:[],
+    thumbnail:null,
+    title:"test5",
+    updated_datetime:"2023-07-22T12:10:50.666272Z",
+    user_reaction:{
+        reacted:false,
+        reaction_type:""
+    }
+
+}
+
+  store.commit('journal/addPostInStore', data)
+
+}
+
+const options = ref({
+    modules: {
+        toolbar: [
+            [{ 'font': [] }, { 'size': ['small', false, 'large', 'huge'] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            ['link', 'blockquote', { 'color': [] }],
+            [{ 'align': [] }, { 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['clean']  
+
+        ]
+    },
+    placeholder: 'Enter a comment...',
+    readOnly: false,
+    theme: 'snow'
+})
 
 
 

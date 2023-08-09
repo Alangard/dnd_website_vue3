@@ -13,6 +13,90 @@ export const journal = {
   namespaced: true,
   state: initialState,
   actions: {
+
+    async conusmerSettings({dispatch, rootGetters}, data){
+      const socket = data.data.socket
+      const access_token = rootGetters['auth/getAccessToken']
+      const action = data.action
+      const payload = data.data.payload
+
+      if (access_token != null) {
+        dispatch('auth/verifyToken', '', {root:true}).then(response => {
+            
+            let message = {
+              request_id: Date.now(),
+              action: action,
+              token: access_token,
+              payload: payload
+            }
+            socket.send(JSON.stringify(message))
+        }).catch(error => {
+            dispatch('auth/refreshToken','', {root:true}).then(response => {
+
+              let message = {
+                request_id: Date.now(),
+                action: action,
+                token: access_token,
+                payload: payload
+              }
+              socket.send(JSON.stringify(message))
+            })
+          })
+      }
+      else{
+        console.log('You are logout')
+      }
+    },
+
+    async conusmerSettingsWithPerm({dispatch, rootGetters}, data){
+      const socket = data.data.socket
+      const access_token = rootGetters['auth/getAccessToken']
+      const user_data = rootGetters['auth/getUserData']
+      const action = data.action
+      const payload = data.data.payload
+      const only_for_owner = data.only_for_owner
+      
+      const isOwner = () => {
+          if(only_for_owner){
+              return user_data?.username == data.payload.author.username
+          }
+          return user_data?.username != data.payload.author.username      
+      } 
+
+      if (access_token != null) {
+        if(isOwner){
+          dispatch('auth/verifyToken', '', {root:true}).then(response => {
+            let message = {
+              request_id: Date.now(),
+              action: action,
+              token: access_token,
+              payload: payload
+            }
+
+            socket.send(JSON.stringify(message))
+
+          }).catch(error => {
+            dispatch('auth/refreshToken','', {root:true}).then(response => {
+              let message = {
+                request_id: Date.now(),
+                action: action,
+                token: access_token,
+                payload: payload
+              }
+    
+              socket.send(JSON.stringify(message))
+            })
+          })
+        }
+        else{
+          console.log('You are dont have permission')
+        }
+      }
+      else{
+        console.log('You are logout')
+      }
+    },
+
     get_posts({ commit }, url) {
       return JournalService.get_posts(url).then(
         posts_data => {
@@ -81,261 +165,26 @@ export const journal = {
       )
     },
 
-    // getComment({commit}, comment_id){
-    //   JournalService.get_comment(comment_id).then(
-    //     comment_data => {
-    //       commit('gettingCommentSuccess', comment_data.data);
-    //       return Promise.resolve(comment_data.data);},
-    //     error => {return Promise.reject(error);}
-    //   ); 
-    // },
-
-    // deleteComment({ commit }, comment_id) {
-     
-    //   if(comment.replies && comment.replies.length > 0){
-    //     JournalService.delete_comment(comment_id).then(
-    //       response => {return Promise.resolve(response.data);},
-    //       error => {return Promise.reject(error);}
-    //     );   
-    //   }
-    //   else{
-    //     JournalService.delete_comment_branch(comment_id).then(
-    //       response => {return Promise.resolve(response.data);},
-    //       error => {return Promise.reject(error);}
-    //     ); 
-    //   }
-    // },
-
-    async createComment({dispatch, rootGetters}, data){
-      const socket = data.socket
-
-      if (rootGetters['auth/getAccessToken'] != null) {
-        dispatch('auth/verifyToken', '', {root:true}).then(response => {
-            
-            let message = {
-              request_id: Date.now(),
-              action: 'create_comment',
-              token: rootGetters['auth/getAccessToken'],
-              payload: data.payload
-            }
-            socket.send(JSON.stringify(message))
-        }).catch(error => {
-            dispatch('auth/refreshToken','', {root:true}).then(response => {
-
-              let message = {
-                request_id: Date.now(),
-                action: 'create_comment',
-                token: rootGetters['auth/getAccessToken'],
-                payload: data.payload
-              }
-              socket.send(JSON.stringify(message))
-            })
-          })
-      }
-      else{
-        console.log('You are logout')
-      }
+    async createComment({dispatch}, data){
+      dispatch('conusmerSettings', {action: 'create_comment', data: data})
     },
-
-    async createCommentReply({dispatch, rootGetters}, data){
-      const socket = data.socket
-
-      if (rootGetters['auth/getAccessToken'] != null) {
-        dispatch('auth/verifyToken', '', {root:true}).then(response => {
-
-          let message = {
-            request_id: Date.now(),
-            action: 'delete_comment_with_replies',
-            token: rootGetters['auth/getAccessToken'],
-            payload: data.payload
-          }
-
-          socket.send(JSON.stringify(message))
-        }).catch(error => {
-          dispatch('auth/refreshToken','', {root:true}).then(response => {
-
-            let message = {
-              request_id: Date.now(),
-              action: 'delete_comment_with_replies',
-              token: rootGetters['auth/getAccessToken'],
-              payload: data.payload
-            }
-            socket.send(JSON.stringify(message))
-          })
-        })
-      }
-      else{
-        console.log('You are logout')
-      }
+    
+    async createCommentReply({dispatch}, data){
+      dispatch('conusmerSettings', {action: 'create_reply_comment', data: data})
     },
-
-    // async deleteCommentWithReplies({dispatch, rootGetters}, data){
-    //   const socket = data.socket
-    //   const user_data = rootGetters['auth/getUserData'] 
-
-    //   if(user_data!= null && user_data.username == data.payload.author.username){
-    //     if (rootGetters['auth/getAccessToken'] != null) {
-    //       dispatch('auth/verifyToken', '', {root:true}).then(response => {
-    //         let message = {
-    //           request_id: Date.now(),
-    //           action: 'delete_comment_with_replies',
-    //           token: rootGetters['auth/getAccessToken'],
-    //           payload: data.payload
-    //         }
-
-    //         socket.send(JSON.stringify(message))
-
-    //       }).catch(error => {
-    //         dispatch('auth/refreshToken','', {root:true}).then(response => {
-    //           let message = {
-    //             request_id: Date.now(),
-    //             action: 'delete_comment_with_replies',
-    //             token: rootGetters['auth/getAccessToken'],
-    //             payload: data.payload
-    //           }
     
-    //           socket.send(JSON.stringify(message))
-    //         })
-    //       })
-    //     }
-    //     else{
-    //       console.log('You are logout')
-    //     }
-    //   }
-    //   else{
-    //     console.log('You are dont have permission')
-    //   }
-    
-
-
-    // },
-
-    async deleteComment({dispatch, rootGetters}, data){
-      const socket = data.socket
-      const user_data = rootGetters['auth/getUserData'] 
-
-      if (rootGetters['auth/getAccessToken'] != null) {
-        if(user_data?.username == data.payload.author.username){
-          dispatch('auth/verifyToken', '', {root:true}).then(response => {
-            let message = {
-              request_id: Date.now(),
-              action: 'delete_comment',
-              token: rootGetters['auth/getAccessToken'],
-              payload: data.payload
-            }
-
-            socket.send(JSON.stringify(message))
-
-          }).catch(error => {
-            dispatch('auth/refreshToken','', {root:true}).then(response => {
-              let message = {
-                request_id: Date.now(),
-                action: 'delete_comment',
-                token: rootGetters['auth/getAccessToken'],
-                payload: data.payload
-              }
-    
-              socket.send(JSON.stringify(message))
-            })
-          })
-        }
-        else{
-          console.log('You are dont have permission')
-        }
-      }
-      else{
-        console.log('You are logout')
-      }
-
+    async deleteComment({dispatch}, data){
+      dispatch('conusmerSettingsWithPerm', {action: 'delete_comment', data: data, only_for_owner: true})
     },
-
-    async partialUpdateComment({dispatch, rootGetters}, data){
-      const socket = data.socket
-      const user_data = rootGetters['auth/getUserData'] 
-
-      
-      if (rootGetters['auth/getAccessToken'] != null) {
-        if(user_data?.username == data.payload.author.username){
-          dispatch('auth/verifyToken', '', {root:true}).then(response => {
-            let message = {
-              request_id: Date.now(),
-              action: 'partial_update_comment',
-              token: rootGetters['auth/getAccessToken'],
-              payload: data.payload
-            }
-
-            socket.send(JSON.stringify(message))
-
-          }).catch(error => {
-            dispatch('auth/refreshToken','', {root:true}).then(response => {
-              let message = {
-                request_id: Date.now(),
-                action: 'partial_update_comment',
-                token: rootGetters['auth/getAccessToken'],
-                payload: data.payload
-              }
     
-              socket.send(JSON.stringify(message))
-            })
-          })
-        }
-        else{
-          console.log('You are dont have permission')
-        }
-      }
-      else{
-        console.log('You are logout')
-      }
-    
+    async partialUpdateComment({dispatch}, data){
+      dispatch('conusmerSettingsWithPerm', {action: 'partial_update_comment', data: data, only_for_owner: true})
     },
-
-    async banComment({dispatch, rootGetters}, data){
-      const socket = data.socket
-      const user_data = rootGetters['auth/getUserData'] 
-
+    
+    async banComment({dispatch}, data){
+      dispatch('conusmerSettingsWithPerm', {action: 'ban_comment', data: data, only_for_owner: false})
+    },
   
-      if (rootGetters['auth/getAccessToken'] != null) {
-        if(user_data?.username != data.payload.author.username){
-          dispatch('auth/verifyToken', '', {root:true}).then(response => {
-            let message = {
-              request_id: Date.now(),
-              action: 'ban_comment',
-              token: rootGetters['auth/getAccessToken'],
-              payload: data.payload
-            }
-
-            socket.send(JSON.stringify(message))
-
-          }).catch(error => {
-            dispatch('auth/refreshToken','', {root:true}).then(response => {
-              let message = {
-                request_id: Date.now(),
-                action: 'ban_comment',
-                token: rootGetters['auth/getAccessToken'],
-                payload: data.payload
-              }
-    
-              socket.send(JSON.stringify(message))
-            })
-          })
-        }
-        else{
-          console.log('You cant ban yourself')
-        }
-      }
-      else{
-        console.log('You are logout')
-      }
-      
-    },
-
-
-
-    
-
-
-
-
   },
 
 
@@ -419,34 +268,6 @@ export const journal = {
     gettingCommentSuccess(state, comment_data){
       state.Comment = comment_data;
     },
-
-    // deleteComment(state, comment_id) {
-    //   function removeCommentById(comments, commentId) {
-    //     return comments.filter(comment => {
-    //       if (comment.id === commentId) {
-    //         if(comment.replies && comment.replies.length > 0){
-    //           comment.status = 'd'
-    //           comment.text = 'Комментарий удалён'
-    //           return true
-    //         }
-    //         else{           
-    //           return false; // Удалить комментарий с заданным id
-    //         }
-            
-    //       }
-    //       if (comment.replies && comment.replies.length > 0) {
-    //         comment.replies = removeCommentById(comment.replies, commentId); // Удалить комментарии из ответов комментария
-    //       }
-    //       return true;
-    //     });
-    //   }
-
-    //   state.Comments.comments = removeCommentById(state.Comments.comments, comment_id);
-    // },
-
-    // addCommentReply(state, comment_id){
-
-    // },
 
     addCommentInStore(state, data){
       state.Comments.comments.unshift(data)
@@ -545,6 +366,10 @@ export const journal = {
       }
     
       traverseComments(state.Comments.comments);
+    },
+
+    addPostInStore(state, data){
+      state.PostsList.results.unshift(data);
     }
   },
 

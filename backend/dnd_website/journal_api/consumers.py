@@ -51,11 +51,11 @@ async def get_user_obj(token):
 
 async def test(self, request_id, token, payload):
     try:
+
         user = await get_user_obj(token)
         user_id = user.id
-
         post_id  = payload['post']
-        parent_id = payload['parent']
+        parent_id = payload['parent'] if 'parent' in payload else None
         comment_id = payload['id']
         comment_data = {**payload, 'author': user_id}
 
@@ -65,14 +65,18 @@ async def test(self, request_id, token, payload):
             raise serializers.ValidationError(serialized_data.errors)
         
         post = await sync_to_async(Post.objects.get)(id=post_id)
-        parent_comment  = await sync_to_async(Comment.objects.get)(id=parent_id, post=post_id) 
+
+        if parent_id is not None:
+            parent_comment  = await sync_to_async(Comment.objects.get)(id=parent_id, post=post_id) 
+        else:
+            parent_comment = None
+
 
         try:
             comment = await sync_to_async(Comment.objects.get)(id=comment_id, post=post_id)         
         except Comment.DoesNotExist:
             await self.send_json({'request_id': request_id, 'status': '404', 'error_message': 'Comment object does not exist'})
             return
-
 
     except serializers.ValidationError as e:
         await self.send_json({'request_id': request_id, 'status': '400', 'error_message': e.detail})
@@ -86,7 +90,8 @@ async def test(self, request_id, token, payload):
     except:
         await self.send_json({'request_id': request_id, 'status': '401', 'error_message': 'User object does not exist/token is invalid or expired'})
 
-    return {'user': user, 'post': post, 'parent_comment': parent_comment, 'comment': comment}
+    else:
+        return {'user': user, 'post': post, 'parent_comment': parent_comment, 'comment': comment}
 
 
 
@@ -184,6 +189,7 @@ class CommentConsumer(GenericAsyncAPIConsumer):
 
             if comment.author.id != user.id:
                 if user.is_staff:
+                    
                     comment.status = 'b'
                     comment.text = f'*this comment was banned by {user.username}*'
                     await sync_to_async(comment.save)()
@@ -251,6 +257,13 @@ class CommentConsumer(GenericAsyncAPIConsumer):
                     'data': data,
                     'action': 'update_comment'
                 }
+            
+        return {
+                'status': '200',
+                'data': data,
+                'action': action.value
+            }
+
             
 
 

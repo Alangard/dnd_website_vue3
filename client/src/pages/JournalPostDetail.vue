@@ -1,6 +1,6 @@
 <template>
     <div class="post_item_wrapper">
-
+        
         <Comments></Comments>
     </div>
 
