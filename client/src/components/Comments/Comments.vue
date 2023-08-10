@@ -17,85 +17,52 @@
         clear-icon="mdi-close-circle"
         rows="2"
         no-resize
+        hide-details
         auto-grow
         v-model="newTextComment"
       >
 
 
       <template v-slot:append-inner>
-            <v-icon v-if="width >= 600" class="clickable" medium id="emoticon-activator">mdi-emoticon</v-icon>
-            <v-icon v-else class="clickable" medium @click="mobileEmoticonDrawer = !mobileEmoticonDrawer">mdi-emoticon</v-icon>
+            <v-menu :close-on-content-click="false"  location="start">
+              <template v-slot:activator="{ props }">  
+                <v-icon v-if="width >= 600" class="clickable" medium v-bind="props">mdi-emoticon</v-icon>
+              </template>
+
+              <v-card width="300">
+                <EmojiContent></EmojiContent>
+              </v-card>
+            </v-menu>
+
+            <v-icon v-if="width < 600" class="clickable" medium @click="mobileEmoticonDrawer = !mobileEmoticonDrawer">mdi-emoticon</v-icon>
             <v-icon class="clickable" medium @click="sendMessage">mdi-send</v-icon>
       </template>
     </v-textarea>
 
-    <v-divider :thickness="2"></v-divider>
+    <v-divider :thickness="2" class="mt-5"></v-divider>
 
     <v-chip-group v-model="selectedCommentOrder" @update:modelValue="onOrderChange" selected-class="text-primary" class="my-2" >
       <v-chip value="popularity">By popularity</v-chip>
       <v-chip value="date">By date</v-chip>
-      <v-chip value="author">Author first</v-chip>
     </v-chip-group>
 
-    <Comment class='comment_element' style="  min-width: 300px;" v-for="comment in comments.comments" :key="comment.id" :comment="comment" :websocket="websocket"/>
+    <Comment 
+      class='comment_element' 
+      style=" min-width: 300px;" 
+      v-for="comment in comments.comments" :key="comment.id" 
+      :comment="comment" 
+      :websocket="websocket"
+      />
   </v-card>
-
-
-  <v-menu activator="#emoticon-activator" transition="slide-x-reverse-transition" location="start" :close-on-content-click="false">
-    <v-card width="300">
-      <v-tabs v-model="emoticonTab" background="primary" fixed-tabs>
-        <v-tab value="emoji">Emoji</v-tab>
-        <v-tab value="stickers">Stickers</v-tab>
-      </v-tabs>
-
-      <v-card-text>
-        <v-window class="mt-2" v-model="emoticonTab" color="primary" background="primary">
-          <v-window-item value="emoji">
-            Elements emoji...
-            dasdasdasdasd
-            asdasdasdadasdasdadasdasdasdasdasdasdasdasdasda
-          </v-window-item>
-
-          <v-window-item value="stickers">
-            Elements stickers...
-            DAsdasdasdasdaddasdasdasdasd
-            asdasdasdadasdasdadasdasdasdasdasdasdasdasdasdaasdad
-            asdasdasdadasdasdadasdasdasdasdasdasdasdasdasdaasdaddasd
-          </v-window-item>
-
-        </v-window>
-      </v-card-text>
-    </v-card>
-  </v-menu>
 
   <v-navigation-drawer v-if="width < 600" class="mobile_emoticon h-50" v-model="mobileEmoticonDrawer" location="bottom" temporary>
     <v-card class="h-100">
-      <v-tabs v-model="emoticonTab" background="primary" fixed-tabs>
-        <v-tab value="emoji">Emoji</v-tab>
-        <v-tab value="stickers">Stickers</v-tab>
-      </v-tabs>
-
-      <v-card-text>
-        <v-window class="mt-2" v-model="emoticonTab" color="primary" background="primary">
-          <v-window-item value="emoji">
-            Elements emoji...
-            dasdasdasdasd
-            asdasdasdadasdasdadasdasdasdasdasdasdasdasdasda
-          </v-window-item>
-
-          <v-window-item value="stickers">
-            Elements stickers...
-            DAsdasdasdasdaddasdasdasdasd
-            asdasdasdadasdasdadasdasdasdasdasdasdasdasdasdaasdad
-            asdasdasdadasdasdadasdasdasdasdasdasdasdasdasdaasdaddasd
-          </v-window-item>
-
-        </v-window>
-      </v-card-text>
+      <EmojiContent></EmojiContent>
     </v-card>
-     
-    
   </v-navigation-drawer>
+
+
+  
 
 </template>
 
@@ -120,6 +87,8 @@ import interceptorsInstance, {authHeader} from '@/api/main'
 
 
 import Comment from './Comment.vue'
+import EmojiBlock from '../Emoji/EmojiBlock.vue';
+import EmojiContent from '../Emoji/EmojiContent.vue';
 
 const store = useStore();
 const { width } = useDisplay();
@@ -133,9 +102,8 @@ const comments = computed(() => {return store.getters['journal/getComments']})
 
 // Блок ввода нового комментария
 const newTextComment = ref('')
-const emoticonTab = ref(null)
-const mobileEmoticonDrawer = ref(false)
 const selectedCommentOrder = ref('popularity')
+const mobileEmoticonDrawer = ref(false)
 
 const sendMessage = () => {
   console.log(`send:${newTextComment.value}`)

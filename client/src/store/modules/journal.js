@@ -6,8 +6,8 @@ import axios from 'axios';
 const user = JSON.parse(localStorage.getItem('user'));
 
 const initialState = user
-  ? { status: { loggedIn: true }, user, haveInitialPosts: false, PostsList: [], Reactions: [], Comments: [], Comment: {}}
-  : { status: { loggedIn: false }, user: null, haveInitialPosts: false, PostsList: [], Reactions: [], Comments: [], Comment: {} };
+  ? { status: { loggedIn: true }, user, haveInitialPosts: false, PostsList: [], Reactions: [], Comments: [], Comment: {}, replyIsPressed: ''}
+  : { status: { loggedIn: false }, user: null, haveInitialPosts: false, PostsList: [], Reactions: [], Comments: [], Comment: {}, replyIsPressed: ''};
 
 export const journal = {
   namespaced: true,
@@ -370,6 +370,22 @@ export const journal = {
 
     addPostInStore(state, data){
       state.PostsList.results.unshift(data);
+    },
+
+    openReply(state, comment_id){
+      if(state.replyIsPressed == comment_id){
+        console.log('Same reply', comment_id)
+        state.replyIsPressed = ''
+      }
+      else if(comment_id == ''){
+        console.log('Blank')
+        state.replyIsPressed = ''
+      }
+      else{
+        console.log('New reply', comment_id)
+        state.replyIsPressed = comment_id
+      }
+      
     }
   },
 
@@ -403,6 +419,10 @@ export const journal = {
     getComments(state){
       return state.Comments
     },
+
+    getReplyIsPressed(state){
+      return state.replyIsPressed
+    }
 
 
     

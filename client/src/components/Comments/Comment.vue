@@ -45,7 +45,7 @@
       </v-card-text>
       <v-card-actions>
         <div class="d-flex flex-row justify-space-between w-100">
-          <v-btn v-if="comment.status == 'n'" class="pb-1" variant="text">
+          <v-btn v-if="comment.status == 'n'" class="pb-1" variant="text" @click="replyPressed">
             Reply
           </v-btn>
 
@@ -101,28 +101,133 @@
       </v-card-actions>
     </v-card>
 
+    <v-container v-if="replyIsPressed == comment.id" class="d-flex flex-row align-center pa-0 mb-3">
+      
+        <v-icon class="clickable_relpy mx-2" medium @click="replyPressed()">mdi-close-circle-outline</v-icon>
+
+        <v-textarea
+          variant="solo"
+          :label="`Reply for @${comment.author.username}`"
+          clear-icon="mdi-close-circle"
+          rows="2"
+          hide-details
+          no-resize
+          auto-grow
+          v-model="replyTextComment">
+
+          <template v-slot:append-inner>
+
+            <v-menu :close-on-content-click="false"  location="start">
+              <template v-slot:activator="{ props }">  
+                <v-icon v-if="width >= 600" class="clickable_relpy" medium v-bind="props">mdi-emoticon</v-icon>
+              </template>
+              <v-card width="300">
+                <EmojiContent></EmojiContent>
+              </v-card>
+            </v-menu>
+
+
+            <v-icon v-if="width < 600" class="clickable_relpy" medium @click="mobileEmoticonDrawer = !mobileEmoticonDrawer">mdi-emoticon</v-icon>
+            <v-icon class="clickable_relpy" medium @click="createReply">mdi-send</v-icon>
+          </template>
+        </v-textarea>
+    </v-container>
+
     <div class="ml-5">
       <Comment v-for="reply in comment.replies" :key="reply.id" :comment="reply" :websocket="websocket"/>
     </div>
   </div>
+
+  <v-navigation-drawer v-if="width < 600" class="mobile_emoticon h-50" v-model="mobileEmoticonDrawer" location="bottom" temporary>
+    <v-card class="h-100">
+      <EmojiContent></EmojiContent>
+    </v-card>
+  </v-navigation-drawer>
+
+
+  <!-- <v-menu :activator="`#emoticon-activator_${comment.id}`" transition="slide-x-reverse-transition" location="start" :close-on-content-click="false">
+    <v-card width="300">
+      <v-tabs v-model="emoticonTab" background="primary" fixed-tabs>
+        <v-tab value="emoji">Emoji</v-tab>
+        <v-tab value="stickers">Stickers</v-tab>
+      </v-tabs>
+
+      <v-card-text>
+        <v-window class="mt-2" v-model="emoticonTab" color="primary" background="primary">
+          <v-window-item value="emoji">
+            Elements emoji...
+            dasdasdasdasd
+            asdasdasdadasdasdadasdasdasdasdasdasdasdasdasda
+          </v-window-item>
+
+          <v-window-item value="stickers">
+            Elements stickers...
+            DAsdasdasdasdaddasdasdasdasd
+            asdasdasdadasdasdadasdasdasdasdasdasdasdasdasdaasdad
+            asdasdasdadasdasdadasdasdasdasdasdasdasdasdasdaasdaddasd
+          </v-window-item>
+
+        </v-window>
+      </v-card-text>
+    </v-card>
+  </v-menu>
+
+  <v-navigation-drawer v-if="width < 600" class="mobile_emoticon h-50" v-model="mobileEmoticonDrawer" location="bottom" temporary>
+    <v-card class="h-100">
+      <v-tabs v-model="emoticonTab" background="primary" fixed-tabs>
+        <v-tab value="emoji">Emoji</v-tab>
+        <v-tab value="stickers">Stickers</v-tab>
+      </v-tabs>
+
+      <v-card-text>
+        <v-window class="mt-2" v-model="emoticonTab" color="primary" background="primary">
+          <v-window-item value="emoji">
+            Elements emoji...
+            dasdasdasdasd
+            asdasdasdadasdasdadasdasdasdasdasdasdasdasdasda
+          </v-window-item>
+
+          <v-window-item value="stickers">
+            Elements stickers...
+            DAsdasdasdasdaddasdasdasdasd
+            asdasdasdadasdasdadasdasdasdasdasdasdasdasdasdaasdad
+            asdasdasdadasdasdadasdasdasdasdasdasdasdasdasdaasdaddasd
+          </v-window-item>
+
+        </v-window>
+      </v-card-text>
+    </v-card>
+     
+    
+  </v-navigation-drawer> -->
+
+
+
 </template>
   
 <script setup>
-import { ref, defineProps, onMounted, onUnmounted } from 'vue';
+import { ref, defineProps, onMounted, onUnmounted, computed } from 'vue';
 import routes from '@/router/router'
 import { useStore } from 'vuex'
-import axios from 'axios';
+import {useDisplay} from 'vuetify'
 import {DateTimeFormat} from '@/helpers'
+import EmojiContent from '../Emoji/EmojiContent.vue';
 
 const props = defineProps(['comment', 'websocket'])
+const emit = defineEmits(['replyIsPressed'])
 const store = useStore();
+const { width } = useDisplay();
+
 const comment = ref(props.comment);
 const websocket = ref(props.websocket);
 
-
+const replyTextComment = ref('')
+const replyIsPressed = computed(() => {return store.getters['journal/getReplyIsPressed']})
+const mobileEmoticonDrawer = ref(false)
 
 
 onMounted(() => {
+
   websocket.value.onmessage = function(e){
         let data = JSON.parse(e.data)
 
@@ -151,6 +256,20 @@ const ratingPercentage = (comment_reactions_obj) => {
 const pressReaction = (data) => {
   
 }
+
+const replyPressed = () => {
+  store.commit('journal/openReply', comment.value.id)
+}
+
+const createReply = () => {
+  console.log(`send:${newTextComment.value}`)
+};
+
+
+
+
+
+
 
 const createComment =(comment_data) => {
   const payload = {
@@ -219,5 +338,17 @@ const banComment =(comment_data) => {
   .transformable{
       &:hover{transform: scale(1.1);}
   }
+
+  .clickable_relpy:first-child{
+  margin-right: 14px;
+  margin-left: 10px;
+  &:hover{
+    cursor: pointer;
+  }
+}
+
+.no-details ::v-deep .v-messages__wrapper {
+  display: none;
+}
 
 </style>
