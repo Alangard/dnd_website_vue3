@@ -14,7 +14,7 @@
     
         <Filters @filterToolbarIsOpen="filterAsideState =! filterAsideState"></Filters>
 
-        <div class="d-flex flex-column align-center h-auto" ref="scrollComponent" v-if="postListStyle == 'list'">
+        <div class="d-flex flex-column align-center h-auto" ref="scrollComponent">
 
             <v-card class="main-container elevation-8 w-100" v-for="post in postsList" :key="post">
                         <div class="user_data d-flex flex-row align-center justify-start mb-1" style="width:max-content"
@@ -158,48 +158,6 @@
             </v-card >
         </div>
 
-        <!-- <div class=" test-grid " ref="scrollComponent" v-else>
-            <v-card class="main-container-grid elevation-8" v-for="post in store.getters.getPostsList" :key="post">
-                <v-img 
-                    class='thumbnail mw-100 rounded mb-2' style="cursor:pointer"
-                    v-if="post.thumbnail"
-                    @click="$router.push({ name: 'postdetail', params: {id: post.id} })"
-                    :src="post.thumbnail"
-                    alt="post_img"
-                    aspect-ratio="4/3"
-                    cover>
-                </v-img>
-
-                <div class="title text-subtitle-2 font-weight-bold text-left mt-4 mx-3 mb-2"
-                    @click="$router.push({ name: 'postdetail', params: {id: post.id} })">
-                    {{post.title}}
-                </div>
-
-                <div class="user_data d-flex flex-row align-center justify-space-between mb-3 mx-3 w-auto">
-
-                    <div class='d-flex flex-column'>
-                        <span class="username text-subtitle-1 font-weight-bold text-capitalize" style="cursor:pointer" 
-                            @click="$router.push({ name: 'user', params: {id: post.author.username} })">
-                            {{post.author.username}}
-                        </span> 
-
-                        <span class="post_date text-caption font-weight-regular" style="cursor:pointer">
-                            {{DateTimeFormat(post.created_datetime)}}
-                        </span>   
-                    </div>
-
-                    <v-avatar class="avatar" size="large" style="cursor:pointer" 
-                        @click="$router.push({ name: 'user', params: {id: post.author.username} })">
-                        <v-img v-if="post.author.avatar != ''"
-                            :src="post.author.avatar"
-                            :alt="post.author.username">
-                        </v-img>
-                        <v-icon icon="mdi-account-circle" size='48' v-else></v-icon>
-                    </v-avatar>
-                </div>
-
-            </v-card>
-        </div> -->
 
     </v-container>
 
@@ -236,9 +194,7 @@ const token = authHeader()['Authorization'].split('Bearer ')[1]
 let url = `ws://${axios.defaults.baseURL.split('http://')[1]}ws/post_socket-server/?token=${token}`
 const socket = new WebSocket(url)
 
-let toggleReaction = ref(null);
 let filterAsideState = ref(false);
-let postListStyle = ref('list');
 const postsList = computed(() => {return store.getters['journal/getPosts']});
 
 const ratingPercentage = (post_reactions_obj) => {

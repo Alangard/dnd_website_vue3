@@ -30,6 +30,8 @@ interceptorsInstance.interceptors.response.use(
 )
 
 
+
+
 async function getNewToken() {
   try {
     const refresh = JSON.parse(localStorage.getItem('user')).refresh
@@ -57,6 +59,17 @@ export function authHeader(){
     else{
         return {};
     }
+}
+
+export function accessToken(){
+  let user = JSON.parse(localStorage.getItem('user'));
+
+  if(user && user.access){
+      return { token: user.access }
+  }
+  else{
+      return {};
+  }
 }
 
 export default interceptorsInstance

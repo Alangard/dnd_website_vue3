@@ -1,5 +1,5 @@
 import axios from 'axios'
-import interceptorsInstance, {authHeader} from '@/api/main'
+import interceptorsInstance, {authHeader, accessToken} from '@/api/main'
 
 
 const BASE_URL = axios.defaults.baseURL + 'auth/'
@@ -98,8 +98,7 @@ class AuthService {
     }
 
     async verify_access_token(){
-        const access = JSON.parse(localStorage.getItem('user')).access
-        const response = await axios.post(BASE_URL + 'jwt/verify/', {token: access})
+        const response = await axios.post('auth/jwt/verify/', accessToken())
         return response
     }
 

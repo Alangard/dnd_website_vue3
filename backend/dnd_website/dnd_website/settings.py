@@ -33,8 +33,6 @@ ALLOWED_HOSTS = []
 
 
 
-
-
 FRONTEND_AUTHORITY = "http://localhost:8080"
 
 CORS_ALLOWED_ORIGINS = [
@@ -203,10 +201,12 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
+        'OPTIONS': {'charset': 'utf8mb4'},
         'NAME': 'dnd_bd',
         'USER': 'root',
         'PASSWORD': 'root',
     }
+
 }
 
 

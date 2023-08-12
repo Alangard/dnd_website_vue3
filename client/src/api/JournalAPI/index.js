@@ -40,9 +40,6 @@ class JournalService {
         )
     }
 
-    get_posts_comments(post_id){
-        return axios.get(BASE_URL + `post/${post_id}/comments/`,)
-    }
 
     get_comment(comment_id){
         return axios.get(BASE_URL + `comment/${comment_id}/`,)

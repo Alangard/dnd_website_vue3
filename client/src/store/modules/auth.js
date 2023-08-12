@@ -77,21 +77,22 @@ export const auth = {
     },
 
 
-    refreshToken({commit,getters, dispatch}){
-      const response = AuthService.refresh_access_token()
-      response.then(resp => {
-        commit('setUser', JSON.parse(localStorage.getItem('user')))
-      }).catch(error => {
-        if(getters.loginState){
-          dispatch('logout')
-        }
+    async refreshToken({commit,getters, dispatch}){
+      const response = await AuthService.refresh_access_token()
+      console.log(response)
+      // response.then(resp => {
+      //   commit('setUser', JSON.parse(localStorage.getItem('user')))
+      // }).catch(error => {
+      //   if(getters.loginState){
+      //     dispatch('logout')
+      //   }
         
-      })
+      // })
       return response
     },
 
-    verifyToken({commit}){
-      return AuthService.verify_access_token()
+    async verifyToken({commit}){
+      return await AuthService.verify_access_token()
     }
 
 
@@ -120,6 +121,13 @@ export const auth = {
 
     setUser(state, user){
       state.user = user
+    },
+    
+    setAccessToken(state, access_token){
+      console.log(access_token)
+      state.user.access = access_token
+      const user = state?.user
+      localStorage.setItem('user', JSON.stringify(user))
     }
   },
   getters: {
@@ -130,6 +138,20 @@ export const auth = {
     getAccessToken(state){
       if(state.user && state.user.access){
         return state.user.access
+      }
+      return null 
+    },
+
+    getRefreshToken(state){
+      if(state?.user?.refresh){
+        return state.user.refresh
+      }
+      return null 
+    },
+
+    getUser(state){
+      if(state?.user){
+        return state.user
       }
       return null 
     },

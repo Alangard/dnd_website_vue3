@@ -35,7 +35,7 @@
             </v-menu>
 
             <v-icon v-if="width < 600" class="clickable" medium @click="mobileEmoticonDrawer = !mobileEmoticonDrawer">mdi-emoticon</v-icon>
-            <v-icon class="clickable" medium @click="sendMessage">mdi-send</v-icon>
+            <v-icon class="clickable" medium @click="saveComment">mdi-send</v-icon>
       </template>
     </v-textarea>
 
@@ -83,11 +83,8 @@ import { useStore } from 'vuex';
 import axios from 'axios';
 import routes from '@/router/router'
 import {useDisplay} from 'vuetify'
-import interceptorsInstance, {authHeader} from '@/api/main'
-
 
 import Comment from './Comment.vue'
-import EmojiBlock from '../Emoji/EmojiBlock.vue';
 import EmojiContent from '../Emoji/EmojiContent.vue';
 
 const store = useStore();
@@ -97,39 +94,32 @@ const url = `ws://${axios.defaults.baseURL.split('http://')[1]}ws/comment_socket
 const websocket = new WebSocket(url)
 
 const loggedIn = computed(() => {return store.getters['auth/loginState']})
-const comments = computed(() => {return store.getters['journal/getComments']})
+const comments = computed(() => {return store.getters['comments/getComments']})
 
-
-// Блок ввода нового комментария
 const newTextComment = ref('')
 const selectedCommentOrder = ref('popularity')
 const mobileEmoticonDrawer = ref(false)
-
-const sendMessage = () => {
-  console.log(`send:${newTextComment.value}`)
-};
-
-const renderedText = computed(() => {
-  return newTextComment.value.replace(
-        /(\[link\])\((.*?)\)/g,
-        '<a href="$2">$2</a>'
-      );
-})
 
 const onOrderChange = async () => {
   console.log(`New parametr: ${selectedCommentOrder.value}`)
 };
 
+const saveComment = () => {
+  console.log(`send:${newTextComment.value}`)
+};
+
+
+onMounted(() => {
+  const post_id = routes.currentRoute.value.params.id
+  store.dispatch("comments/getInitialComments", post_id)
+})
 
 onUnmounted(() => {
   websocket.close()
 })
 
 
-onMounted(() => {
-  const post_id = routes.currentRoute.value.params.id
-  store.dispatch("journal/getPostsComments", post_id)
-})
+
 
 
 

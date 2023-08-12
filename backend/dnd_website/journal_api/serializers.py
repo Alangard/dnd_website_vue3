@@ -90,14 +90,23 @@ class CommentSerializer(serializers.ModelSerializer):
                     return {'reacted': True, 'reaction_type': comment.reaction_type}
 
         return {'reacted': False, 'reaction_type': ''}
+    
+
 
     def get_replies(self, obj):
         if 'request' in self.context:
             request = self.context['request']
             replies = Comment.objects.filter(parent=obj)
             if replies.exists():
-                serializer = CommentSerializer(replies, many=True, context={'request': request})
-                return serializer.data
+                data = []
+                for reply in replies:
+                    user_data = {'id': reply.parent.author.id, 'username': reply.parent.author.username, 'avatar': reply.parent.author.avatar}
+                    reply_data = CommentSerializer(reply, context={'request': request}).data
+                    reply_data['parent'] = user_data
+                    data.append(reply_data)
+                return data
+                # serializer = CommentSerializer(replies, many=True, context={'request': request})
+                # return serializer.data
         return None
     
     def get_comment_reactions(self, obj):

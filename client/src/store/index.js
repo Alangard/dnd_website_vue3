@@ -2,6 +2,7 @@ import { createStore } from 'vuex'
 import axios from 'axios';
 import { auth } from "./modules/auth";
 import { journal } from './modules/journal';
+import { comments } from './modules/comments';
 
 
 export default createStore({
@@ -265,6 +266,7 @@ export default createStore({
 
   modules: {
     auth,
-    journal
+    journal,
+    comments
   }
 })

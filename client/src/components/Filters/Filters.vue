@@ -18,8 +18,6 @@
                 </div>
 
                 <v-sheet class='d-flex flex-row align-center w-100 justify-end pb-2'>
-                        <v-btn v-if="store.getters.getPostListStyle=='grid'" class='list_style_btn' size="large" variant="plain" icon="mdi-format-list-bulleted" @click.stop="displayPostInListStyle"></v-btn>
-                        <v-btn v-if="store.getters.getPostListStyle =='list'" class='grid_style_btn' size="large" variant="plain" icon="mdi-grid-large" @click.stop="displayPostInGridStyle"></v-btn>
                         <v-btn class='filter_btn' size="large" variant="plain" icon="mdi-tune" @click.stop="openFilterAside"></v-btn>
                 </v-sheet>  
 </v-card>     
@@ -30,7 +28,9 @@
 <script setup>
 import { ref, defineEmits } from 'vue'
 import { useStore } from 'vuex'
+import {useDisplay} from 'vuetify'
 
+const { width } = useDisplay();
 const store = useStore()
 const emit = defineEmits(['filterToolbarIsOpen'])
 

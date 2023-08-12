@@ -49,7 +49,7 @@ async def get_user_obj(token):
         user = await sync_to_async(get_user_model().objects.get)(id=decoded_data["user_id"])
     return user
 
-async def test(self, request_id, token, payload):
+async def consumer_rules_checker(self, request_id, token, payload):
     try:
 
         user = await get_user_obj(token)
@@ -128,7 +128,7 @@ class CommentConsumer(GenericAsyncAPIConsumer):
     @action()
     async def create_comment(self, payload, token, request_id, action, **kwarg):
         try:
-            response = await test(self=self, request_id=request_id, token=token, payload=payload)
+            response = await consumer_rules_checker(self=self, request_id=request_id, token=token, payload=payload)
             comment = Comment(author=response['user'], text=payload['text'], post=response['post'])
             await sync_to_async(comment.save)()
         except Exception as e:
@@ -137,7 +137,7 @@ class CommentConsumer(GenericAsyncAPIConsumer):
     @action()
     async def create_reply_comment(self, payload, token, request_id, action, **kwarg):
         try:
-            response = await test(self=self, request_id=request_id, token=token, payload=payload)
+            response = await consumer_rules_checker(self=self, request_id=request_id, token=token, payload=payload)
             comment = Comment(author=response['user'], parent=response['parent_comment'], text=payload['text'], post=response['post'])
             await sync_to_async(comment.save)()
         except Exception as e:
@@ -147,7 +147,7 @@ class CommentConsumer(GenericAsyncAPIConsumer):
     @action()
     async def delete_comment(self, payload, token, request_id, action, **kwarg):
         try:
-            response = await test(self=self, request_id=request_id, token=token, payload=payload)
+            response = await consumer_rules_checker(self=self, request_id=request_id, token=token, payload=payload)
             comment = response['comment']
 
             if comment.author.id == response['user'].id:
@@ -167,7 +167,7 @@ class CommentConsumer(GenericAsyncAPIConsumer):
     @action()
     async def partial_update_comment(self, payload, token, request_id, action, **kwarg):
         try:
-            response = await test(self=self, request_id=request_id, token=token, payload=payload)
+            response = await consumer_rules_checker(self=self, request_id=request_id, token=token, payload=payload)
             comment = response['comment']
 
             if comment.author.id == response['user'].id:
@@ -183,7 +183,7 @@ class CommentConsumer(GenericAsyncAPIConsumer):
     @action()
     async def ban_comment(self, payload, token, request_id, action, **kwarg):
         try:
-            response = await test(self=self, request_id=request_id, token=token, payload=payload)
+            response = await consumer_rules_checker(self=self, request_id=request_id, token=token, payload=payload)
             comment = response['comment']
             user = response['user']
 
@@ -205,7 +205,7 @@ class CommentConsumer(GenericAsyncAPIConsumer):
     # @action()
     # async def delete_comment_with_replies(self, payload, token, request_id, action, **kwarg):
     #     try:
-    #         response = await test(self, request_id, token, payload)
+    #         response = await consumer_rules_checker(self, request_id, token, payload)
     #         comment = response['comment']
 
     #         if comment.author.id == response['user'].id:
