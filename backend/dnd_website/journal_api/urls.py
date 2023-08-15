@@ -2,9 +2,13 @@ from django.urls import path, include
 from rest_framework import routers
 from .views import *
 
+router = routers.DefaultRouter()
+
+router.register(r'post', PostViewSet, basename='post')
 
 urlpatterns = [
     # path('auth/', include('djoser.urls.jwt')),
+    path('', include(router.urls)),
     path('auth/', include('djoser.urls')),
     
 
@@ -21,7 +25,7 @@ urlpatterns = [
 
     path('posts/', PostListView.as_view(), name='posts-list-url'),
     path('post/<int:pk>/', PostReadUpdateView.as_view(), name='post-read_update-url'),
-    path('post/create/', PostCreateView.as_view(), name='post-create-url'),
+    # path('post/create/', PostCreateView.as_view(), name='post-create-url'),
     path('post/<int:pk>/delete/', PostDestroyView.as_view(), name='post-delete-url'),
 
     path('post/<int:post_id>/comments/', CommentsListView.as_view(), name='post_comments-list-url'),

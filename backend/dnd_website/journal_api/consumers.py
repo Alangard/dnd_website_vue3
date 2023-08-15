@@ -1,5 +1,5 @@
-from .models import Post, Comment, Account
-from .serializers import PostListReadSerializer, CommentSerializer
+from .models import Post, Comment, Account, Tag
+from .serializers import PostListReadSerializer, CommentSerializer, PostCreateSerializer, PostDeleteSerializer, PostPartialUpdateSerializer
 from djangochannelsrestframework.generics import GenericAsyncAPIConsumer
 from djangochannelsrestframework.mixins import ListModelMixin
 from djangochannelsrestframework.observer import model_observer
@@ -23,11 +23,15 @@ from django.conf import settings
 from django.db import close_old_connections
 from rest_framework_simplejwt.tokens import UntypedToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from django.core.exceptions import ValidationError
+from django.db.models.deletion import ProtectedError
+
 from jwt import decode as jwt_decode
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from urllib.parse import parse_qs
 from asgiref.sync import sync_to_async
+from django.db.models import F
 
 import re
 import os
@@ -95,29 +99,201 @@ async def consumer_rules_checker(self, request_id, token, payload):
 
 
 
-class PostConsumer(GenericAsyncAPIConsumer):
-    queryset = Post.objects.filter(is_publish=True).\
-            select_related('author').\
-            prefetch_related('tags','post_reactions','comments')
-    
-    permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (JWTAuthentication,)
+class UserNotFound(Exception):
+    pass
 
-    async def connect(self, **kwargs):
-        await self.model_change.subscribe()
+class UserNotOwner(Exception):
+    pass
+
+
+class PostConsumer(GenericAsyncAPIConsumer):
+    async def connect(self, **kwargs): 
+        await self.model_change.subscribe() 
         await super().connect() 
-   
+
+
+    @action()
+    async def create_post(self, payload, token, request_id, action, **kwarg):
+        try:
+            user = await get_user_obj(token)
+            if user is None:
+                raise UserNotFound
+            else:
+                user_id = user.id
+                post_data = {**payload, 'author': user_id}
+                serialized_data =  PostCreateSerializer(data=post_data)
+
+                await sync_to_async(serialized_data.is_valid)()
+                if not serialized_data.is_valid():
+                    raise serializers.ValidationError(serialized_data.errors)     
+                
+                try:
+                    post = Post(author=user, title=payload['title'], description=payload['description'],  
+                                body=payload['body'],  is_publish=payload['is_publish'],  publish_datetime=payload['publish_datetime'])
+                
+                    await sync_to_async(post.save)()
+
+                    for tag_name in payload['tags']:
+                        try:
+                            tag = await sync_to_async(Tag.objects.get)(name=tag_name)
+                        except Tag.DoesNotExist:
+                            tag = await sync_to_async(Tag.objects.create)(name=tag_name)
+                        await sync_to_async(post.tags.add)(tag)
+
+                except ValidationError as e:
+                    await self.send_json({'request_id': request_id, 'status': '500', 'error_message': 'Your model instance has not been saved'})
+                    
+
+        except (InvalidToken, TokenError) as e:
+            await self.send_json({'request_id': request_id, 'status': '401', 'error_message': 'Token is invalid or expired'})
+        except UserNotFound as e:
+            await self.send_json({'request_id': request_id, 'status': '404', 'error_message': 'User object does not exist'})
+        except serializers.ValidationError as e:
+            await self.send_json({'request_id': request_id, 'status': '400', 'error_message': f'Something wrong with serialization.{e.detail}'})
+        except Exception as e:
+            await self.send_json({'request_id': request_id, 'status': '400', 'error_message': e})
+
+
+    @action()
+    async def delete_post(self, payload, token, request_id, action, **kwarg):
+        try:
+            user = await get_user_obj(token)
+            if user is None:
+                raise UserNotFound
+            elif user.id != payload['author'].id:
+                raise UserNotOwner
+            else:
+                user_id = user.id
+                post_data = {**payload, 'author': user_id}
+                serialized_data =  PostDeleteSerializer(data=post_data)
+
+                await sync_to_async(serialized_data.is_valid)()
+                if not serialized_data.is_valid():
+                    raise serializers.ValidationError(serialized_data.errors)     
+                
+                try:
+                    post = await sync_to_async(Post.objects.get)(id=payload['id'])
+                    
+                    try:
+                        await sync_to_async(post.delete)()
+                    except ProtectedError as e:
+                        await self.send_json({'request_id': request_id, 'status': '404', 'error_message': f'Your model instance has not been deleted. {e}'})
+
+                except Post.DoesNotExist:
+                    await self.send_json({'request_id': request_id, 'status': '404', 'error_message': 'Post object does not exist'})
+
+        except (InvalidToken, TokenError) as e:
+            await self.send_json({'request_id': request_id, 'status': '401', 'error_message': 'Token is invalid or expired'})
+        except UserNotFound as e:
+            await self.send_json({'request_id': request_id, 'status': '404', 'error_message': 'User object does not exist'})
+        except UserNotOwner as e:
+            await self.send_json({'request_id': request_id, 'status': '403', 'error_message': 'User  not owner of this post and dont have permission'})
+        except serializers.ValidationError as e:
+            await self.send_json({'request_id': request_id, 'status': '400', 'error_message': f'Something wrong with serialization.{e.detail}'})
+        except Exception as e:
+            await self.send_json({'request_id': request_id, 'status': '400', 'error_message': e})
+
+
+    @action()
+    async def partial_update_post(self, payload, token, request_id, action, **kwarg):
+
+        try:
+            user = await get_user_obj(token)
+            if user is None:
+                raise UserNotFound
+            elif user.id != payload['author']['id']:
+                raise UserNotOwner
+            else:
+                user_id = user.id
+                post_data = {**payload, 'author': user_id}
+                serialized_data =  PostPartialUpdateSerializer(data=post_data)
+
+                await sync_to_async(serialized_data.is_valid)()
+                if not serialized_data.is_valid():
+                    raise serializers.ValidationError(serialized_data.errors)     
+                
+                try:
+                    post = await sync_to_async(Post.objects.get)(id=payload['id'])
+
+                    try:
+                        # new_payload = payload.copy()
+                        # data = {**new_payload, 'author': user, 'created_datetime': datetime.now()}
+                        # post = Post(**data)
+                        # await sync_to_async(post.save)()
+
+                        # post.description = payload['description']
+                        # post.title = payload['title']
+
+                        payload.pop('author')
+
+                        post = Post.objects.get(id=payload['id'])
+                        for key, value in payload.items():
+                            setattr(post, key, value)
+
+                        await sync_to_async(post.save)()
+
+
+
+                        # post = await sync_to_async(Post.objects.filter)(id=payload['id'])
+                        # await sync_to_async(post.update)(**data)
+                    except ValidationError as e:
+                        await self.send_json({'request_id': request_id, 'status': '500', 'error_message': 'Your model instance has not been saved'})
+                    
+                except Post.DoesNotExist:
+                    await self.send_json({'request_id': request_id, 'status': '404', 'error_message': 'Post object does not exist'})
+
+        except (InvalidToken, TokenError) as e:
+            await self.send_json({'request_id': request_id, 'status': '401', 'error_message': 'Token is invalid or expired'})
+        except UserNotFound as e:
+            await self.send_json({'request_id': request_id, 'status': '404', 'error_message': 'User object does not exist'})
+        except UserNotOwner as e:
+            await self.send_json({'request_id': request_id, 'status': '403', 'error_message': 'User  not owner of this post and dont have permission'})
+        except serializers.ValidationError as e:
+            await self.send_json({'request_id': request_id, 'status': '400', 'error_message': f'Something wrong with serialization.{e.detail}'})
+        except Exception as e:
+            await self.send_json({'request_id': request_id, 'status': '400', 'error_message': e})
+
 
     @model_observer(Post)
     async def model_change(self, message, observer=None, **kwargs):
-        # e = self.scope['user']
-        # print(e.email)
         await self.send_json(message)
-
-    @model_change.serializer
-    def model_serializer(self, instance, action, **kwargs):
-        return dict(data=PostListReadSerializer(instance=instance).data, action=action.value)
     
+    @model_change.serializer
+    def model_serializer(self, instance, action, status_message=None, **kwargs):
+        data = PostListReadSerializer(instance=instance).data
+
+        match action.value:
+            case 'create':
+                return {
+                    'status': '200',
+                    'status_message': "Post has been created",
+                    'data': data,
+                    'action': 'create_post'
+                }
+            
+            case 'delete':
+                return {
+                    'status': '200',
+                    'status_message': "Post has been deleted ",
+                    'data': data,
+                    'action': 'delete_post'
+                }
+                    
+            case 'update':
+                return {
+                    'status': '200',
+                    'status_message': "Post was updated",
+                    'data': data,
+                    'action': 'update_post'
+                }
+            
+        return {
+                'status': '200',
+                'data': data,
+                'action': action.value
+            }
+
+
 
 class CommentConsumer(GenericAsyncAPIConsumer):
 

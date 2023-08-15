@@ -8,7 +8,7 @@
 
     <QuillEditor :options="options" v-model:content="inputValue" content-type="html" class="mb-5"/>
 
-    <button @click="test()"> save </button>
+    <button @click="getPostDetail()"> save </button>
 
     <v-container style="max-width: 750px;">
     
@@ -96,7 +96,7 @@
                                 </div> -->
 
 
-
+                 
                                 <div class="d-flex flex-row align-center">
                                     <v-btn
                                         size="24"
@@ -181,18 +181,14 @@ import { useTheme } from 'vuetify/lib/framework.mjs';
 import {DateTimeFormat} from '@/helpers'
 import routes from '@/router/router' 
 
-import interceptorsInstance, {authHeader} from '@/api/main'
-
-
 const Filters = defineAsyncComponent(() => import('@/components/Filters/Filters.vue'));
 const FilterAside = defineAsyncComponent(() => import('@/components/Filters/FilterAside.vue'));
 
 const store = useStore();
 let theme = useTheme();
 
-const token = authHeader()['Authorization'].split('Bearer ')[1]
-let url = `ws://${axios.defaults.baseURL.split('http://')[1]}ws/post_socket-server/?token=${token}`
-const socket = new WebSocket(url)
+const url = `ws://${axios.defaults.baseURL.split('http://')[1]}ws/post_socket-server/`
+const websocket = new WebSocket(url)
 
 let filterAsideState = ref(false);
 const postsList = computed(() => {return store.getters['journal/getPosts']});
@@ -243,7 +239,7 @@ const handleScroll = (e) => {
     let element = scrollComponent.value
     if(Math.floor(element.getBoundingClientRect().bottom) <= window.innerHeight){
         isLoading.value = true
-        LoadMorePosts() 
+        // LoadMorePosts() 
     }
 }
 
@@ -251,43 +247,64 @@ const handleScroll = (e) => {
 
 const inputValue = ref('<h1>This is header</h1><p>This is paragraph</p>')
 const test =() =>{
+}
 
-console.log(inputValue , inputValue.value)
-const text = inputValue.value
 
-const data ={
-    author:{
-        avatar:"",
-        id:1,
-        username:"admin"
-    },
-    body:"asda",
-    commented:false,
-    created_datetime:"2023-07-22T12:10:50.666272Z",
-    description: inputValue.value,
-    id:4,
-    is_publish:true,
-    num_comments:0,
-    post_reactions:{
-        num_dislikes:0,
-        num_likes:0,
-        total_reactions:0
-    },
-    publish_datetime:null,
-    tags:[],
-    thumbnail:null,
-    title:"test5",
-    updated_datetime:"2023-07-22T12:10:50.666272Z",
-    user_reaction:{
-        reacted:false,
-        reaction_type:""
+// const createPost = () => {
+//     const payload ={
+//         author:{
+//             avatar:"",
+//             id:1,
+//             username:"admin"
+//         },
+//         title:'Test title',
+//         body:"asda",
+//         description: 'Test description',
+//         is_publish:true,
+//         publish_datetime:null,
+//         tags:[],
+//     }
+
+//     store.dispatch('journal/createPost', {'socket': websocket, 'payload': payload})
+// }
+
+const createPost = () => {
+        const payload ={
+            title:'Test title post',
+            body:"asda",
+            description: 'Test description post',
+            is_publish:true,
+            publish_datetime:null,
+            tags:['test12', 'abya'],
+        }
+    store.dispatch('journal/createPost', payload)
+}
+
+const deletePost = () => {
+    const post_id = 1000
+    store.dispatch('journal/deletePost', post_id)
+}
+
+const partialUpdatePost =() => {
+    const payload ={
+        id: 14,
+        description: "nnnn",
+        title: 'mmmmm'
     }
-
+    store.dispatch('journal/partialUpdatePost', payload)
 }
 
-  store.commit('journal/addPostInStore', data)
-
+const getPostList =(paginate_url) => {
+    store.dispatch('journal/getPostList', paginate_url)
 }
+
+const getPostDetail =() => {
+    const post_id = 5
+    store.dispatch('journal/getPostDetail', post_id)
+}
+
+
+
 
 const options = ref({
     modules: {
@@ -309,53 +326,31 @@ const options = ref({
 
 
 onMounted(async () => {
-    store.dispatch('journal/get_posts', 'posts/?page=1&page_size=7')
-    window.addEventListener('scroll', handleScroll);
+    getPostList('?page=1&page_size=7')
+    // store.dispatch('journal/get_posts', 'posts/?page=1&page_size=7')
+    // window.addEventListener('scroll', handleScroll);
 
-    socket.onmessage = function(e){
+    websocket.onmessage = function(e){
         let data = JSON.parse(e.data)
-        if(data.action === 'list'){
-            store.commit('journal/setPostsList', data.data)
-            
-            // postsList.value = data.data
-        }
-        else if(data.action === 'create'){
-            store.commit('journal/updatePostsList', data.data)
-            // postsList.value.unshift(data.data)
-            console.log(data.data)
+
+        switch (data.action){
+            case 'create_post':
+                store.commit('journal/addPostInStore', data.data)
+            case 'delete_post':
+                store.commit('journal/deletePostInStore', data.data)
+            case 'update_post':
+                store.commit('journal/updatePostInStore', data.data)
         }
     }
 
 })
 
-const share =() => {
-    
-    console.log(authHeader()['Authorization'])
-    chatSocket.send(JSON.stringify(
-        {   
-            'operation_type': 'create_post',
-            'auth_header': authHeader()['Authorization'].split(),
-            'post_data': 
-                {
-                    'title': 't',
-                    'description': 'test_d',
-                    'body': 'test_b'
-                }
-            
-        }
-
-    
-    ))
-}
 
 onUnmounted(() => {
-    socket.close()
+    websocket.close()
     window.removeEventListener("scroll", handleScroll)
 })
 
-const openReactionModal = () => {
-
-}
 
 </script>
 

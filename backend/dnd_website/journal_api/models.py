@@ -26,8 +26,8 @@ class Account(AbstractUser):
 
 class Post(models.Model):
     title = models.CharField(max_length=255, db_index=True)
-    description = models.CharField(max_length=500, blank=True)
-    body = models.TextField(blank=True)
+    description = models.CharField(max_length=500)
+    body = models.TextField()
     thumbnail = models.URLField(blank=True, null=True)
     created_datetime = models.DateTimeField(auto_now_add=True)
     updated_datetime = models.DateTimeField(auto_now=True)

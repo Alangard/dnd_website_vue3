@@ -10,7 +10,7 @@ export const comments = {
   state: initialState,
   actions: {
 
-    async conusmerSettings({rootGetters, commit}, data){
+    async conusmerSettings({rootGetters, commit}, data){ 
         const socket = data.data.socket
         const access_token = rootGetters['auth/getAccessToken']
         const refresh_token = rootGetters['auth/getRefreshToken']
@@ -36,7 +36,7 @@ export const comments = {
                     let message = {
                     request_id: Date.now(),
                     action: action,
-                    token: response.data.access,
+                    token: response_new_access.data.access,
                     payload: payload
                     }
                     socket.send(JSON.stringify(message))

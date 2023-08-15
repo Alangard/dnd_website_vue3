@@ -31,6 +31,197 @@ from django.core.exceptions import ObjectDoesNotExist
 import json
 
 
+from rest_framework_simplejwt.tokens import UntypedToken
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from django.core.exceptions import ValidationError
+from jwt import decode as jwt_decode
+from django.contrib.auth import get_user_model
+from asgiref.sync import sync_to_async
+
+
+
+# //////////////////////////////////////////////////////////////////////
+
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from .models import Post, Tag
+from .permisions import IsOwnerOrAdmin, IsOwnerOrReadOnly
+from rest_framework.decorators import permission_classes
+from django.utils.text import slugify
+
+class PostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        self.serializer_class = PostCreateSerializer
+
+        # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Парсим данные из запроса
+        data = request.data
+        data['author'] = request.user.id
+
+        # Проверяем, есть ли все необходимые поля
+        if 'title' not in data or 'description' not in data or 'body' not in data:
+            return Response({"error": "Необходимо указать заголовок, описание и содержимое поста"},status=status.HTTP_400_BAD_REQUEST)
+
+        # Создаем пост
+        post_serializer = self.get_serializer(data=data)
+        post_serializer.is_valid(raise_exception=True)
+        post = post_serializer.save()
+
+        # Проверяем, есть ли тэги в запросе
+        if 'tags' in data:
+            tags = data['tags']
+
+            # Создаем и добавляем новые тэги к посту
+            for tag_name in tags:
+                if Tag.objects.filter(name = tag_name).exists():
+                    pass
+                else:
+                    tag_serializer = TagDetailSerializer(data={'name': tag_name})
+                    tag_serializer.is_valid(raise_exception=True)
+                    tag = tag_serializer.save(slug=slugify(tag_name))
+
+            return Response(post_serializer.data, status=status.HTTP_201_CREATED)
+     
+    def destroy(self, request, *args, **kwargs):
+        self.serializer_class = PostDeleteSerializer
+        self.permission_classes = [IsOwnerOrAdmin] # Объявляем permission_classes только для метода destroy
+
+        # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+             # Получаем id поста из kwargs
+            post_id = kwargs.get('pk')
+            if not self.queryset.filter(pk=post_id).exists():
+                return Response({"error": "Пост не существует"}, status=status.HTTP_404_NOT_FOUND)
+
+            instance = self.queryset.get(pk=post_id)
+
+            if request.user.is_staff or request.user.id == instance.author.id:
+
+                self.perform_destroy(instance)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response({"error": "Пользователь не является создателем поста или не имеет достаточно прав"}, status=status.HTTP_403_FORBIDDEN)
+    
+    def partial_update(self, request, *args, **kwargs):
+        self.serializer_class = PostPartialUpdateSerializer
+        self.permission_classes = [IsOwnerOrReadOnly] # Объявляем permission_classes только для метода destroy
+
+        # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+             # Получаем id поста из kwargs
+            post_id = kwargs.get('pk')
+
+            if not self.queryset.filter(pk=post_id).exists():
+                return Response({"error": "Пост не существует"}, status=status.HTTP_404_NOT_FOUND)
+            instance = self.queryset.get(pk=post_id)
+
+            if request.user.is_staff or request.user.id == instance.author.id:
+
+                # Парсим данные из запроса
+                data = request.data
+
+                # Используем частичное обновление модели с помощью аргумента partial=True
+                post_serializer = self.get_serializer(instance, data=data, partial=True)
+                post_serializer.is_valid(raise_exception=True)
+                post_serializer.save()
+
+                return Response(post_serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Пользователь не является создателем поста или не имеет достаточно прав"}, status=status.HTTP_403_FORBIDDEN)
+
+    def retrieve(self, request, *args, **kwargs):
+        
+        # Получаем id поста из kwargs
+        post_id = kwargs.get('pk')
+
+        if not self.queryset.filter(pk=post_id).exists():
+                return Response({"error": "Пост не существует"}, status=status.HTTP_404_NOT_FOUND)
+
+        instance = self.queryset.get(pk=post_id)
+
+        if request.user.is_authenticated and request.user.id == instance.author.id:
+            self.serializer_class = PostDetailOwnerSerializer
+            post_serializer = self.get_serializer(instance)
+            return Response(post_serializer.data)
+            
+        else:
+            if not self.queryset.filter(pk=post_id, is_publish=True).exists():
+                return Response({"error": "Пост не существует или не опубликован"}, status=status.HTTP_404_NOT_FOUND)
+            else:
+                instance = self.queryset.filter(pk=post_id, is_publish=True)
+                # Передаем экземпляр поста сериализатору
+                post_serializer = self.get_serializer(instance)
+                return Response(post_serializer.data)
+        
+    def list(self, request, *args, **kwargs):
+        self.serializer_class = PostListReadSerializer
+        self.filter_backends = [DjangoFilters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+        self.filterset_class  = PostListFilter
+        self.search_fields = ['title', 'description', 'body']
+        self.ordering_fields  = ['id', 'created_datetime']
+        self.ordering = ['-created_datetime']
+        self.pagination_class = PostListPagination
+
+        # Проверяем, авторизован ли пользователь
+        if request.user.is_authenticated:
+            # выдать post_instance с фидом пользователя 
+            pass
+        else:
+            
+            queryset = Post.objects.filter(is_publish=True).\
+            select_related('author').\
+            prefetch_related('tags','post_reactions','comments')
+
+
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+            # Сериализация
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
+        #     page = self.paginate_queryset(queryset)
+        #     if page is not None:
+        #         serializer = self.get_serializer(page, many=True)
+        #         return self.get_paginated_response(serializer.data)
+
+        # # Сериализация
+        # serializer = self.get_serializer(queryset, many=True)
+        # return Response(serializer.data)
+    
+
+
+    # def list(self, request, *args, **kwargs):
+    #     # Проверяем, авторизован ли пользователь
+    #     if not request.user.is_authenticated:
+    #         return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    #     queryset = self.filter_queryset(self.get_queryset())
+
+    #     # Пагинация/получение страницы
+    #     page = self.paginate_queryset(queryset)
+    #     if page is not None:
+    #         serializer = self.get_serializer(page, many=True)
+    #         return self.get_paginated_response(serializer.data)
+
+    #     # Сериализация
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     return Response(serializer.data)
+
+
+
+
 def SendConfirmationCode(email):
     # user = get_object_or_404(Account, email = email)
     try:
@@ -169,9 +360,55 @@ class PostListView(generics.ListAPIView):
 
 
 
-class PostCreateView(generics.CreateAPIView):
-    serializer_class = PostCreateSerializer
-    permission_classes = (IsAuthenticated,) 
+# class PostCreateView(generics.CreateAPIView):
+    # serializer_class = PostCreateSerializer
+    # permission_classes = (IsAuthenticated,) 
+
+    # async def post(self, request, *args, **kwargs):
+    #     payload = kwargs['payload']
+
+    #     if 'Authorization' in request.headers:
+    #         auth_header = request.headers['Authorization']
+    #         token = auth_header.split('Bearer ')[1]
+
+    #         try:
+    #             user = await get_user_obj(token)
+    #             if user is None:
+    #                 raise UserNotFound
+    #             else:
+    #                 user_id = user.id
+    #                 post_data = {**payload, 'author': user_id}
+    #                 serialized_data =  PostCreateSerializer(data=post_data)
+
+    #                 await sync_to_async(serialized_data.is_valid)()
+    #                 if not serialized_data.is_valid():
+    #                     raise serializers.ValidationError(serialized_data.errors)     
+                    
+    #                 try:
+    #                     post = Post(author=user, title=payload['title'], description=payload['description'],  
+    #                                 body=payload['body'],  is_publish=payload['is_publish'],  publish_datetime=payload['publish_datetime'])
+    #                     await sync_to_async(post.save)()
+                        
+    #                     for tag_name in payload['tags']:
+    #                         try:
+    #                             tag = await sync_to_async(Tag.objects.get)(name=tag_name)
+    #                         except Tag.DoesNotExist:
+    #                             tag = await sync_to_async(Tag.objects.create)(name=tag_name)
+    #                         await sync_to_async(post.tags.add)(tag)
+
+    #                 except ValidationError as e:
+    #                     await self.send_json({'request_id': request_id, 'status': '500', 'error_message': 'Your model instance has not been saved'})
+                        
+
+    #         except (InvalidToken, TokenError) as e:
+    #             await self.send_json({'request_id': request_id, 'status': '401', 'error_message': 'Token is invalid or expired'})
+    #         except UserNotFound as e:
+    #             await self.send_json({'request_id': request_id, 'status': '404', 'error_message': 'User object does not exist'})
+    #         except serializers.ValidationError as e:
+    #             await self.send_json({'request_id': request_id, 'status': '400', 'error_message': f'Something wrong with serialization.{e.detail}'})
+    #         except Exception as e:
+    #             await self.send_json({'request_id': request_id, 'status': '400', 'error_message': e})
+
 
 class PostReadUpdateView(generics.RetrieveUpdateAPIView):
     def get_queryset(self):
@@ -186,7 +423,7 @@ class PostReadUpdateView(generics.RetrieveUpdateAPIView):
 
 class PostDestroyView(generics.RetrieveDestroyAPIView):
     queryset = Post.objects.all()
-    serializer_class = PostDetailSerializer
+    serializer_class = PostDetailOwnerSerializer
     permission_classes = (IsOwnerOrAdmin,)
 
     

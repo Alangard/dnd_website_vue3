@@ -185,12 +185,38 @@ class CommentReactionDetailSerializer(serializers.ModelSerializer):
     
 ## Posts serilizers #################################################################
 
-class PostDetailSerializer(serializers.ModelSerializer):
+class PostDetailOwnerSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)
+    author = ShortAccountSerializer(read_only=True)
 
     class Meta:
         model = Post
         fields = '__all__'
+
+class PostDetailViewerSerializer(serializers.ModelSerializer):
+    tags = TagListSerializer(many=True, read_only=True)
+    author = ShortAccountSerializer(read_only=True)
+
+    class Meta:
+        model = Post
+        fields = '__all__'
+        exclude=['thumbnail', 'updated_datetime', 'is_publish', 'publish_datetime', 'commented', 'reacted', 'num_comments']
+
+
+class PostDeleteSerializer(serializers.ModelSerializer):
+    author = ShortAccountSerializer(read_only=True)
+    class Meta:
+        model = Post
+        fields = ['id']
+
+class PostPartialUpdateSerializer(serializers.ModelSerializer):
+    author = ShortAccountSerializer(read_only=True)
+    title = serializers.CharField(required=False)
+    body = serializers.CharField(required=False)
+    description = serializers.CharField(required=False)
+    class Meta:
+        model = Post
+        fields = fields = ['author', 'title', 'description', 'body', 'tags', 'is_publish', 'publish_datetime']
 
 class PostListReadSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)
@@ -234,6 +260,7 @@ class PostListReadSerializer(serializers.ModelSerializer):
         return obj.comments.count()
   
 class PostCreateSerializer(serializers.ModelSerializer):
+    tags = TagListSerializer(many=True, read_only=True)
     class Meta:
         model = Post
         fields = ['author', 'title', 'description', 'body', 'tags', 'is_publish', 'publish_datetime']

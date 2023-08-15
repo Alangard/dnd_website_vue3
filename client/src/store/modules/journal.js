@@ -2,64 +2,65 @@ import JournalService from '@/api/JournalAPI/index'
 import AuthService from '@/api/AuthAPI/auth'
 import axios from 'axios';
 
+import interceptorsInstance, {authHeader} from '@/api/main'
+
 
 const user = JSON.parse(localStorage.getItem('user'));
+const BASE_URL = axios.defaults.baseURL;
 
-const initialState = user
-  ? { status: { loggedIn: true }, user, haveInitialPosts: false, PostsList: [], Reactions: [], Comments: [], Comment: {}, replyIsPressed: ''}
-  : { status: { loggedIn: false }, user: null, haveInitialPosts: false, PostsList: [], Reactions: [], Comments: [], Comment: {}, replyIsPressed: ''};
+const initialState = { haveInitialPosts: false, PostsList: [], };
 
 export const journal = {
   namespaced: true,
   state: initialState,
   actions: {
 
-    async conusmerSettings({state}, data){
-      const socket = data.data.socket
-      const access_token = state?.user?.access
-      const refresh_token = state?.user?.refresh
-      const action = data.action
-      const payload = data.data.payload
+    async conusmerSettings({rootGetters, commit}, data){ 
+        const socket = data.data.socket
+        const access_token = rootGetters['auth/getAccessToken']
+        const refresh_token = rootGetters['auth/getRefreshToken']
+        const action = data.action
+        const payload = data.data.payload
 
-      if (access_token != null) {
-          try{
-              const response = await axios.post(BASE_URL + 'auth/jwt/verify/', {token: access_token})
-  
-              let message = {
-                request_id: Date.now(),
-                action: action,
-                token: access_token,
-                payload: payload
-              }
-              socket.send(JSON.stringify(message))
-          }
-          catch(error){
-              try{
-                  const response = await axios.post(BASE_URL + 'auth/jwt/refresh/', {refresh: refresh_token})
-
-                  let message = {
+        if (access_token != null) {
+            try{
+                const response = await axios.post(BASE_URL + 'auth/jwt/verify/', {token: access_token})
+    
+                let message = {
                   request_id: Date.now(),
                   action: action,
-                  token: response.data.access,
+                  token: access_token,
                   payload: payload
-                  }
-                  socket.send(JSON.stringify(message))
-              }
-              catch(error){
-                  console.log(error)
-              }
-          }
-      }
-      else{
-        console.log('You are logout')
-      }
+                }
+                socket.send(JSON.stringify(message))
+            }
+            catch(error){
+                try{
+                    const response_new_access = await axios.post(BASE_URL + 'auth/jwt/refresh/', {refresh: refresh_token})
+                    commit('auth/setAccessToken', response_new_access.data.access, { root: true })
+                    let message = {
+                    request_id: Date.now(),
+                    action: action,
+                    token: response_new_access.data.access,
+                    payload: payload
+                    }
+                    socket.send(JSON.stringify(message))
+                }
+                catch(error){
+                    console.log(error)
+                }
+            }
+        }
+        else{
+          console.log('You are logout')
+        }
     },
 
-    async conusmerSettingsWithPerm({dispatch, rootGetters}, data){
+    async conusmerSettingsWithPerm({rootGetters, commit}, data){
       const socket = data.data.socket
-      const access_token = state?.user?.access
-      const refresh_token = state?.user?.refresh
-      const user_data = state?.user?.user_data
+      const access_token = rootGetters['auth/getAccessToken']
+      const refresh_token = rootGetters['auth/getRefreshToken']
+      const user_data = rootGetters['auth/getUserData']
       const action = data.action
       const payload = data.data.payload
       const only_for_owner = data.only_for_owner
@@ -72,43 +73,93 @@ export const journal = {
       } 
       
       if (access_token != null) {
-        if(isOwner){
-          try{
-              const response = await axios.post(BASE_URL + 'auth/jwt/verify/', {token: access_token})
+          if(isOwner){
+              try{
+                  const response = await axios.post(BASE_URL + 'auth/jwt/verify/', {token: access_token})
+                  console.log(response)
 
-              let message = {
-                request_id: Date.now(),
-                action: action,
-                token: access_token,
-                payload: payload
+                  let message = {
+                      request_id: Date.now(),
+                      action: action,
+                      token: access_token,
+                      payload: payload
+                  }
+                  socket.send(JSON.stringify(message))
               }
-              socket.send(JSON.stringify(message))
-          }
-          catch(error){
-            try{
-              const response = await axios.post(BASE_URL + 'auth/jwt/refresh/', {refresh: refresh_token})
-
-              let message = {
-                  request_id: Date.now(),
-                  action: action,
-                  token: response.data.access,
-                  payload: payload
+              catch(error){
+                  try{
+                      console.log('1')
+                      const response_new_access = await axios.post(BASE_URL + 'auth/jwt/refresh/', {refresh: refresh_token})
+                      commit('auth/setAccessToken', response_new_access.data.access, { root: true })
+                      let message = {
+                          request_id: Date.now(),
+                          action: action,
+                          token: response_new_access.data.access,
+                          payload: payload
+                      }
+                      socket.send(JSON.stringify(message))
+                  }
+                  catch(error){console.log(error)}
               }
-              socket.send(JSON.stringify(message))
-            }
-            catch(error){
-              console.log(error)
-            }
-          }
-        }
-        else{
-          console.log('You are dont have a permission')
-        }
-      }  
-      else{
-          console.log('You are logout')    
-      }
+          }else{console.log('You are dont have a permission')}
+      }else{console.log('You are logout')}
     },
+
+    // async createPost({dispatch}, data){
+    //     dispatch('conusmerSettings', {action: 'create_post', data: data})
+    // },
+
+    // async deletePost({dispatch}, data){
+    //   dispatch('conusmerSettingsWithPerm', {action: 'delete_post', data: data, only_for_owner: true})
+    // },
+
+    // async partialUpdatePost({dispatch}, data){
+    //   dispatch('conusmerSettingsWithPerm', {action: 'partial_update_post', data: data, only_for_owner: true})
+    // },
+
+    async createPost({},post_data){
+      try{
+        const response = await interceptorsInstance.post(BASE_URL + 'post/', post_data, { headers: authHeader() })
+        return response
+      }  
+      catch(error){console.log(error)}
+    },
+
+    
+    async deletePost({}, post_id){
+      try{
+        const response = await interceptorsInstance.delete(BASE_URL + `post/${post_id}/`, { headers: authHeader() })
+        return response
+      }
+      catch(error){}
+    },
+
+    async partialUpdatePost({}, post_data){
+      try{
+        const post_id = post_data['id']
+        delete post_data['id']
+        const response = await interceptorsInstance.patch(BASE_URL + `post/${post_id}/`, post_data, { headers: authHeader() })
+        return response
+      }
+      catch(error){console.log(error)}
+    },
+
+    async getPostList({}, paginate_url){
+      try{
+        const response = await interceptorsInstance.get(BASE_URL + `post/${paginate_url}`, { headers: authHeader() })
+        return response
+      }
+      catch(error){console.log(error)}
+    },
+  
+    async getPostDetail({}, post_id){
+      try{
+        const response = await interceptorsInstance.get(BASE_URL + `post/${post_id}`, { headers: authHeader() })
+        return response
+      }
+      catch(error){console.log(error)}
+    },
+
 
     get_posts({ commit }, url) {
       return JournalService.get_posts(url).then(
@@ -172,6 +223,41 @@ export const journal = {
 
 
   mutations: {
+
+    addPostInStore(state, data){
+      console.log('you are here')
+      state.PostsList.results.unshift(data)
+    },
+
+    deletePostInStore(state, data){
+      console.log('you are here')
+      const post_id = data.id
+      const post_index = state.PostsList.results.findIndex(post => post.id == post_id)
+      console.log(post_index)
+      if (post_index > -1) {
+        state.PostsList.results.splice(post_index, 1);
+      }
+      else{
+        console.log('Post has not been found', post_index)
+      }
+    },
+
+    updatePostInStore(state, data){
+      console.log('you are here')
+      const post_id = data.id
+      const post_index = state.PostsList.results.findIndex(post => post.id == post_id)
+      console.log(post_index)
+      if (post_index > -1) {
+        state.PostsList.results.splice(post_index, 1, data);
+      }
+      else{
+        console.log('Post has not been found', post_index)
+      }
+    },
+
+
+
+
 
     gettingPostSuccess(state, posts_data){
       state.haveInitialPosts = true;
@@ -250,15 +336,6 @@ export const journal = {
   },
 
   getters: {
-    loginState(state){
-      return state.status.loggedIn
-    },
-
-    getAccessToken(state){
-      if(state.user && state.user.access){
-        return state.user.access
-      } 
-    },
 
     getPostsData(state){
       return state.PostsList
@@ -266,10 +343,6 @@ export const journal = {
 
     getPosts(state){
       return state.PostsList.results
-    },
-
-    getReactions(state){
-      return state.Reactions.results
     },
 
     getPostById(state, post_id){
