@@ -16,19 +16,28 @@ class PostListFilter(DjangoFilters.FilterSet):
 
     created_datetime = DjangoFilters.DateTimeFromToRangeFilter(field_name='created_datetime',)
 
-    tags = DjangoFilters.ModelMultipleChoiceFilter(
-        to_field_name='slug',
-        field_name='tags__slug',
+    tag_name = DjangoFilters.ModelMultipleChoiceFilter(
+        to_field_name='name',
+        field_name='tags__name',
         queryset = Tag.objects.all(),
         conjoined=False,
     )
 
-    username = DjangoFilters.ModelMultipleChoiceFilter(
+    author_username = DjangoFilters.ModelMultipleChoiceFilter(
         to_field_name='username',
         field_name='author__username',
         queryset = Account.objects.all(),
         conjoined=False,
     )
+
+# class PostListFilter(DjangoFilters.FilterSet):
+#     class Meta:
+#         model = Post
+#         fields = {
+#             'tag__slug': ['exact'],
+#             'author__username': ['exact'],
+#             # Добавьте другие поля фильтров, если такие есть
+#         }
 
 class PostReactionsFilter(DjangoFilters.FilterSet):
 

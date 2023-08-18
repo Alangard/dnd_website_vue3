@@ -20,6 +20,15 @@ from django.conf import settings
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.1/howto/static-files/
+
+STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -63,7 +72,9 @@ INSTALLED_APPS = [
     'djoser',
     'django_filters',
     "debug_toolbar",
+    'tinymce',
 ]
+
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
@@ -247,15 +258,7 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = "static/"
-# STATIC_DIR = os.path.join(BASE_DIR, 'static')
-# STATICFILES_DIRS = [STATIC_DIR]
-
-MEDIA_URL = 'media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 # Default primary key field type
@@ -267,3 +270,19 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
+
+
+#TinyMCE settings
+
+TINYMCE_DEFAULT_CONFIG = {
+    "theme": "silver",
+    "height": 500,
+    "menubar": False,
+    "plugins": "advlist autolink lists link image charmap print preview anchor searchreplace visualblocks code "
+    "fullscreen insertdatetime media table paste code help wordcount spellchecker",
+    "toolbar": "bold italic underline strikethrough | fontselect fontsizeselect formatselect |"
+    "alignleft  aligncenter alignright alignjustify | numlist bullist checklist | forecolor backcolor permanentpen formatpainter |"
+    "charmap blockquote | insertfile image media link| a11ycheck ltr rtl | removeformat preview",
+    "custom_undo_redo_levels": 10,
+    "language": "en_EN",  # To force a specific language instead of the Django current language.
+}

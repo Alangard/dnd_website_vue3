@@ -6,7 +6,7 @@
         @filterToolbarIsOpen="filterAsideState =! filterAsideState">
     </FilterAside>
 
-    <QuillEditor :options="options" v-model:content="inputValue" content-type="html" class="mb-5"/>
+
 
     <button @click="getPostDetail()"> save </button>
 
@@ -41,13 +41,13 @@
                         </div>
 
                         <div class="title clickable font-weight-bold text-justify text-subtitle-1 mb-2"
-                            @click="routes.push({name: 'post_detail', params: { id: post.id }})">
+                            @click="routes.push({name: 'journal_detail', params: { id: post.id }})">
                             {{post.title}}
                         </div>
 
                         <v-img 
                             class='thumbnail clickable mw-100 rounded mb-2'
-                            @click="routes.push({name: 'post_detail', params: { id: post.id }})"
+                            @click="routes.push({name: 'journal_detail', params: { id: post.id }})"
                             v-if="post.thumbnail"
                             :src="post.thumbnail"
                             alt="post_img"
@@ -56,7 +56,7 @@
                         </v-img>
                                             
                         <div class="description clickable text-justify text-subtitle-1 mb-2 "
-                            @click="routes.push({name: 'post_detail', params: { id: post.id }})">
+                            @click="routes.push({name: 'journal_detail', params: { id: post.id }})">
                             <div v-html="post.description" :text-data="post.description"></div>
                             <!-- {{post.description}} -->
                         </div>
@@ -145,7 +145,7 @@
                                     <v-btn class='btn clickable transformable' 
                                         rounded="lg" 
                                         :class="{'text-info': post.commented}"
-                                        @click="routes.push({name: 'post_detail', params: { id: post.id }})">
+                                        @click="routes.push({name: 'journal_detail', params: { id: post.id }})">
                                             <v-icon class="pr-2" icon="mdi-comment-text-outline"></v-icon>
                                         {{post.num_comments}}
                                     </v-btn>
@@ -245,7 +245,7 @@ const handleScroll = (e) => {
 
 
 
-const inputValue = ref('<h1>This is header</h1><p>This is paragraph</p>')
+
 const test =() =>{
 }
 
@@ -271,7 +271,7 @@ const test =() =>{
 const createPost = () => {
         const payload ={
             title:'Test title post',
-            body:"asda",
+            body:"<h1>This is header</h1><p>This is paragraph</p>",
             description: 'Test description post',
             is_publish:true,
             publish_datetime:null,
@@ -302,27 +302,6 @@ const getPostDetail =() => {
     const post_id = 5
     store.dispatch('journal/getPostDetail', post_id)
 }
-
-
-
-
-const options = ref({
-    modules: {
-        toolbar: [
-            [{ 'font': [] }, { 'size': ['small', false, 'large', 'huge'] }],
-            ['bold', 'italic', 'underline', 'strike'],
-            ['link', 'blockquote', { 'color': [] }],
-            [{ 'align': [] }, { 'list': 'ordered'}, { 'list': 'bullet' }],
-            ['clean']  
-
-        ]
-    },
-    placeholder: 'Enter a comment...',
-    readOnly: false,
-    theme: 'snow'
-})
-
-
 
 
 onMounted(async () => {

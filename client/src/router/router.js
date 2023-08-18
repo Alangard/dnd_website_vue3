@@ -13,14 +13,21 @@ const routes = [
     path: '/journal',
     name: 'journal',
     meta: {navbar_name: 'Journal', navbar_style: 'default'},
-    component: () => import('@/pages/Journal.vue'),
+    component: () => import('@/pages/Journal/Journal.vue'),
   },
 
   {
     path: '/journal/:id',
-    name: 'post_detail',
+    name: 'journal_detail',
     meta: {navbar_name: 'Post detail', navbar_style: 'default'},
-    component: () => import('@/pages/JournalPostDetail.vue'),
+    component: () => import('@/pages/Journal/JournalPostDetail.vue'),
+  },
+
+  {
+    path: '/journal/create',
+    name: 'journal_create',
+    meta: {navbar_name: 'Post creation', navbar_style: 'default'},
+    component: () => import('@/pages/Journal/JournalCreate.vue'),
   },
 
   {

@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 from django.db.models.signals import *
+from tinymce.models import HTMLField
 
 
 class Account(AbstractUser):
@@ -25,9 +26,9 @@ class Account(AbstractUser):
         super().save(*args, **kwargs)
 
 class Post(models.Model):
-    title = models.CharField(max_length=255, db_index=True)
+    title = models.CharField(max_length=200, db_index=True)
     description = models.CharField(max_length=500)
-    body = models.TextField()
+    body = HTMLField()
     thumbnail = models.URLField(blank=True, null=True)
     created_datetime = models.DateTimeField(auto_now_add=True)
     updated_datetime = models.DateTimeField(auto_now=True)

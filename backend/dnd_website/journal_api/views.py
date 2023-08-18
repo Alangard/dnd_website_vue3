@@ -49,8 +49,48 @@ from .permisions import IsOwnerOrAdmin, IsOwnerOrReadOnly
 from rest_framework.decorators import permission_classes
 from django.utils.text import slugify
 
+from django.utils.timezone import make_aware
+from rest_framework.filters import BaseFilterBackend
+
+
+class PostListPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+
+# class PostFilterBackend(BaseFilterBackend):
+#     def filter_queryset(self, request, queryset, view):
+#         created_datetime_start = request.query_params.get('created_datetime_start')
+#         created_datetime_end = request.query_params.get('created_datetime_end')
+#         tags_names = request.query_params.getlist('tags_names')
+#         author_username = request.query_params.get('author_username')
+
+#         if created_datetime_start and created_datetime_end:
+#             start_date = make_aware(datetime.strptime(created_datetime_start, '%Y-%m-%d'))
+#             end_date = make_aware(datetime.strptime(created_datetime_end, '%Y-%m-%d'))
+#             queryset = queryset.filter(created_datetime__range=(start_date, end_date))
+
+#         if tags_names:
+#             for tag_name in tags_names:
+#                 queryset = queryset.filter(tags__name=tag_name)
+
+#         if author_username:
+#             queryset = queryset.filter(author__username=author_username)
+
+#         return queryset
+
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
+
+    def filter_queryset(self, queryset):
+        filter_backends = [DjangoFilters.DjangoFilterBackend]
+
+        # Other condition for different filter backend goes here
+
+        for backend in list(filter_backends):
+            queryset = backend().filter_queryset(self.request, queryset, view=self)
+        return queryset
+
 
     def create(self, request, *args, **kwargs):
         self.serializer_class = PostCreateSerializer
@@ -157,67 +197,77 @@ class PostViewSet(viewsets.ModelViewSet):
             if not self.queryset.filter(pk=post_id, is_publish=True).exists():
                 return Response({"error": "Пост не существует или не опубликован"}, status=status.HTTP_404_NOT_FOUND)
             else:
-                instance = self.queryset.filter(pk=post_id, is_publish=True)
+                instance = self.queryset.filter(pk=post_id, is_publish=True).\
+                    select_related('author').prefetch_related('tags','post_reactions','comments')
                 # Передаем экземпляр поста сериализатору
                 post_serializer = self.get_serializer(instance)
                 return Response(post_serializer.data)
         
     def list(self, request, *args, **kwargs):
         self.serializer_class = PostListReadSerializer
-        self.filter_backends = [DjangoFilters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-        self.filterset_class  = PostListFilter
-        self.search_fields = ['title', 'description', 'body']
-        self.ordering_fields  = ['id', 'created_datetime']
         self.ordering = ['-created_datetime']
         self.pagination_class = PostListPagination
+
+
+        def myfilters(queryset):
+            instance = queryset
+            params = request.query_params
+
+            for param in params:
+
+                if param == 'start_date' and params[param] != None:
+                    start_date_obj = datetime.strptime(params[param], '%d/%m/%Y')
+                    instance = instance.filter(created_datetime__gte=start_date_obj)
+
+                if param == 'end_date' and params[param] != None:
+                    end_date_obj = datetime.strptime(params[param], '%d/%m/%Y')
+                    instance = instance.filter(created_datetime__lte = end_date_obj)
+
+                if param == 'tags' and params[param] != None:
+                    tags_list = params[param].split(',')
+                    for tag in tags_list:
+                        instance = instance.filter(tags__name=tag)
+                
+                if param == 'username' and params[param] != None:
+                    instance = instance.filter(author__username__exact=params[param])
+
+                if param == 'ordering' and params[param] != None:
+                    ordering_list = params[param].split(',')
+                    instance = instance.order_by(*ordering_list)
+
+            return instance
+
 
         # Проверяем, авторизован ли пользователь
         if request.user.is_authenticated:
             # выдать post_instance с фидом пользователя 
-            pass
-        else:
             
-            queryset = Post.objects.filter(is_publish=True).\
-            select_related('author').\
-            prefetch_related('tags','post_reactions','comments')
+            instance = self.queryset.filter(is_publish=True).\
+                select_related('author').\
+                prefetch_related('tags','post_reactions','comments')
+            
+            instance = myfilters(instance)
+           
+            
 
-
-            page = self.paginate_queryset(queryset)
+            # Пагинация
+            page = self.paginate_queryset(instance)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
+                # serializer = self.get_serializer(self.filter_queryset(instance), page, many=True, context={"request": request})
                 return self.get_paginated_response(serializer.data)
 
             # Сериализация
-            serializer = self.get_serializer(queryset, many=True)
+            # serializer = self.get_serializer(self.filter_queryset(instance), many=True, context={"request": request})
+            serializer = self.get_serializer(instance, many=True)
             return Response(serializer.data)
+            
+        else:
+            # выдать post_instance с фидом для всех
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        #     page = self.paginate_queryset(queryset)
-        #     if page is not None:
-        #         serializer = self.get_serializer(page, many=True)
-        #         return self.get_paginated_response(serializer.data)
 
-        # # Сериализация
-        # serializer = self.get_serializer(queryset, many=True)
-        # return Response(serializer.data)
     
-
-
-    # def list(self, request, *args, **kwargs):
-    #     # Проверяем, авторизован ли пользователь
-    #     if not request.user.is_authenticated:
-    #         return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
-
-    #     queryset = self.filter_queryset(self.get_queryset())
-
-    #     # Пагинация/получение страницы
-    #     page = self.paginate_queryset(queryset)
-    #     if page is not None:
-    #         serializer = self.get_serializer(page, many=True)
-    #         return self.get_paginated_response(serializer.data)
-
-    #     # Сериализация
-    #     serializer = self.get_serializer(queryset, many=True)
-    #     return Response(serializer.data)
 
 
 
@@ -335,10 +385,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 # Post's views ########################################################
 
-class PostListPagination(PageNumberPagination):
-    page_size = 15
-    page_size_query_param = 'page_size'
-    max_page_size = 10000
+
 
 class PostListView(generics.ListAPIView):
 

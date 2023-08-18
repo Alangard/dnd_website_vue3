@@ -263,8 +263,8 @@ const applyFilters =() => {
                                                 const day = date.getDate();
                                                 const month = date.getMonth() + 1;
                                                 const year = date.getFullYear();
-                                                if(i==0){new_date = `&created_datetime_after=${year}-${month}-${day}`}
-                                                else{new_date += `&created_datetime_before=${year}-${month}-${day}`}
+                                                if(i==0){new_date = `&end_dater=${year}-${month}-${day}`}
+                                                else{new_date += `&start_date=${year}-${month}-${day}`}
                                         });
                                         queryset += new_date
                                 }
