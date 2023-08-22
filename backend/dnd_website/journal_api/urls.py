@@ -5,6 +5,7 @@ from .views import *
 router = routers.DefaultRouter()
 
 router.register(r'post', PostViewSet, basename='post')
+router.register(r'tag', TagViewSet, basename='tag')
 
 urlpatterns = [
     # path('auth/', include('djoser.urls.jwt')),

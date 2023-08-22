@@ -8,7 +8,7 @@ import interceptorsInstance, {authHeader} from '@/api/main'
 const user = JSON.parse(localStorage.getItem('user'));
 const BASE_URL = axios.defaults.baseURL;
 
-const initialState = { haveInitialPosts: false, PostsList: [], };
+const initialState = { haveInitialPosts: false, PostsList: [], TagsList: [] };
 
 export const journal = {
   namespaced: true,
@@ -105,48 +105,39 @@ export const journal = {
       }else{console.log('You are logout')}
     },
 
-    // async createPost({dispatch}, data){
-    //     dispatch('conusmerSettings', {action: 'create_post', data: data})
-    // },
-
-    // async deletePost({dispatch}, data){
-    //   dispatch('conusmerSettingsWithPerm', {action: 'delete_post', data: data, only_for_owner: true})
-    // },
-
-    // async partialUpdatePost({dispatch}, data){
-    //   dispatch('conusmerSettingsWithPerm', {action: 'partial_update_post', data: data, only_for_owner: true})
-    // },
-
-    async createPost({},post_data){
+    async createPost({commit},post_data){
       try{
         const response = await interceptorsInstance.post(BASE_URL + 'post/', post_data, { headers: authHeader() })
+        commit('addPostInStore', response.data)
         return response
       }  
       catch(error){console.log(error)}
     },
-
     
-    async deletePost({}, post_id){
+    async deletePost({commit}, post_id){
       try{
         const response = await interceptorsInstance.delete(BASE_URL + `post/${post_id}/`, { headers: authHeader() })
+        commit('deletePostInStore', response.data)
         return response
       }
       catch(error){}
     },
 
-    async partialUpdatePost({}, post_data){
+    async partialUpdatePost({commit}, post_data){
       try{
         const post_id = post_data['id']
         delete post_data['id']
         const response = await interceptorsInstance.patch(BASE_URL + `post/${post_id}/`, post_data, { headers: authHeader() })
+        commit('updatePostInStore', response.data)
         return response
       }
       catch(error){console.log(error)}
     },
 
-    async getPostList({}, paginate_url){
+    async getPostList({commit}, paginate_url){
       try{
         const response = await interceptorsInstance.get(BASE_URL + `post/${paginate_url}`, { headers: authHeader() })
+        commit('setPostListInStore', response.data)
         return response
       }
       catch(error){console.log(error)}
@@ -155,11 +146,21 @@ export const journal = {
     async getPostDetail({}, post_id){
       try{
         const response = await interceptorsInstance.get(BASE_URL + `post/${post_id}`, { headers: authHeader() })
-        return response
+        return response.data
       }
       catch(error){console.log(error)}
     },
 
+    async getTagsList({commit}){
+      try{
+        const response = await interceptorsInstance.get(BASE_URL + `tag/`)
+        console.log(response)
+        commit('setTagsInStore', response.data)
+
+        return response
+      }
+      catch(error){console.log(error)}
+    },
 
     get_posts({ commit }, url) {
       return JournalService.get_posts(url).then(
@@ -224,16 +225,17 @@ export const journal = {
 
   mutations: {
 
+    setPostListInStore(state, data){
+      state.PostsList = data
+    },
+
     addPostInStore(state, data){
-      console.log('you are here')
       state.PostsList.results.unshift(data)
     },
 
     deletePostInStore(state, data){
-      console.log('you are here')
       const post_id = data.id
       const post_index = state.PostsList.results.findIndex(post => post.id == post_id)
-      console.log(post_index)
       if (post_index > -1) {
         state.PostsList.results.splice(post_index, 1);
       }
@@ -243,10 +245,8 @@ export const journal = {
     },
 
     updatePostInStore(state, data){
-      console.log('you are here')
       const post_id = data.id
       const post_index = state.PostsList.results.findIndex(post => post.id == post_id)
-      console.log(post_index)
       if (post_index > -1) {
         state.PostsList.results.splice(post_index, 1, data);
       }
@@ -255,29 +255,8 @@ export const journal = {
       }
     },
 
-
-
-
-
-    gettingPostSuccess(state, posts_data){
-      state.haveInitialPosts = true;
-      state.PostsList = posts_data
-    },
-
-    gettingPostFailure(state){
-      state.haveInitialPosts = false;
-    },
-
-    setPostsList(state, posts_list){
-      state.PostsList = posts_list
-    },
-
-    setAccessToken(state, token){
-      state.user.access = token
-    },
-
-    updatePostsList(state, post_data){
-      state.PostsList.unshift(post_data)
+    setTagsInStore(state, data){
+      state.TagsList = data
     },
 
     gettingReactionsSuccess(state, reactions_data){
@@ -329,10 +308,6 @@ export const journal = {
       }
       post_obj.user_reaction.reaction_type = chosen_data.reaction_type
     },
-
-    addPostInStore(state, data){
-      state.PostsList.results.unshift(data);
-    },
   },
 
   getters: {
@@ -348,6 +323,10 @@ export const journal = {
     getPostById(state, post_id){
       return state.PostsList.results.filter(post => post.id == 2)
     },
+
+    getTagsList(state){
+      return state.TagsList
+    }
 
 
 

@@ -305,7 +305,7 @@ const getPostDetail =() => {
 
 
 onMounted(async () => {
-    getPostList('?page=1&page_size=7')
+    getPostList('?page=1&page_size=1')
     // store.dispatch('journal/get_posts', 'posts/?page=1&page_size=7')
     // window.addEventListener('scroll', handleScroll);
 
@@ -315,10 +315,10 @@ onMounted(async () => {
         switch (data.action){
             case 'create_post':
                 store.commit('journal/addPostInStore', data.data)
-            case 'delete_post':
-                store.commit('journal/deletePostInStore', data.data)
-            case 'update_post':
-                store.commit('journal/updatePostInStore', data.data)
+            // case 'delete_post':
+            //     store.commit('journal/deletePostInStore', data.data)
+            // case 'update_post':
+            //     store.commit('journal/updatePostInStore', data.data)
         }
     }
 

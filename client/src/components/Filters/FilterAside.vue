@@ -143,7 +143,7 @@ let output_filters_data = ref({
 
 onMounted(async () => {
        if(store.getters.getUsersList.length == 0){store.dispatch('fetchUsersData', {'url': 'accounts/'});}
-       if(store.getters.getTagsList.length == 0){store.dispatch('fetchTagsData', {'url': 'tags/'});}            
+       store.dispatch('journal/getTagsList')          
 })
 
 onUpdated(() => {
@@ -180,7 +180,7 @@ let loaded = ref(false)
 const search_author_query = ref('');
 
 const users = computed(() => {return store.getters.getUsersList});
-const tags = computed(() => {return store.getters.getTagsList});
+const tags = computed(() => {return store.getters['journal/getTagsList']});
 const filteredUserList = computed(() => {return users.value.filter(user => user.username.toLowerCase().indexOf(search_author_query.value.toLowerCase()) !== -1)});
 
 

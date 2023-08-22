@@ -58,26 +58,6 @@ class PostListPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 1000
 
-# class PostFilterBackend(BaseFilterBackend):
-#     def filter_queryset(self, request, queryset, view):
-#         created_datetime_start = request.query_params.get('created_datetime_start')
-#         created_datetime_end = request.query_params.get('created_datetime_end')
-#         tags_names = request.query_params.getlist('tags_names')
-#         author_username = request.query_params.get('author_username')
-
-#         if created_datetime_start and created_datetime_end:
-#             start_date = make_aware(datetime.strptime(created_datetime_start, '%Y-%m-%d'))
-#             end_date = make_aware(datetime.strptime(created_datetime_end, '%Y-%m-%d'))
-#             queryset = queryset.filter(created_datetime__range=(start_date, end_date))
-
-#         if tags_names:
-#             for tag_name in tags_names:
-#                 queryset = queryset.filter(tags__name=tag_name)
-
-#         if author_username:
-#             queryset = queryset.filter(author__username=author_username)
-
-#         return queryset
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
@@ -117,13 +97,13 @@ class PostViewSet(viewsets.ModelViewSet):
             tags = data['tags']
 
             # Создаем и добавляем новые тэги к посту
-            for tag_name in tags:
-                if Tag.objects.filter(name = tag_name).exists():
+            for tag_slug in tags:
+                if Tag.objects.filter(slug = tag_slug).exists():
                     pass
                 else:
-                    tag_serializer = TagDetailSerializer(data={'name': tag_name})
+                    tag_serializer = TagDetailSerializer(data={'name': tag_slug})
                     tag_serializer.is_valid(raise_exception=True)
-                    tag = tag_serializer.save(slug=slugify(tag_name))
+                    tag = tag_serializer.save(slug=slugify(tag_slug))
 
             return Response(post_serializer.data, status=status.HTTP_201_CREATED)
      
@@ -247,8 +227,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 prefetch_related('tags','post_reactions','comments')
             
             instance = myfilters(instance)
-           
-            
+        
 
             # Пагинация
             page = self.paginate_queryset(instance)
@@ -267,6 +246,17 @@ class PostViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 
+class TagViewSet(viewsets.ModelViewSet):
+    queryset = Tag.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        self.serializer_class = TagListSerializer
+        
+        serializer = self.get_serializer(self.queryset, many=True)
+        return Response(serializer.data)
+
+
+            
     
 
 

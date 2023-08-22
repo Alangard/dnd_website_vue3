@@ -48,7 +48,7 @@ class PostAdmin(admin.ModelAdmin):
     list_display = ['id','author','created_datetime', 'is_publish', 'title', 'description', ]
 
 class TagAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name']
+    list_display = ['id', 'name', 'slug']
     prepopulated_fields = {'slug': ('name',)}
 
 class CommentAdmin(admin.ModelAdmin):
