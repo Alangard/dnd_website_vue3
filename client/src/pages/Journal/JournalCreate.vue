@@ -86,6 +86,10 @@
                     @blur="validator.body.$touch" 
                     content-type="html" 
                     class="mb-5"/>
+
+                   
+                <TextEditor></TextEditor>
+
             </div>
 
             <div class="tags">
@@ -127,7 +131,7 @@
                         v-model="post_data.publish_option"
                         :label="`Publish: ${post_data.publish_option}`"
                         @update:model-value="changePublishOption"
-                        color="primary"
+                        color="info"
                         hide-details
                         true-value="later"
                         false-value="now">
@@ -152,7 +156,7 @@
                 <v-switch
                     v-model="post_data.allow_comments"
                     :label="`Allow comments: ${post_data.allow_comments}`"
-                    color="primary"
+                    color="info"
                     hide-details
                     true-value="yes"
                     false-value="no">
@@ -213,6 +217,8 @@ import { useVuelidate } from '@vuelidate/core'
 import { required, helpers, maxLength } from '@vuelidate/validators'
 import routes from '@/router/router' 
 
+import TextEditor from '@/components/TextEditor/TextEditor.vue'
+
 let theme = useTheme();
 let store = useStore();
 
@@ -220,6 +226,17 @@ let store = useStore();
 const tagList = computed(() => store.getters['journal/getTagsList'])
 const tagsSlugList = computed(() => tagList.value.map(tag => tag.slug));
 const tagSerch = ref(null)
+
+
+import { useEditor, EditorContent } from '@tiptap/vue-3'
+import StarterKit from '@tiptap/starter-kit'
+
+const editor = useEditor({
+  content: '<p>I’m running Tiptap with Vue.js. 🎉</p>',
+  extensions: [
+    StarterKit,
+  ],
+})
 
 let thumbnail_source = ref(null)
 let showDialogButton = ref(false)
