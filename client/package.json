@@ -8,8 +8,12 @@
   },
   "dependencies": {
     "@mdi/font": "5.9.55",
+    "@tiptap/extension-color": "^2.1.7",
+    "@tiptap/extension-font-family": "^2.1.7",
+    "@tiptap/extension-highlight": "^2.1.7",
     "@tiptap/extension-link": "^2.1.7",
     "@tiptap/extension-text-align": "^2.1.7",
+    "@tiptap/extension-text-style": "^2.1.7",
     "@tiptap/extension-underline": "^2.1.6",
     "@tiptap/pm": "^2.1.6",
     "@tiptap/starter-kit": "^2.1.6",

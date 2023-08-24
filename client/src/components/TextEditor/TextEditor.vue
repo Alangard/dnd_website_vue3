@@ -1,5 +1,5 @@
 <template>
-    <div class="text-edtor_toolbar" v-if="editor">
+  <div class="text-edtor_toolbar" v-if="editor">
         <v-btn class="bold pa-0 mr-1" 
             height="1.5rem"
             min-width="25px" 
@@ -92,7 +92,7 @@
         </v-btn>
 
 
-        <v-btn class="ordered_list clear pa-0 mr-1" 
+        <v-btn class="ordered_list  pa-0 mr-1" 
             height="1.5rem"
             min-width="25px" 
             width="25px" 
@@ -103,7 +103,7 @@
         </v-btn>
 
 
-        <v-btn class="blockquote clear pa-0 mr-1" 
+        <v-btn class="blockquote pa-0 mr-1" 
             height="1.5rem"
             min-width="25px" 
             width="25px" 
@@ -114,7 +114,7 @@
         </v-btn>
 
 
-        <v-btn class="horizontal_divider clear pa-0 mr-1" 
+        <v-btn class="horizontal_divider pa-0 mr-1" 
             height="1.5rem"
             min-width="25px" 
             width="25px" 
@@ -124,7 +124,7 @@
         </v-btn>
 
 
-        <v-btn class="undo clear pa-0 mr-1" 
+        <v-btn class="undo pa-0 mr-1" 
             height="1.5rem"
             min-width="25px" 
             width="25px" 
@@ -135,7 +135,7 @@
         </v-btn>
 
 
-        <v-btn class="redo clear pa-0 mr-1" 
+        <v-btn class="redo pa-0 mr-1" 
             height="1.5rem"
             min-width="25px" 
             width="25px" 
@@ -145,31 +145,135 @@
             <v-icon icon="mdi-redo" size="large" ></v-icon>
         </v-btn>
 
+   
+        <v-menu class="alignment">
+            <template v-slot:activator="{ props }">
+                <v-btn
+                    v-bind="props"
+                    class="alignment pa-0 mr-1" 
+                    height="1.5rem"
+                    min-width="25px" 
+                    width="25px" 
+                    variant="text">
+                        <v-icon icon="mdi-format-align-center" size="large" ></v-icon>
+                </v-btn>
+            </template>
+            <v-list class="py-1">
+                <v-list-item class="left_align py-0 px-2" min-height="30px"
+                  @click="editor.chain().focus().setTextAlign('left').run()" 
+                  :class="{ 'is-active': editor.isActive({ textAlign: 'left' }) }">
 
-        <button @click="editor.chain().focus().setTextAlign('left').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'left' }) }">
-        left
-        </button>
-        <button @click="editor.chain().focus().setTextAlign('center').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'center' }) }">
-        center
-        </button>
-        <button @click="editor.chain().focus().setTextAlign('right').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }">
-        right
-        </button>
-        <button @click="editor.chain().focus().setTextAlign('justify').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'justify' }) }">
-        justify
-        </button>
-        <button @click="editor.chain().focus().unsetTextAlign().run()">
-        unsetTextAlign
-        </button>
+                  <template v-slot:prepend>
+                    <v-icon class="ma-0" icon="mdi-format-align-left" size="small"></v-icon>
+                  </template>
+                </v-list-item>
+                <v-list-item class="right_align py-0 px-2" min-height="30px"
+                  @click="editor.chain().focus().setTextAlign('right').run()" 
+                  :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }">
 
-        <button @click="setLink" :class="{ 'is-active': editor.isActive('link') }">
-        setLink
-        </button>
-        <button @click="editor.chain().focus().unsetLink().run()" :disabled="!editor.isActive('link')">
-        unsetLink
-        </button>
+                  <template v-slot:prepend>
+                    <v-icon class="ma-0" icon="mdi-format-align-right" size="small"></v-icon>
+                  </template>
+                </v-list-item>
+                <v-list-item class="center_align py-0 px-2" min-height="30px"
+                  @click="editor.chain().focus().setTextAlign('center').run()" 
+                  :class="{ 'is-active': editor.isActive({ textAlign: 'center' }) }">
 
-        img, youtube, table, highlight, fontfamily, placeholder, mantion?
+                  <template v-slot:prepend>
+                    <v-icon class="ma-0" icon="mdi-format-align-center" size="small"></v-icon>
+                  </template>
+                </v-list-item>
+                <v-list-item class="justify_align py-0 px-2" min-height="30px"
+                  @click="editor.chain().focus().setTextAlign('justify').run()" 
+                  :class="{ 'is-active': editor.isActive({ textAlign: 'justify' }) }">
+
+                  <template v-slot:prepend>
+                    <v-icon class="ma-0" icon="mdi-format-align-justify" size="small"></v-icon>
+                  </template>
+                </v-list-item>
+            </v-list>
+        </v-menu>
+
+
+        <v-btn class="set_link pa-0 mr-1" 
+            height="1.5rem"
+            min-width="25px" 
+            width="25px" 
+            variant="text"
+            @click="setLink()"
+            :class="{ 'is-active text-info v-btn--variant-tonal': editor.isActive('link') }">
+            <v-icon icon="mdi-link-variant-plus" size="large" ></v-icon>
+        </v-btn>
+
+
+        <v-btn class="remove_link pa-0 mr-1" 
+            height="1.5rem"
+            min-width="25px" 
+            width="25px" 
+            variant="text"
+            @click="($event) => {editor.chain().focus().unsetLink().run(); toggleBtn($event)}"
+            :disabled="!editor.isActive('link')">
+            <v-icon icon="mdi-link-variant-remove" size="large" ></v-icon>
+        </v-btn>
+
+
+        <v-menu class="text-color">
+            <template v-slot:activator="{ props }">
+                <v-btn
+                    v-bind="props"
+                    class="text-color pa-0 mr-1" 
+                    height="1.5rem"
+                    min-width="25px" 
+                    width="25px" 
+                    variant="text">
+                      <v-icon icon="mdi-palette" size="large" ></v-icon>
+                </v-btn>
+            </template>
+            <div class="d-flex flex-column">
+              <v-color-picker v-model="textColor" mode='hex' @update:model-value="editor.chain().focus().setColor(textColor).run()"></v-color-picker>
+            </div>
+        </v-menu>
+
+
+        <v-menu class="text-highlight">
+            <template v-slot:activator="{ props }">
+                <v-btn
+                    v-bind="props"
+                    class="text-highlight pa-0 mr-1" 
+                    height="1.5rem"
+                    min-width="25px" 
+                    width="25px" 
+                    variant="text">
+                      <v-icon icon="mdi-marker" size="large" ></v-icon>
+                </v-btn>
+            </template>
+            <div class="d-flex flex-column">
+              <v-color-picker v-model="textHighlight" mode='hex' @update:model-value="editor.chain().focus().toggleHighlight({ color: textHighlight }).run()"></v-color-picker>
+            </div>
+        </v-menu>
+
+
+        <v-combobox class="font_family"
+          v-model="fontFamily"
+          :items="['Comic Sans', 'Colorado', 'Florida', 'Georgia', 'Texas', 'Wyoming']"
+          :style="'font-family:'+ fontFamily"
+          @update:model-value="editor.chain().focus().setFontFamily(fontFamily).run()" 
+          style="width:170px"
+          placeholder="Choose font family"
+          persistent-placeholder
+          hide-no-data
+          hide-details
+          density="compact"  
+          variant="underlined">
+            <template v-slot:item="{ item }">
+              <div :style="{ fontFamily: item.title}">{{ item.title }}</div>
+            </template>
+        </v-combobox>
+
+
+
+
+        img, youtube, table, placeholder, mantion?
 
 
 
@@ -185,10 +289,17 @@ import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import TextAlign from '@tiptap/extension-text-align'
 import Link from '@tiptap/extension-link'
+import TextStyle from '@tiptap/extension-text-style'
+import { Color } from '@tiptap/extension-color'
+import Highlight from '@tiptap/extension-highlight'
+import FontFamily from '@tiptap/extension-font-family'
 import { Editor, EditorContent } from '@tiptap/vue-3'
 
   
 const editor = ref(null);
+const textColor = ref('#000000')
+const textHighlight = ref('#000000')
+const fontFamily = ref('Roboto')
 
 onBeforeUnmount(() => {
   editor.value.destroy();
@@ -237,6 +348,10 @@ onBeforeMount(() => {
        Link.configure({
           openOnClick: true,
         }),
+      TextStyle,
+      FontFamily,
+      Color,
+      Highlight.configure({ multicolor: true }),
     ],
     content,
   });
@@ -251,34 +366,20 @@ const toggleBtn = (e) => {
 
 
 const setLink = () => {
-      const previousUrl = this.editor.getAttributes('link').href
+      const previousUrl = editor.value.getAttributes('link').href
       const url = window.prompt('URL', previousUrl)
 
       // cancelled
-      if (url === null) {
-        return
-      }
+      if (url === null) {return}
 
       // empty
       if (url === '') {
-        editor
-          .chain()
-          .focus()
-          .extendMarkRange('link')
-          .unsetLink()
-          .run()
-
+        editor.value.chain().focus().extendMarkRange('link').unsetLink().run()
         return
       }
-
       // update link
-      editor
-        .chain()
-        .focus()
-        .extendMarkRange('link')
-        .setLink({ href: url })
-        .run()
-    },
+      editor.value.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
+    }
 
 </script>
   
@@ -287,6 +388,10 @@ const setLink = () => {
   .tiptap {
     > * + * {
       margin-top: 0.75em;
+    }
+
+    a:hover{
+        cursor: pointer;
     }
   
     ul,
