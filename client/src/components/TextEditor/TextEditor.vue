@@ -271,9 +271,109 @@
         </v-combobox>
 
 
+        <v-menu class="table">
+            <template v-slot:activator="{ props }">
+                <v-btn
+                    v-bind="props"
+                    class="table pa-0 mr-1" 
+                    height="1.5rem"
+                    min-width="25px" 
+                    width="25px" 
+                    variant="text">
+                      <v-icon icon="mdi-table" size="large" ></v-icon>
+                </v-btn>
+            </template>
+            <div class="d-flex flex-column">
+              <v-btn class="insert_table pa-0 mr-1" 
+                  height="1.5rem"
+                  min-width="25px" 
+                  width="25px" 
+                  variant="text"
+                  @click="($event) => {editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(); toggleBtn($event)}">
+                    <v-icon icon="mdi-table-large-plus" size="large" ></v-icon>
+              </v-btn>
+
+              <v-btn class="delete_table pa-0 mr-1" 
+                  height="1.5rem"
+                  min-width="25px" 
+                  width="25px" 
+                  variant="text"
+                  @click="($event) => {editor.chain().focus().deleteTable().run(); toggleBtn($event)}">
+                    <v-icon icon="mdi-table-large-remove" size="large" ></v-icon>
+              </v-btn>
+
+              <v-btn class="add_column_before pa-0 mr-1" 
+                  height="1.5rem"
+                  min-width="25px" 
+                  width="25px" 
+                  variant="text"
+                  @click="($event) => {editor.chain().focus().addColumnBefore().run(); toggleBtn($event)}">
+                    <v-icon icon="mdi-table-column-plus-after" size="large" ></v-icon>
+              </v-btn>
+
+              <v-btn class="add_column_after pa-0 mr-1" 
+                  height="1.5rem"
+                  min-width="25px" 
+                  width="25px" 
+                  variant="text"
+                  @click="($event) => {editor.chain().focus().addColumnAfter().run(); toggleBtn($event)}">
+                    <v-icon icon="mdi-table-column-plus-before" size="large" ></v-icon>
+              </v-btn>
+
+              <v-btn class="delete_column pa-0 mr-1" 
+                  height="1.5rem"
+                  min-width="25px" 
+                  width="25px" 
+                  variant="text"
+                  @click="($event) => {editor.chain().focus().deleteColumn().run(); toggleBtn($event)}">
+                    <v-icon icon="mdi-table-column-remove" size="large" ></v-icon>
+              </v-btn>
+
+              
+              <v-btn class="add_row_before pa-0 mr-1" 
+                  height="1.5rem"
+                  min-width="25px" 
+                  width="25px" 
+                  variant="text"
+                  @click="($event) => {editor.chain().focus().addRowBefore().run(); toggleBtn($event)}">
+                    <v-icon icon="mdi-table-row-plus-before" size="large" ></v-icon>
+              </v-btn>
+
+              <v-btn class="add_row_after pa-0 mr-1" 
+                  height="1.5rem"
+                  min-width="25px" 
+                  width="25px" 
+                  variant="text"
+                  @click="($event) => {editor.chain().focus().addRowAfter().run(); toggleBtn($event)}">
+                    <v-icon icon="mdi-table-row-plus-after" size="large" ></v-icon>
+              </v-btn>
+
+              
+              <v-btn class="delete_row pa-0 mr-1" 
+                  height="1.5rem"
+                  min-width="25px" 
+                  width="25px" 
+                  variant="text"
+                  @click="($event) => {editor.chain().focus().deleteRow().run(); toggleBtn($event)}">
+                    <v-icon icon="mdi-table-row-remove" size="large" ></v-icon>
+              </v-btn>
+
+              <v-btn class="merge_or_split pa-0 mr-1" 
+                  height="1.5rem"
+                  min-width="25px" 
+                  width="25px" 
+                  variant="text"
+                  @click="($event) => {editor.chain().focus().mergeOrSplit().run(); toggleBtn($event)}">
+                    <v-icon icon="mdi-table-merge-cells" size="large" ></v-icon>
+              </v-btn>
 
 
-        img, youtube, table, placeholder, mantion?
+            </div>
+        </v-menu>
+
+
+        img, youtube, table (use a v-list like of a alignment block)
+
 
 
 
@@ -281,6 +381,8 @@
 
     </div>
     <editor-content class="text-editor" :editor="editor"/>
+
+    <v-btn @click="test()">Click me</v-btn>
   </template>
   
 <script setup>
@@ -293,10 +395,18 @@ import TextStyle from '@tiptap/extension-text-style'
 import { Color } from '@tiptap/extension-color'
 import Highlight from '@tiptap/extension-highlight'
 import FontFamily from '@tiptap/extension-font-family'
-import { Editor, EditorContent } from '@tiptap/vue-3'
+import Mention from '@tiptap/extension-mention';
+import suggestion from "./Mention/suggestion"
+import Placeholder from '@tiptap/extension-placeholder'
+import Gapcursor from '@tiptap/extension-gapcursor'
+import Table from '@tiptap/extension-table'
+import TableCell from '@tiptap/extension-table-cell'
+import TableHeader from '@tiptap/extension-table-header'
+import TableRow from '@tiptap/extension-table-row'
+import { Editor, useEditor, EditorContent } from '@tiptap/vue-3'
 
-  
-const editor = ref(null);
+
+let editor = ref(null)
 const textColor = ref('#000000')
 const textHighlight = ref('#000000')
 const fontFamily = ref('Roboto')
@@ -304,6 +414,11 @@ const fontFamily = ref('Roboto')
 onBeforeUnmount(() => {
   editor.value.destroy();
 });
+
+
+const test = () =>{
+  console.log(editor.value.getHTML())
+}
 
 
 const content = `
@@ -337,8 +452,8 @@ const content = `
   </blockquote>
 `;
 
-onBeforeMount(() => {
-  editor.value = new Editor({
+
+editor = useEditor({
     extensions: [
       StarterKit,
       Underline,
@@ -352,10 +467,25 @@ onBeforeMount(() => {
       FontFamily,
       Color,
       Highlight.configure({ multicolor: true }),
+      Mention.configure({
+        HTMLAttributes: {
+          class: 'text-info px-2',
+        },
+        suggestion,
+      }),
+      Placeholder.configure({
+        placeholder: 'Write something …'
+      }),
+      Gapcursor,
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
     ],
-    content,
   });
-});
+
 
 const toggleBtn = (e) => {
         const element_obj = e.currentTarget.classList
@@ -443,5 +573,81 @@ const setLink = () => {
       border-top: 2px solid rgba(#0D0D0D, 0.1);
       margin: 2rem 0;
     }
-  }
+
+    table {
+      border-collapse: collapse;
+      table-layout: fixed;
+      width: 100%;
+      margin: 0;
+      overflow: hidden;
+
+      td,
+      th {
+        min-width: 1em;
+        border: 2px solid #ced4da;
+        padding: 3px 5px;
+        vertical-align: top;
+        box-sizing: border-box;
+        position: relative;
+
+        > * {
+          margin-bottom: 0;
+        }
+      }
+
+      th {
+        font-weight: bold;
+        text-align: left;
+        background-color: #f1f3f5;
+      }
+
+      .selectedCell:after {
+        z-index: 2;
+        position: absolute;
+        content: "";
+        left: 0; right: 0; top: 0; bottom: 0;
+        background: rgba(200, 200, 255, 0.4);
+        pointer-events: none;
+      }
+
+      .column-resize-handle {
+        position: absolute;
+        right: -2px;
+        top: 0;
+        bottom: -2px;
+        width: 4px;
+        background-color: #adf;
+        pointer-events: none;
+      }
+
+      p {
+        margin: 0;
+      }
+    }
+}
+
+.tableWrapper {
+  padding: 1rem 0;
+  overflow-x: auto;
+}
+
+.resize-cursor {
+  cursor: ew-resize;
+  cursor: col-resize;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
+}
+
+.mention {
+  border: 1px solid #000;
+  border-radius: 0.4rem;
+  padding: 0.1rem 0.3rem;
+  box-decoration-break: clone;
+}
   </style>
