@@ -1,5 +1,7 @@
 from django.urls import path, include
 from rest_framework import routers
+from django.conf.urls.static import static
+from django.conf import settings
 from .views import *
 
 router = routers.DefaultRouter()
@@ -51,3 +53,5 @@ urlpatterns = [
 
     path('tags/', TagsListView.as_view(), name='tags_list-url')
 ]
+
+

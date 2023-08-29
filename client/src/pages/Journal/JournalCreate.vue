@@ -76,20 +76,9 @@
                 </div> -->
             </div>
 
-            <div class="body">
+            <div class="body mb-3">
                 <span class="text-subtitle-1">Post body</span>
-                <QuillEditor 
-                    :options="options" 
-                    v-model:content="post_data.body" 
-                    :error-messages="validator.body.$errors.map(e => e.$message)"
-                    @input="validator.body.$touch"
-                    @blur="validator.body.$touch" 
-                    content-type="html" 
-                    class="mb-5"/>
-
-                   
-                <TextEditor></TextEditor>
-
+                <TextEditor @editor-content="(data) => {post_data.body = data}"></TextEditor>
             </div>
 
             <div class="tags">
@@ -171,12 +160,10 @@
         <v-card-actions class="d-flex flex-row justify-space-between flex-wrap">
             <v-btn class='my-2 mx-2' variant="outlined" color="error" @click="cancelPostCreation">Cancel</v-btn>
             <div class="save">
-                <v-btn class='mx-2' variant="outlined">Save to draft</v-btn>
-                <v-btn class='mx-2 my-2' v-if="post_data.publish_option == 'later'" variant="outlined">Postponed publication</v-btn>
-                <v-btn class='mx-2 my-2' v-else variant="outlined">Publish</v-btn> 
+                <v-btn class='mx-2' variant="outlined" @click="save_to_draft">Save to draft</v-btn>
+                <v-btn class='mx-2 my-2' v-if="post_data.publish_option == 'later'" variant="outlined" @click="postponed_publish">Postponed publication</v-btn>
+                <v-btn class='mx-2 my-2' v-else variant="outlined" @click="publish">Publish</v-btn> 
             </div>
-            
-
         </v-card-actions>
 
 
@@ -207,6 +194,32 @@
             </v-card-actions>
         </v-card>
     </v-dialog>
+
+
+    <v-dialog v-model="validationErrorAlert" width="auto">
+        <v-card>
+            <div class="d-flex flex-row align-center">
+                <v-icon class='mx-2' color="warning" size="large" icon="mdi-alert-circle-check-outline"></v-icon>
+                <v-card-title class="text-h5 px-0"  style="white-space: normal; overflow: hidden;">Field validation error</v-card-title>
+            </div>    
+            <v-card-text class="px-4" style="white-space: normal; overflow: hidden;">
+                You can't submit a post until the errors are fixed
+                <v-list-item class="pl-0" v-for="(error, index) in validator.$errors" :key="index">
+                    <template v-slot:prepend>
+                        <v-icon class='mr-2' icon="mdi-circle-small"></v-icon>
+                    </template>
+                    <v-list-item-title>{{ `Error of the '${error.$property}' field` }}</v-list-item-title>
+                    <v-list-item-subtitle style="white-space: normal; overflow: hidden;">{{error.$message}}</v-list-item-subtitle>
+                </v-list-item>
+            </v-card-text>
+            <v-spacer></v-spacer>
+            <v-card-actions class="d-flex flex-wrap justify-end">
+                <v-btn class='my-2 mr-2' variant="text" color="success" @click="validationErrorAlert = false" >I got it</v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+
+
 </template>
 
 <script setup>
@@ -227,21 +240,23 @@ const tagList = computed(() => store.getters['journal/getTagsList'])
 const tagsSlugList = computed(() => tagList.value.map(tag => tag.slug));
 const tagSerch = ref(null)
 
-
-import { useEditor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-
-const editor = useEditor({
-  content: '<p>I’m running Tiptap with Vue.js. 🎉</p>',
-  extensions: [
-    StarterKit,
-  ],
-})
-
 let thumbnail_source = ref(null)
 let showDialogButton = ref(false)
 let showPreviewDialog = ref(false)
 let cancelCautionDialog = ref(false)
+let validationErrorAlert = ref(false)
+
+const save_to_draft=()=>{
+
+}
+
+const postponed_publish=()=>{
+    
+}
+
+const publish=()=>{
+    
+}
 
 const post_data_initial = {
         'title':  '',
@@ -275,24 +290,6 @@ const validator_rules = computed(() => {
 });
 
 const validator = useVuelidate(validator_rules, post_data)
-
-
-
-const options = ref({
-    modules: {
-        toolbar: [
-            [{ 'font': [] }, { 'size': ['small', false, 'large', 'huge'] }],
-            ['bold', 'italic', 'underline', 'strike'],
-            ['link', 'blockquote', { 'color': [] }],
-            [{ 'align': [] }, { 'list': 'ordered'}, { 'list': 'bullet' }],
-            ['clean']  
-
-        ]
-    },
-    placeholder: 'Enter a post text...',
-    readOnly: false,
-    theme: 'snow'
-})
 
 
 onMounted(async () => {

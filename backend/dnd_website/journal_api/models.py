@@ -9,7 +9,7 @@ from tinymce.models import HTMLField
 class Account(AbstractUser):
     email = models.EmailField(unique=True)
     slug = models.SlugField(max_length=150, db_index=True, blank=True, null=True)
-    avatar = models.URLField(default='', blank=True)
+    avatar = models.ImageField(upload_to='media/images/user_avatars/%Y/%m/%d/', blank=True)
     confirmation_code = models.CharField(max_length=6, null=True, blank=True)
     is_active = models.BooleanField(default=False)
     class Meta:
@@ -29,10 +29,11 @@ class Post(models.Model):
     title = models.CharField(max_length=200, db_index=True)
     description = models.CharField(max_length=500)
     body = HTMLField()
-    thumbnail = models.URLField(blank=True, null=True)
+    thumbnail = models.ImageField(upload_to='media/images/post_thumbnail/%Y/%m/%d/', blank=True, null=True)
     created_datetime = models.DateTimeField(auto_now_add=True)
     updated_datetime = models.DateTimeField(auto_now=True)
-    is_publish = models.BooleanField(default=True)
+    is_draft = models.BooleanField(default=False)
+    is_publish = models.BooleanField(blank=True, default=True)
     publish_datetime = models.DateTimeField(blank=True, null=True)
     author = models.ForeignKey('Account', null=True, on_delete=models.SET_DEFAULT, default="user doesn't exist")
     tags = models.ManyToManyField('Tag', blank=True)
@@ -49,6 +50,19 @@ class Post(models.Model):
         verbose_name = "Post"
         verbose_name_plural = "Post"
 
+class PostBodyImage(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='media/images/post_body/%Y/%m/%d/', blank=True)
+    created_datetime = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.id} - {self.post}/{self.image}'
+
+    class Meta:
+        ordering = ['-created_datetime']
+        db_table = "PostBodyImage"
+        verbose_name = "PostBodyImage"
+        verbose_name_plural = "PostBodyImage"
 
 class PostReaction(models.Model):
     REACTION_CHOICES = (('like', 'Like'),('dislike', 'Dislike'))

@@ -71,7 +71,6 @@ class PostViewSet(viewsets.ModelViewSet):
             queryset = backend().filter_queryset(self.request, queryset, view=self)
         return queryset
 
-
     def create(self, request, *args, **kwargs):
         self.serializer_class = PostCreateSerializer
 
@@ -244,6 +243,40 @@ class PostViewSet(viewsets.ModelViewSet):
         else:
             # выдать post_instance с фидом для всех
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+
+class PostBodyImageUpload(viewsets.ModelViewSet):
+    queryset = PostBodyImage.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        self.serializer_class = PostBodyImageUploadSerializer
+
+        # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Парсим данные из запроса
+        data = request.data
+
+        # Создаем пост
+        post_image_serializer = self.get_serializer(data=data, many=True)
+        post_image_serializer.is_valid(raise_exception=True)
+        post_image = post_image_serializer.save()
+
+    def destroy(self, request, *args, **kwargs):
+        self.serializer_class = PostBodyImageUploadSerializer
+        self.permission_classes = [IsOwnerOrAdmin] # Объявляем permission_classes только для метода destroy
+
+        # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+             # Получаем id поста из kwargs
+            post_id = kwargs.get('pk')
+            if not self.queryset.filter(pk=post_id).exists():
+                return Response({"error": "Пост не существует"}, status=status.HTTP_404_NOT_FOUND)
+
+            instance = self.queryset.get(pk=post_id)
 
 
 class TagViewSet(viewsets.ModelViewSet):

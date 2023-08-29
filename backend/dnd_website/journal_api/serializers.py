@@ -193,6 +193,13 @@ class PostDetailOwnerSerializer(serializers.ModelSerializer):
         model = Post
         fields = '__all__'
 
+
+class PostBodyImageUploadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PostBodyImage
+        fields = '__all__'
+
 class PostDetailViewerSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)
     author = ShortAccountSerializer(read_only=True)

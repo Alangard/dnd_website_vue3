@@ -8,7 +8,7 @@ import interceptorsInstance, {authHeader} from '@/api/main'
 const user = JSON.parse(localStorage.getItem('user'));
 const BASE_URL = axios.defaults.baseURL;
 
-const initialState = { haveInitialPosts: false, PostsList: [], TagsList: [] };
+const initialState = { haveInitialPosts: false, PostsList: [], TagsList: []};
 
 export const journal = {
   namespaced: true,
@@ -326,7 +326,7 @@ export const journal = {
 
     getTagsList(state){
       return state.TagsList
-    }
+    },
 
 
 
