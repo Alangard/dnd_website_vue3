@@ -270,7 +270,7 @@ class PostCreateSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)
     class Meta:
         model = Post
-        fields = ['author', 'title', 'description', 'body', 'tags', 'is_publish', 'publish_datetime']
+        fields = ['author', 'title', 'description', 'thumbnail', 'body', 'tags', 'is_publish', 'publish_datetime']
 
 
 class ReportReasonSerializer(serializers.ModelSerializer):

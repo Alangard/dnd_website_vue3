@@ -46,7 +46,7 @@
 
                     <div class="file_input">
                         <v-file-input 
-                            v-model="post_data.thumbnail_file"
+                            v-model="post_data.thumbnail"
                             @change="onFileChange"
                             @click:clear="onFileClear"
                             class="pt-0"
@@ -79,6 +79,10 @@
             <div class="body mb-3">
                 <span class="text-subtitle-1">Post body</span>
                 <TextEditor @editor-content="(data) => {post_data.body = data}"></TextEditor>
+
+                <div class="v-input__details px-4 pt-3" v-if="validator.body.$errors">
+                    <v-container class="v-messages__message pa-0 text-error">{{validator.body.$errors.map(e => e.$message)[0]}}</v-container>
+                </div>
             </div>
 
             <div class="tags">
@@ -254,14 +258,26 @@ const postponed_publish=()=>{
     
 }
 
-const publish=()=>{
-    
+const publish = async()=>{
+    const validation_result = await validator.value.$validate()
+    if(validation_result == false){validationErrorAlert.value = true}
+    else{
+        const formData = new FormData();
+        
+        for (const [key, value] of Object.entries(post_data.value)) {
+            if(key=='thumbnail'){formData.append("thumbnail", value[0])}
+            else if(key=='tags'){formData.append('tags', JSON.stringify(value));}
+            else{formData.append(key, value)}
+        }
+        store.dispatch('journal/createPost', formData)
+    }
+
 }
 
 const post_data_initial = {
         'title':  '',
         'description': '',
-        'thumbnail_file': null,
+        'thumbnail': null,
         'body': '',
         'tags': [],
         'publish_option': 'now',
@@ -272,7 +288,7 @@ const post_data_initial = {
 let post_data = ref({
         'title':  '',
         'description': '',
-        'thumbnail_file': null,
+        'thumbnail': null,
         'body': '',
         'tags': [],
         'publish_option': 'now',
@@ -297,7 +313,7 @@ onMounted(async () => {
 })
 
 const onFileChange = () => {
-    const file = post_data.value.thumbnail_file[0];
+    const file = post_data.value.thumbnail[0];
     if (file) {
         thumbnail_source.value = URL.createObjectURL(file)
         showDialogButton.value = true

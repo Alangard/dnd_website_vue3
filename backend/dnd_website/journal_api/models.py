@@ -9,7 +9,7 @@ from tinymce.models import HTMLField
 class Account(AbstractUser):
     email = models.EmailField(unique=True)
     slug = models.SlugField(max_length=150, db_index=True, blank=True, null=True)
-    avatar = models.ImageField(upload_to='media/images/user_avatars/%Y/%m/%d/', blank=True)
+    avatar = models.ImageField(upload_to='images/user_avatars/%Y/%m/%d/', blank=True)
     confirmation_code = models.CharField(max_length=6, null=True, blank=True)
     is_active = models.BooleanField(default=False)
     class Meta:
@@ -29,7 +29,7 @@ class Post(models.Model):
     title = models.CharField(max_length=200, db_index=True)
     description = models.CharField(max_length=500)
     body = HTMLField()
-    thumbnail = models.ImageField(upload_to='media/images/post_thumbnail/%Y/%m/%d/', blank=True, null=True)
+    thumbnail = models.ImageField(upload_to='images/post_thumbnail/%Y/%m/%d/', blank=True, null=True)
     created_datetime = models.DateTimeField(auto_now_add=True)
     updated_datetime = models.DateTimeField(auto_now=True)
     is_draft = models.BooleanField(default=False)
@@ -52,7 +52,7 @@ class Post(models.Model):
 
 class PostBodyImage(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='media/images/post_body/%Y/%m/%d/', blank=True)
+    image = models.ImageField(upload_to='images/post_body/%Y/%m/%d/', blank=True)
     created_datetime = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

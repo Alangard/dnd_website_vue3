@@ -1,3 +1,4 @@
+import base64
 from django.shortcuts import get_object_or_404, get_list_or_404, render
 from datetime import datetime
 from django.utils.dateparse import parse_datetime
@@ -52,6 +53,7 @@ from django.utils.text import slugify
 from django.utils.timezone import make_aware
 from rest_framework.filters import BaseFilterBackend
 
+from django.core.files.base import ContentFile
 
 class PostListPagination(PageNumberPagination):
     page_size = 10
@@ -61,15 +63,8 @@ class PostListPagination(PageNumberPagination):
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
-
-    def filter_queryset(self, queryset):
-        filter_backends = [DjangoFilters.DjangoFilterBackend]
-
-        # Other condition for different filter backend goes here
-
-        for backend in list(filter_backends):
-            queryset = backend().filter_queryset(self.request, queryset, view=self)
-        return queryset
+    filter_backends = [DjangoFilters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class  = PostListFilter
 
     def create(self, request, *args, **kwargs):
         self.serializer_class = PostCreateSerializer
@@ -77,56 +72,58 @@ class PostViewSet(viewsets.ModelViewSet):
         # Проверяем, авторизован ли пользователь
         if not request.user.is_authenticated:
             return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Парсим данные из запроса
-        data = request.data
-        data['author'] = request.user.id
-
+        
         # Проверяем, есть ли все необходимые поля
-        if 'title' not in data or 'description' not in data or 'body' not in data:
-            return Response({"error": "Необходимо указать заголовок, описание и содержимое поста"},status=status.HTTP_400_BAD_REQUEST)
-
+        required_fields = ['title', 'description', 'body']
+        if not all(field in request.data for field in required_fields):
+            return Response({"error": "Необходимо указать заголовок, описание и содержимое поста"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Получаем данные в необходимом формате
+        thumbnail = request.FILES.get('thumbnail')
+        tags = json.loads(request.data.get('tags', '[]'))
+        
         # Создаем пост
+        data = {
+            'title': request.data.get('title'),
+            'description': request.data.get('description'),
+            'body': request.data.get('body'),
+            'thumbnail': thumbnail,
+            'author': request.user.id
+        }
+        
         post_serializer = self.get_serializer(data=data)
-        post_serializer.is_valid(raise_exception=True)
-        post = post_serializer.save()
-
-        # Проверяем, есть ли тэги в запросе
-        if 'tags' in data:
-            tags = data['tags']
-
+        if post_serializer.is_valid(raise_exception=True):
+            post = post_serializer.save(is_publish=True)
+            
             # Создаем и добавляем новые тэги к посту
-            for tag_slug in tags:
-                if Tag.objects.filter(slug = tag_slug).exists():
-                    pass
-                else:
-                    tag_serializer = TagDetailSerializer(data={'name': tag_slug})
-                    tag_serializer.is_valid(raise_exception=True)
-                    tag = tag_serializer.save(slug=slugify(tag_slug))
-
+            for tag in tags:
+                tag, created = Tag.objects.get_or_create(name=tag)
+                post.tags.add(tag)
+        
             return Response(post_serializer.data, status=status.HTTP_201_CREATED)
-     
+        else:
+            return Response({"error": "Сериализация не пройдена"}, status=status.HTTP_400_BAD_REQUEST)
+
     def destroy(self, request, *args, **kwargs):
         self.serializer_class = PostDeleteSerializer
-        self.permission_classes = [IsOwnerOrAdmin] # Объявляем permission_classes только для метода destroy
+        self.permission_classes = [IsOwnerOrAdmin]
 
         # Проверяем, авторизован ли пользователь
         if not request.user.is_authenticated:
             return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        post_id = kwargs.get('pk')
+        post_exists = self.queryset.filter(pk=post_id).exists()
+        instance = self.queryset.filter(pk=post_id).first()
+
+        if not post_exists:
+            return Response({"error": "Пост не существует"}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.is_staff or request.user.id == instance.author.id:
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-             # Получаем id поста из kwargs
-            post_id = kwargs.get('pk')
-            if not self.queryset.filter(pk=post_id).exists():
-                return Response({"error": "Пост не существует"}, status=status.HTTP_404_NOT_FOUND)
-
-            instance = self.queryset.get(pk=post_id)
-
-            if request.user.is_staff or request.user.id == instance.author.id:
-
-                self.perform_destroy(instance)
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            else:
-                return Response({"error": "Пользователь не является создателем поста или не имеет достаточно прав"}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"error": "Пользователь не является создателем поста или не имеет достаточно прав"}, status=status.HTTP_403_FORBIDDEN)
     
     def partial_update(self, request, *args, **kwargs):
         self.serializer_class = PostPartialUpdateSerializer
@@ -135,149 +132,52 @@ class PostViewSet(viewsets.ModelViewSet):
         # Проверяем, авторизован ли пользователь
         if not request.user.is_authenticated:
             return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        post_id = kwargs.get('pk')
+        instance = get_object_or_404(self.queryset, pk=post_id)
+
+        if request.user.is_staff or request.user.id == instance.author.id:
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-             # Получаем id поста из kwargs
-            post_id = kwargs.get('pk')
-
-            if not self.queryset.filter(pk=post_id).exists():
-                return Response({"error": "Пост не существует"}, status=status.HTTP_404_NOT_FOUND)
-            instance = self.queryset.get(pk=post_id)
-
-            if request.user.is_staff or request.user.id == instance.author.id:
-
-                # Парсим данные из запроса
-                data = request.data
-
-                # Используем частичное обновление модели с помощью аргумента partial=True
-                post_serializer = self.get_serializer(instance, data=data, partial=True)
-                post_serializer.is_valid(raise_exception=True)
-                post_serializer.save()
-
-                return Response(post_serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response({"error": "Пользователь не является создателем поста или не имеет достаточно прав"}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"error": "Пользователь не является создателем поста или не имеет достаточно прав"}, status=status.HTTP_403_FORBIDDEN)
 
     def retrieve(self, request, *args, **kwargs):
-        
-        # Получаем id поста из kwargs
         post_id = kwargs.get('pk')
-
-        if not self.queryset.filter(pk=post_id).exists():
-                return Response({"error": "Пост не существует"}, status=status.HTTP_404_NOT_FOUND)
-
-        instance = self.queryset.get(pk=post_id)
-
+        instance = get_object_or_404(self.queryset, pk=post_id)
+        
+        if not instance.is_publish:
+            return Response({"error": "Пост не существует или не опубликован"}, status=status.HTTP_404_NOT_FOUND)
+            
         if request.user.is_authenticated and request.user.id == instance.author.id:
-            self.serializer_class = PostDetailOwnerSerializer
-            post_serializer = self.get_serializer(instance)
+            self.serializer_class = PostDetailOwnerSerializer 
+            post_serializer = self.get_serializer(instance) 
             return Response(post_serializer.data)
             
-        else:
-            if not self.queryset.filter(pk=post_id, is_publish=True).exists():
-                return Response({"error": "Пост не существует или не опубликован"}, status=status.HTTP_404_NOT_FOUND)
-            else:
-                instance = self.queryset.filter(pk=post_id, is_publish=True).\
-                    select_related('author').prefetch_related('tags','post_reactions','comments')
-                # Передаем экземпляр поста сериализатору
-                post_serializer = self.get_serializer(instance)
-                return Response(post_serializer.data)
+        instance = self.queryset.filter(pk=post_id, is_publish=True).select_related('author').prefetch_related('tags','post_reactions','comments')
+        post_serializer = self.get_serializer(instance)
+        return Response(post_serializer.data)
         
     def list(self, request, *args, **kwargs):
         self.serializer_class = PostListReadSerializer
         self.ordering = ['-created_datetime']
         self.pagination_class = PostListPagination
 
+        instance = self.queryset.filter(is_publish=True).select_related('author').prefetch_related('tags','post_reactions','comments') 
 
-        def myfilters(queryset):
-            instance = queryset
-            params = request.query_params
-
-            for param in params:
-
-                if param == 'start_date' and params[param] != None:
-                    start_date_obj = datetime.strptime(params[param], '%d/%m/%Y')
-                    instance = instance.filter(created_datetime__gte=start_date_obj)
-
-                if param == 'end_date' and params[param] != None:
-                    end_date_obj = datetime.strptime(params[param], '%d/%m/%Y')
-                    instance = instance.filter(created_datetime__lte = end_date_obj)
-
-                if param == 'tags' and params[param] != None:
-                    tags_list = params[param].split(',')
-                    for tag in tags_list:
-                        instance = instance.filter(tags__name=tag)
-                
-                if param == 'username' and params[param] != None:
-                    instance = instance.filter(author__username__exact=params[param])
-
-                if param == 'ordering' and params[param] != None:
-                    ordering_list = params[param].split(',')
-                    instance = instance.order_by(*ordering_list)
-
-            return instance
-
-
-        # Проверяем, авторизован ли пользователь
-        if request.user.is_authenticated:
-            # выдать post_instance с фидом пользователя 
+        page = self.paginate_queryset(instance)
+        if page is not None: 
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
             
-            instance = self.queryset.filter(is_publish=True).\
-                select_related('author').\
-                prefetch_related('tags','post_reactions','comments')
-            
-            instance = myfilters(instance)
-        
-
-            # Пагинация
-            page = self.paginate_queryset(instance)
-            if page is not None:
-                serializer = self.get_serializer(page, many=True)
-                # serializer = self.get_serializer(self.filter_queryset(instance), page, many=True, context={"request": request})
-                return self.get_paginated_response(serializer.data)
-
-            # Сериализация
-            # serializer = self.get_serializer(self.filter_queryset(instance), many=True, context={"request": request})
+        if request.user.is_authenticated: 
             serializer = self.get_serializer(instance, many=True)
             return Response(serializer.data)
-            
         else:
-            # выдать post_instance с фидом для всех
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-
-class PostBodyImageUpload(viewsets.ModelViewSet):
-    queryset = PostBodyImage.objects.all()
-
-    def create(self, request, *args, **kwargs):
-        self.serializer_class = PostBodyImageUploadSerializer
-
-        # Проверяем, авторизован ли пользователь
-        if not request.user.is_authenticated:
-            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Парсим данные из запроса
-        data = request.data
-
-        # Создаем пост
-        post_image_serializer = self.get_serializer(data=data, many=True)
-        post_image_serializer.is_valid(raise_exception=True)
-        post_image = post_image_serializer.save()
-
-    def destroy(self, request, *args, **kwargs):
-        self.serializer_class = PostBodyImageUploadSerializer
-        self.permission_classes = [IsOwnerOrAdmin] # Объявляем permission_classes только для метода destroy
-
-        # Проверяем, авторизован ли пользователь
-        if not request.user.is_authenticated:
-            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
-        else:
-             # Получаем id поста из kwargs
-            post_id = kwargs.get('pk')
-            if not self.queryset.filter(pk=post_id).exists():
-                return Response({"error": "Пост не существует"}, status=status.HTTP_404_NOT_FOUND)
-
-            instance = self.queryset.get(pk=post_id)
-
+        
 
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()

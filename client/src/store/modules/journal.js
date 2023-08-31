@@ -107,8 +107,8 @@ export const journal = {
 
     async createPost({commit},post_data){
       try{
-        const response = await interceptorsInstance.post(BASE_URL + 'post/', post_data, { headers: authHeader() })
-        commit('addPostInStore', response.data)
+        const response = await interceptorsInstance.post(BASE_URL + 'post/', post_data, { headers:  {'Authorization': authHeader()['Authorization'], 'Content-Type': 'multipart/form-data' } })
+        // commit('addPostInStore', response.data)
         return response
       }  
       catch(error){console.log(error)}
