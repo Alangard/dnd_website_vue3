@@ -36,8 +36,6 @@ class AccountSerializer(serializers.ModelSerializer):
                     "is_active",
                     'confirmation_code']
         
-
-        
 class ConfirmationCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
@@ -221,9 +219,10 @@ class PostPartialUpdateSerializer(serializers.ModelSerializer):
     title = serializers.CharField(required=False)
     body = serializers.CharField(required=False)
     description = serializers.CharField(required=False)
+    tags = TagListSerializer(many=True, read_only=True)
     class Meta:
         model = Post
-        fields = fields = ['author', 'title', 'description', 'body', 'tags', 'is_publish', 'publish_datetime']
+        fields = fields = ['author', 'title', 'description', 'thumbnail', 'body', 'tags', 'is_publish', 'publish_datetime']
 
 class PostListReadSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)

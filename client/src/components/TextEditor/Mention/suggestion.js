@@ -1,13 +1,14 @@
-import { VueRenderer } from '@tiptap/vue-3'
+import { VueRenderer, useEditor } from '@tiptap/vue-3'
 import tippy from 'tippy.js'
 
 import MentionList from './MentionList.vue'
+import store from '@/store';
 
 export default {
-  items: ({ query }) => {
-    return [
-      'Lea Thompson', 'Cyndi Lauper', 'Tom Cruise', 'Madonna', 'Jerry Hall', 'Joan Collins', 'Winona Ryder', 'Christina Applegate', 'Alyssa Milano', 'Molly Ringwald', 'Ally Sheedy', 'Debbie Harry', 'Olivia Newton-John', 'Elton John', 'Michael J. Fox', 'Axl Rose', 'Emilio Estevez', 'Ralph Macchio', 'Rob Lowe', 'Jennifer Grey', 'Mickey Rourke', 'John Cusack', 'Matthew Broderick', 'Justine Bateman', 'Lisa Bonet',
-    ].filter(item => item.toLowerCase().startsWith(query.toLowerCase())).slice(0, 5)
+  items: async ({ query }) => {
+
+    let response = await store.dispatch('auth/getUsersList')
+    return response.filter((item) => item.username && item.username.toLowerCase().startsWith(query.toLowerCase())).slice(0, 5).map((item) => item.username);
   },
 
   render: () => {
@@ -16,18 +17,9 @@ export default {
 
     return {
       onStart: props => {
-        component = new VueRenderer(MentionList, {
-          // using vue 2:
-          // parent: this,
-          // propsData: props,
-          // using vue 3:
-          props,
-          editor: props.editor,
-        })
+        component = new VueRenderer(MentionList, {props,editor: props.editor})
 
-        if (!props.clientRect) {
-          return
-        }
+        if (!props.clientRect) {return }
 
         popup = tippy('body', {
           getReferenceClientRect: props.clientRect,
@@ -42,20 +34,13 @@ export default {
 
       onUpdate(props) {
         component.updateProps(props)
-
-        if (!props.clientRect) {
-          return
-        }
-
-        popup[0].setProps({
-          getReferenceClientRect: props.clientRect,
-        })
+        if (!props.clientRect) {return}
+        popup[0].setProps({getReferenceClientRect: props.clientRect})
       },
 
       onKeyDown(props) {
         if (props.event.key === 'Escape') {
           popup[0].hide()
-
           return true
         }
 
@@ -66,6 +51,15 @@ export default {
         popup[0].destroy()
         component.destroy()
       },
+      
+      // render(props) {
+      //   const suggestion = props.suggestion;
+      //   return (
+      //     <a href={`/users/${suggestion.username}`}>
+      //       {suggestion.label}
+      //     </a>
+      //   );
+      // },
     }
   },
 }

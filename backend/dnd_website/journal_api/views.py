@@ -47,13 +47,9 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from .models import Post, Tag
 from .permisions import IsOwnerOrAdmin, IsOwnerOrReadOnly
-from rest_framework.decorators import permission_classes
-from django.utils.text import slugify
 
-from django.utils.timezone import make_aware
-from rest_framework.filters import BaseFilterBackend
 
-from django.core.files.base import ContentFile
+
 
 class PostListPagination(PageNumberPagination):
     page_size = 10
@@ -79,6 +75,7 @@ class PostViewSet(viewsets.ModelViewSet):
             return Response({"error": "Необходимо указать заголовок, описание и содержимое поста"}, status=status.HTTP_400_BAD_REQUEST)
         
         # Получаем данные в необходимом формате
+        is_draft = bool(request.data.get('is_draft'))
         thumbnail = request.FILES.get('thumbnail')
         tags = json.loads(request.data.get('tags', '[]'))
         
@@ -93,7 +90,7 @@ class PostViewSet(viewsets.ModelViewSet):
         
         post_serializer = self.get_serializer(data=data)
         if post_serializer.is_valid(raise_exception=True):
-            post = post_serializer.save(is_publish=True)
+            post = post_serializer.save(is_publish=False, is_draft=True) if is_draft else post_serializer.save(is_publish=True)
             
             # Создаем и добавляем новые тэги к посту
             for tag in tags:
@@ -136,23 +133,60 @@ class PostViewSet(viewsets.ModelViewSet):
         post_id = kwargs.get('pk')
         instance = get_object_or_404(self.queryset, pk=post_id)
 
+        # Получаем данные в необходимом формате
+        is_draft = bool(request.data.get('is_draft'))
+        thumbnail = request.FILES.get('thumbnail')
+        tags = json.loads(request.data.get('tags', '[]'))
+        
+        # # Создаем пост
+        # data = {
+        #     'title': request.data['title'] if 'title' in request.data else None,
+        #     'description': request.data['description'] if 'description' in request.data else None,
+        #     'body': request.data['body'] if 'body' in request.data else None,
+        #     'thumbnail': thumbnail,
+        #     'author': request.user.id
+        # }
+
+        data = {
+            'author': request.user.id,
+            'thumbnail': thumbnail
+        }
+
+        if 'title' in request.data:
+            data['title'] = request.data['title']
+        if 'description' in request.data:
+            data['description'] = request.data['description']
+        if 'body' in request.data:
+            data['body'] = request.data['body']
+        # if 'thumbnail' in request.data:
+        #     if instance.thumbnail:
+        #         # Удаляем существующее изображение, если оно есть
+        #         instance.thumbnail.delete(save=False)
+        #     data['thumbnail'] = thumbnail
+
         if request.user.is_staff or request.user.id == instance.author.id:
-            serializer = self.get_serializer(instance, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            post_serializer = self.get_serializer(instance, data=data, partial=True)
+            if post_serializer.is_valid(raise_exception=True):
+                post = post_serializer.save(is_publish=False, is_draft=True) if is_draft else post_serializer.save(is_publish=True)
+
+            # Создаем и добавляем новые тэги к посту
+            for tag in tags:
+                tag, created = Tag.objects.get_or_create(name=tag)
+                post.tags.add(tag)
+
+            return Response(post_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({"error": "Пользователь не является создателем поста или не имеет достаточно прав"}, status=status.HTTP_403_FORBIDDEN)
 
     def retrieve(self, request, *args, **kwargs):
+        self.serializer_class = PostDetailOwnerSerializer 
         post_id = kwargs.get('pk')
         instance = get_object_or_404(self.queryset, pk=post_id)
         
-        if not instance.is_publish:
-            return Response({"error": "Пост не существует или не опубликован"}, status=status.HTTP_404_NOT_FOUND)
+        # if not instance.is_publish:
+        #     return Response({"error": "Пост не существует или не опубликован"}, status=status.HTTP_404_NOT_FOUND)
             
         if request.user.is_authenticated and request.user.id == instance.author.id:
-            self.serializer_class = PostDetailOwnerSerializer 
             post_serializer = self.get_serializer(instance) 
             return Response(post_serializer.data)
             
@@ -189,12 +223,6 @@ class TagViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-            
-    
-
-
-
-
 def SendConfirmationCode(email):
     # user = get_object_or_404(Account, email = email)
     try:
@@ -214,6 +242,11 @@ def SendConfirmationCode(email):
     except ObjectDoesNotExist:
         return HttpResponseNotFound(json.dumps({'status': 'error', 'message': 'User with this email address was not found'}), content_type="application/json")
 
+class UserListView(APIView):
+    def get(self, request):
+        queryset = Account.objects.all()
+        serializer = ShortAccountSerializer(queryset, many=True)
+        return Response(serializer.data)
 
 class SendConfirmationCodeView(APIView):
     def post(self, request):
@@ -244,7 +277,6 @@ class UserRegisterView(APIView):
             return HttpResponseBadRequest(json.dumps({'status': 'error', 'message': serializer.errors}), content_type="application/json")
         
         # JsonResponse()
-
 
 class UserActivateView(APIView):
     def post(self, request):
@@ -298,9 +330,6 @@ class ResetPasswordConfirm(APIView):
             return JsonResponse({'status': 'success'})
         else:
             return HttpResponseBadRequest(json.dumps({'status': 'error', 'message': serializer.errors}), content_type="application/json")
-
-
-        
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer

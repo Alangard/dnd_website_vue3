@@ -12,10 +12,10 @@ router.register(r'tag', TagViewSet, basename='tag')
 urlpatterns = [
     # path('auth/', include('djoser.urls.jwt')),
     path('', include(router.urls)),
-    path('auth/', include('djoser.urls')),
+    # path('auth/', include('djoser.urls')),
     
 
-    
+    path('auth/users/', UserListView.as_view(), name='user_list'),
     path('auth/user/register/', UserRegisterView.as_view(), name='user_register'),
     path('auth/user/activation/', UserActivateView.as_view(), name='user_activate'),
     path('auth/user/reset_password/', ResetPassword.as_view(), name='reset_password'),

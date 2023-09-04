@@ -132,13 +132,13 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
-DJOSER = {
-    'PASSWORD_RESET_CONFIRM_URL': '{FRONTEND_AUTHORITY}/password/reset/confirm/{uid}/{token}',
-    'USERNAME_RESET_CONFIRM_URL': '{FRONTEND_AUTHORITY}/username/reset/confirm/{uid}/{token}',
-    'ACTIVATION_URL': 'http://localhost:8080/activate/{uid}/{token}',
-    'SEND_ACTIVATION_EMAIL': True,
-    'SERIALIZERS': {},
-}
+# DJOSER = {
+#     'PASSWORD_RESET_CONFIRM_URL': '{FRONTEND_AUTHORITY}/password/reset/confirm/{uid}/{token}',
+#     'USERNAME_RESET_CONFIRM_URL': '{FRONTEND_AUTHORITY}/username/reset/confirm/{uid}/{token}',
+#     'ACTIVATION_URL': 'http://localhost:8080/activate/{uid}/{token}',
+#     'SEND_ACTIVATION_EMAIL': True,
+#     'SERIALIZERS': {},
+# }
 
 #gmail_send/settings.py
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

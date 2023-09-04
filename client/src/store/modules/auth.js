@@ -1,6 +1,10 @@
 import AuthService from '@/api/AuthAPI/auth';
+import interceptorsInstance from '@/api/main'
+import axios from 'axios';
 
 const user = JSON.parse(localStorage.getItem('user'));
+const BASE_URL = axios.defaults.baseURL;
+
 const initialState = user
   ? { status: { loggedIn: true }, user}
   : { status: { loggedIn: false }, user: null};
@@ -93,6 +97,14 @@ export const auth = {
 
     async verifyToken({commit}){
       return await AuthService.verify_access_token()
+    },
+
+    async getUsersList({}){
+      try{
+        const response = await axios.get(BASE_URL + 'auth/users/')
+        return response.data
+      }  
+      catch(error){console.log(error)}
     }
 
 

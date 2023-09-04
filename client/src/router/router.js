@@ -31,6 +31,13 @@ const routes = [
   },
 
   {
+    path: '/journal/:post_id/edit',
+    name: 'journal_edit',
+    meta: {navbar_name: 'Post editing', navbar_style: 'default'},
+    component: () => import('@/pages/Journal/JournalEdit.vue'),
+  },
+
+  {
     path: '/user/:username',
     name: 'user_profile',
     meta: {navbar_name: 'User profile', navbar_style: 'default' },

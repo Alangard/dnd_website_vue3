@@ -8,7 +8,7 @@ import interceptorsInstance, {authHeader} from '@/api/main'
 const user = JSON.parse(localStorage.getItem('user'));
 const BASE_URL = axios.defaults.baseURL;
 
-const initialState = { haveInitialPosts: false, PostsList: [], TagsList: []};
+const initialState = { haveInitialPosts: false, PostsList: [], TagsList: [], postDetail: {}};
 
 export const journal = {
   namespaced: true,
@@ -108,7 +108,7 @@ export const journal = {
     async createPost({commit},post_data){
       try{
         const response = await interceptorsInstance.post(BASE_URL + 'post/', post_data, { headers:  {'Authorization': authHeader()['Authorization'], 'Content-Type': 'multipart/form-data' } })
-        // commit('addPostInStore', response.data)
+        commit('addPostInStore', response.data)
         return response
       }  
       catch(error){console.log(error)}
@@ -125,9 +125,10 @@ export const journal = {
 
     async partialUpdatePost({commit}, post_data){
       try{
-        const post_id = post_data['id']
-        delete post_data['id']
-        const response = await interceptorsInstance.patch(BASE_URL + `post/${post_id}/`, post_data, { headers: authHeader() })
+        const post_id = post_data.get("id")
+        post_data.delete("id");
+
+        const response = await interceptorsInstance.patch(BASE_URL + `post/${post_id}/`, post_data, { headers:  {'Authorization': authHeader()['Authorization'], 'Content-Type': 'multipart/form-data' } })
         commit('updatePostInStore', response.data)
         return response
       }
@@ -143,9 +144,10 @@ export const journal = {
       catch(error){console.log(error)}
     },
   
-    async getPostDetail({}, post_id){
+    async getPostDetail({commit}, post_id){
       try{
         const response = await interceptorsInstance.get(BASE_URL + `post/${post_id}`, { headers: authHeader() })
+        commit('setPostDetailInStore', response.data)
         return response.data
       }
       catch(error){console.log(error)}
@@ -157,7 +159,7 @@ export const journal = {
         console.log(response)
         commit('setTagsInStore', response.data)
 
-        return response
+        return response.data
       }
       catch(error){console.log(error)}
     },
@@ -308,6 +310,10 @@ export const journal = {
       }
       post_obj.user_reaction.reaction_type = chosen_data.reaction_type
     },
+
+    setPostDetailInStore(state, data){
+      state.postDetail = data
+    }
   },
 
   getters: {
@@ -322,6 +328,10 @@ export const journal = {
 
     getPostById(state, post_id){
       return state.PostsList.results.filter(post => post.id == 2)
+    },
+
+    getPostDetail(state){
+      return state.postDetail 
     },
 
     getTagsList(state){

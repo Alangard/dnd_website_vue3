@@ -371,7 +371,7 @@
 <!-- img, youtube, table (use a v-list like of a alignment block) -->
   
 <script setup>
-import {ref, onBeforeUnmount, defineEmits} from 'vue'
+import {ref, onBeforeMount, onBeforeUnmount, defineEmits, defineProps, watch, onMounted, toRaw} from 'vue'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import TextAlign from '@tiptap/extension-text-align'
@@ -388,28 +388,29 @@ import Table from '@tiptap/extension-table'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import TableRow from '@tiptap/extension-table-row'
-import {useEditor, EditorContent } from '@tiptap/vue-3'
+import {useEditor, EditorContent, Editor } from '@tiptap/vue-3'
 
 const emit = defineEmits(['editor-content'])
+const props = defineProps(['initialContent'])
 
-let editor = ref(null)
+
+let editor = ref()
 const textColor = ref('#000000')
 const textHighlight = ref('#000000')
 const fontFamily = ref('Roboto')
 
-
 onBeforeUnmount(() => {
-  // editor.destroy();
+  editor.destroy();
 });
 
-editor = useEditor({
+editor.value = new Editor({
     extensions: [
       StarterKit,
       Underline,
       TextAlign.configure({
           types: ['heading', 'paragraph'],
         }),
-       Link.configure({
+      Link.configure({
           openOnClick: true,
         }),
       TextStyle,
@@ -422,6 +423,17 @@ editor = useEditor({
         },
         suggestion,
       }),
+
+    //   Mention.configure({
+    //     HTMLAttributes: {class: 'mention',},
+    //     suggestion: {
+    //         items: suggestion,
+    //         render: ({ suggestion }) => {
+    //           const { label, username } = suggestion;
+    //           return `<a href="/users/${username}">${label}</a>`;
+    //         },
+    //       },
+    // }),
       Placeholder.configure({
         placeholder: 'Write something …'
       }),
@@ -433,9 +445,8 @@ editor = useEditor({
       TableHeader,
       TableCell,
     ],
-    onUpdate: ({ editor }) => {
-      emit('editor-content', editor.getHTML())
-    },
+    content: props.initialContent,
+    onUpdate: ({ editor }) => {emit('editor-content', editor.getHTML())},
 });
 
 const toggleBtn = (e) => {

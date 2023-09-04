@@ -1,6 +1,6 @@
 <template>
     <v-card max-width='750' width="100%" class="mt-4">
-        <v-card-title>Create new post</v-card-title>
+        <v-card-title>{{routes.currentRoute.value.name == 'journal_edit' ? 'Editing post' : 'Create new post'}}</v-card-title>
         <v-card-text>
             <div class="title mb-3">
                 <span class="text-subtitle-1">Post title</span>
@@ -78,7 +78,7 @@
 
             <div class="body mb-3">
                 <span class="text-subtitle-1">Post body</span>
-                <TextEditor @editor-content="(data) => {post_data.body = data}"></TextEditor>
+                <TextEditor :content="post_data.body" @editor-content="(data) => {post_data.body = data}"></TextEditor>
 
                 <div class="v-input__details px-4 pt-3" v-if="validator.body.$errors">
                     <v-container class="v-messages__message pa-0 text-error">{{validator.body.$errors.map(e => e.$message)[0]}}</v-container>
@@ -252,6 +252,25 @@ let validationErrorAlert = ref(false)
 
 const save_to_draft=()=>{
 
+    if(Object.entries(post_data.value).toString() != Object.entries(post_data_initial.value).toString()){
+        validator.value.$errors = [] 
+        const formData = new FormData();
+
+        formData.append('is_draft', true)
+            
+        for (const [key, value] of Object.entries(post_data.value)) {
+            if(key=='title' || key=='description' || key=='body'){
+                if(value==''){formData.append(key, `Here could be a ${value} of your post`)}
+            }
+            else if(key=='thumbnail' && value!==null){formData.append("thumbnail", value[0])}
+            else if(key=='tags'){formData.append('tags', JSON.stringify(value));}
+            else{formData.append(key, value)}
+        }
+
+        store.dispatch('journal/createPost', formData)
+    }
+
+    
 }
 
 const postponed_publish=()=>{
@@ -265,7 +284,7 @@ const publish = async()=>{
         const formData = new FormData();
         
         for (const [key, value] of Object.entries(post_data.value)) {
-            if(key=='thumbnail'){formData.append("thumbnail", value[0])}
+            if(key=='thumbnail' && value!==null){formData.append("thumbnail", value[0])}
             else if(key=='tags'){formData.append('tags', JSON.stringify(value));}
             else{formData.append(key, value)}
         }
@@ -274,7 +293,7 @@ const publish = async()=>{
 
 }
 
-const post_data_initial = {
+let post_data_initial = ref({
         'title':  '',
         'description': '',
         'thumbnail': null,
@@ -283,7 +302,7 @@ const post_data_initial = {
         'publish_option': 'now',
         'publish_date': null,
         'allow_comments': 'yes'
-}
+})
 
 let post_data = ref({
         'title':  '',
@@ -309,6 +328,20 @@ const validator = useVuelidate(validator_rules, post_data)
 
 
 onMounted(async () => {
+    console.log(routes.currentRoute.value.name)
+    if(routes.currentRoute.value.name == 'journal_edit'){
+        const post_id = routes.currentRoute.value.params.post_id
+        const post_detail = await store.dispatch('journal/getPostDetail', post_id)
+        
+        console.log(post_detail)
+        for(const [key,value] of Object.entries(post_data_initial.value)){
+            if(key=='thumbnail'){post_data.value[key] = null}
+            post_data.value[key] = post_detail[key]
+        }
+
+        console.log(post_data.value)
+        
+    }
     store.dispatch('journal/getTagsList')
 })
 
