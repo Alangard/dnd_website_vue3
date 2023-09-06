@@ -22,7 +22,7 @@ interceptorsInstance.interceptors.response.use(
           return interceptorsInstance(originalRequest);
         } catch (error) {
           // Handling the error of getting a new token
-          throw new Error('Failed to get a new token');
+          // throw new Error('Failed to get a new token');
         }
       }
       return Promise.reject(error);
@@ -44,8 +44,9 @@ async function getNewToken() {
 
     return newToken;
   } catch (error) {
+    localStorage.removeItem('user')
     // Handling the error of getting a new token
-    throw new Error('Failed to get a new token');
+    // throw new Error('Failed to get a new token');
   }
 }
 

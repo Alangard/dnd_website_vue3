@@ -40,6 +40,7 @@ class Post(models.Model):
     commented = models.BooleanField(default=False)
     reacted = models.BooleanField(default=False)
     num_comments = models.IntegerField(default=0, blank=True)
+    allow_comments = models.BooleanField(default=True)
 
     def __str__(self):
         return f'{self.id} - {self.title}'

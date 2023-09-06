@@ -108,8 +108,8 @@ export const journal = {
     async createPost({commit},post_data){
       try{
         const response = await interceptorsInstance.post(BASE_URL + 'post/', post_data, { headers:  {'Authorization': authHeader()['Authorization'], 'Content-Type': 'multipart/form-data' } })
-        commit('addPostInStore', response.data)
-        return response
+        // commit('addPostInStore', response.data)
+        return response.data
       }  
       catch(error){console.log(error)}
     },
@@ -129,8 +129,9 @@ export const journal = {
         post_data.delete("id");
 
         const response = await interceptorsInstance.patch(BASE_URL + `post/${post_id}/`, post_data, { headers:  {'Authorization': authHeader()['Authorization'], 'Content-Type': 'multipart/form-data' } })
-        commit('updatePostInStore', response.data)
-        return response
+        // commit('updatePostInStore', response.data)
+
+        return response.data
       }
       catch(error){console.log(error)}
     },

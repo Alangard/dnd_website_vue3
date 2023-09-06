@@ -47,6 +47,8 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from .models import Post, Tag
 from .permisions import IsOwnerOrAdmin, IsOwnerOrReadOnly
+from django.utils.text import slugify
+from django.utils.dateparse import parse_datetime
 
 
 
@@ -94,7 +96,7 @@ class PostViewSet(viewsets.ModelViewSet):
             
             # Создаем и добавляем новые тэги к посту
             for tag in tags:
-                tag, created = Tag.objects.get_or_create(name=tag)
+                tag, created = Tag.objects.get_or_create(name=tag, slug=tag)
                 post.tags.add(tag)
         
             return Response(post_serializer.data, status=status.HTTP_201_CREATED)
@@ -134,45 +136,42 @@ class PostViewSet(viewsets.ModelViewSet):
         instance = get_object_or_404(self.queryset, pk=post_id)
 
         # Получаем данные в необходимом формате
-        is_draft = bool(request.data.get('is_draft'))
-        thumbnail = request.FILES.get('thumbnail')
-        tags = json.loads(request.data.get('tags', '[]'))
-        
-        # # Создаем пост
-        # data = {
-        #     'title': request.data['title'] if 'title' in request.data else None,
-        #     'description': request.data['description'] if 'description' in request.data else None,
-        #     'body': request.data['body'] if 'body' in request.data else None,
-        #     'thumbnail': thumbnail,
-        #     'author': request.user.id
-        # }
+        data = {}
 
-        data = {
-            'author': request.user.id,
-            'thumbnail': thumbnail
-        }
-
-        if 'title' in request.data:
-            data['title'] = request.data['title']
-        if 'description' in request.data:
-            data['description'] = request.data['description']
-        if 'body' in request.data:
-            data['body'] = request.data['body']
-        # if 'thumbnail' in request.data:
-        #     if instance.thumbnail:
-        #         # Удаляем существующее изображение, если оно есть
-        #         instance.thumbnail.delete(save=False)
-        #     data['thumbnail'] = thumbnail
+        for key, value in request.data.items():
+            match key:
+                case 'thumbnail':
+                    data[key] = request.FILES.get('thumbnail')
+                case 'tags':
+                    data[key] = json.loads(request.data.get('tags', '[]'))
+                case 'is_draft':
+                    if request.data.get('is_draft') == 'true': data[key] = True 
+                    else: data[key] = False
+                case 'is_publish':
+                    if request.data.get('is_publish') == 'true': data[key] = True 
+                    else: data[key] = False
+                case 'publish_datetime':
+                    publish_datetime = parse_datetime(request.data.get('publish_datetime'))
+                    data[key] = publish_datetime
+                case _:
+                    data[key] = request.data.get(key)
 
         if request.user.is_staff or request.user.id == instance.author.id:
             post_serializer = self.get_serializer(instance, data=data, partial=True)
             if post_serializer.is_valid(raise_exception=True):
-                post = post_serializer.save(is_publish=False, is_draft=True) if is_draft else post_serializer.save(is_publish=True)
 
+                if data.get('publish_datetime') != None and data.get('is_draft') == False: 
+                    print('make celery task')
+                post = post_serializer.save()  
+                
             # Создаем и добавляем новые тэги к посту
-            for tag in tags:
-                tag, created = Tag.objects.get_or_create(name=tag)
-                post.tags.add(tag)
+            if data.get('tags'):
+                if data.get('tags') != []:
+                    for tag in data['tags']:
+                        tag, created = Tag.objects.get_or_create(name=tag, slug=slugify(tag))
+                        post.tags.add(tag)
+                else:
+                    post.tags.clear()
 
             return Response(post_serializer.data, status=status.HTTP_200_OK)
         else:

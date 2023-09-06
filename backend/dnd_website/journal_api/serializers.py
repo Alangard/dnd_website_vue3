@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
-from django.shortcuts import get_object_or_404, get_list_or_404
-from django.db.models import Count
+from django.shortcuts import get_object_or_404
+from django.contrib.sites.shortcuts import get_current_site
 
 from .models import *
 
@@ -11,10 +11,15 @@ from .models import *
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
-        refresh = self.get_token(self.user)
 
-        # Add extra responses here
-        data['user_data'] = {'id': self.user.id, 'username': self.user.username, 'avatar': self.user.avatar}
+        # Получить полный URL-адрес изображения
+        request = self.context.get('request')
+        if self.user.avatar:
+            image_url = f"{ request.scheme}://{get_current_site(request).domain}{self.user.avatar.url}"
+        else:
+            image_url = None
+
+        data['user_data'] = {'id': self.user.id, 'username': self.user.username, 'avatar': image_url}
         return data
 
 ## Accounts serializers ############################################################
@@ -64,8 +69,8 @@ class ShortAccountSerializer(serializers.ModelSerializer):
         model = Account
         fields = ["id", "username", "avatar"]
 
-## Comment Serializer #########################################################################
 
+## Comment Serializer #########################################################################
 class CommentSerializer(serializers.ModelSerializer):
     author = ShortAccountSerializer(read_only=True)
     user_reaction = serializers.SerializerMethodField()  
@@ -205,7 +210,7 @@ class PostDetailViewerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = '__all__'
-        exclude=['thumbnail', 'updated_datetime', 'is_publish', 'publish_datetime', 'commented', 'reacted', 'num_comments']
+        exclude=['author', 'title', 'description', 'thumbnail', 'updated_datetime', 'is_publish', 'is_draft', 'publish_datetime', 'commented', 'reacted', 'num_comments', 'allow_comments']
 
 
 class PostDeleteSerializer(serializers.ModelSerializer):
@@ -222,7 +227,7 @@ class PostPartialUpdateSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)
     class Meta:
         model = Post
-        fields = fields = ['author', 'title', 'description', 'thumbnail', 'body', 'tags', 'is_publish', 'publish_datetime']
+        fields = fields = ['author', 'title', 'description', 'thumbnail', 'body', 'tags', 'is_publish', 'is_draft', 'publish_datetime', 'allow_comments']
 
 class PostListReadSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)

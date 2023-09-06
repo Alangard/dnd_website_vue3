@@ -26,14 +26,14 @@ const routes = [
   {
     path: '/journal/create',
     name: 'journal_create',
-    meta: {navbar_name: 'Post creation', navbar_style: 'default'},
+    meta: {navbar_name: 'Post creation', navbar_style: 'default', requiresAuth: true },
     component: () => import('@/pages/Journal/JournalCreate.vue'),
   },
 
   {
     path: '/journal/:post_id/edit',
     name: 'journal_edit',
-    meta: {navbar_name: 'Post editing', navbar_style: 'default'},
+    meta: {navbar_name: 'Post editing', navbar_style: 'default', requiresAuth: true },
     component: () => import('@/pages/Journal/JournalEdit.vue'),
   },
 
@@ -103,6 +103,23 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes
+})
+
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    // этот путь требует авторизации, проверяем залогинен ли
+    // пользователь, и если нет, перенаправляем на страницу логина
+    const user_obj = localStorage.getItem('user')
+    if (!user_obj) {
+      next({
+        path: '/login',
+      })
+    } else {
+      next()
+    }
+  } else {
+    next() // всегда так или иначе нужно вызвать next()!
+  }
 })
 
 export default router

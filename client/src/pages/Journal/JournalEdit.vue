@@ -136,7 +136,7 @@
                         class="mb-6"
                         style="max-width: 400px;"
                         v-if="post_data.publish_option == 'later'"
-                        v-model="post_data.publish_date" 
+                        v-model="post_data.publish_datetime" 
                         :format="format"
                         :teleport="true"
                         placeholder="Pick the date and time of publication" 
@@ -166,7 +166,7 @@
         <v-card-actions class="d-flex flex-row justify-space-between flex-wrap">
             <v-btn class='my-2 mx-2' variant="outlined" color="error" @click="cancelPostCreation">Cancel</v-btn>
             <div class="save">
-                <v-btn class='mx-2' variant="outlined" @click="save_to_draft">Save to draft</v-btn>
+                <v-btn class='mx-2' variant="outlined" @click="save_to_draft" :disabled="saveToDraftBtnDisabled">Save to draft</v-btn>
                 <v-btn class='mx-2 my-2' v-if="post_data.publish_option == 'later'" variant="outlined" @click="postponed_publish">Postponed publication</v-btn>
                 <v-btn class='mx-2 my-2' v-else variant="outlined" @click="publish">Publish with changes</v-btn> 
             </div>
@@ -229,7 +229,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, onBeforeMount } from 'vue'
+import { ref, computed, onMounted, watch, onBeforeMount, onUpdated } from 'vue'
 import { useTheme } from 'vuetify/lib/framework.mjs';
 import { useStore } from 'vuex';
 import { useVuelidate } from '@vuelidate/core'
@@ -252,6 +252,10 @@ let showPreviewDialog = ref(false)
 let cancelCautionDialog = ref(false)
 let validationErrorAlert = ref(false)
 
+let saveToDraftBtnDisabled = ref(true)
+let mountedComplete = ref(false)
+
+
 const save_to_draft=()=>{
 
     if(Object.entries(post_data.value).toString() != Object.entries(post_data_initial.value).toString()){
@@ -271,37 +275,120 @@ const save_to_draft=()=>{
                     if(value == null){formData.append("thumbnail", value)}
                     else{formData.append("thumbnail", value[0])}
                 }
-                else if(key=='tags' && value.toString() != post_data_initial.value.tags.toString()){
-                    formData.append('tags', JSON.stringify(value));}
+                else if(key=='tags'){formData.append('tags', JSON.stringify(value));}
+                else if(key=='allow_comments'){formData.append('allow_comments', value =='yes' ? JSON.stringify(true) : JSON.stringify(false))}
+                else if(key=='publish_option'){
+                    if(value=='now'){
+                        formData.append('is_publish', true)
+                        formData.append('publish_datetime', null)
+                    }
+                    else{
+                        if(post_data.value['publish_datetime']){
+                            const date = new Date(post_data.value['publish_datetime']);
+                            const utcDateTime = date.toISOString();
+                            formData.append('publish_datetime', utcDateTime)
+                            formData.append('is_publish', false)
+                        }
+                    }
+                }
+                else if(key=='publish_datetime'){}
                 else{formData.append(key, value)}
+                
             }   
         }
 
         store.dispatch('journal/partialUpdatePost',  formData)
+
+        routes.go(-1)
     }
 
-    
+
 }
 
-const postponed_publish=()=>{
+const postponed_publish=async()=>{
     
+    const validation_result = await validator.value.$validate()
+    if(validation_result == false){validationErrorAlert.value = true}
+    else{ 
+        let formData = new FormData();
+        if(Object.entries(post_data.value).toString() != Object.entries(post_data_initial.value).toString()){
+
+            formData.append('is_draft', false)
+            formData.append('id',routes.currentRoute.value.params.post_id)
+                
+            for (const [key, value] of Object.entries(post_data.value)) {
+                if(value != post_data_initial.value[key]){
+                    if(key=='title' || key=='description' || key=='body'){formData.append(key, value)}
+                    else if(key=='thumbnail'){
+                        console.log(key, 'thumbnail', `Initial: ${post_data_initial.value[key]}, post_data: ${value}`)
+                        if(value == null){formData.append("thumbnail", value)}
+                        else{formData.append("thumbnail", value[0])}
+                    }
+                    else if(key=='tags'){formData.append('tags', JSON.stringify(value));}
+                    else if(key=='allow_comments'){formData.append('allow_comments', value =='yes' ? JSON.stringify(true) : JSON.stringify(false))}
+                    else if(key=='publish_option'){formData.append('is_publish', false)}
+                    else if(key=='publish_datetime'){
+                        const date = new Date(value);
+                        const utcDateTime = date.toISOString();
+                        formData.append('publish_datetime', utcDateTime)
+                    }
+                }
+            }           
+        }
+        else{
+            const date = new Date(post_data.value['publish_datetime']);
+            const utcDateTime = date.toISOString();
+
+            formData.append('is_draft', false)
+            formData.append('is_publish', false)
+            formData.append('publish_datetime', utcDateTime)
+            formData.append('id',routes.currentRoute.value.params.post_id) 
+        }
+
+        store.dispatch('journal/partialUpdatePost',  formData)
+
+        routes.go(-1)
+    }
 }
 
 const publish = async()=>{
     const validation_result = await validator.value.$validate()
     if(validation_result == false){validationErrorAlert.value = true}
     else{
-        const formData = new FormData();
-        
-        for (const [key, value] of Object.entries(post_data.value)) {
-            if(key=='thumbnail' && value!==null){formData.append("thumbnail", value[0])}
-            else if(key=='tags'){formData.append('tags', JSON.stringify(value));}
-            else{formData.append(key, value)}
+        let formData = new FormData();
+        if(Object.entries(post_data.value).toString() != Object.entries(post_data_initial.value).toString()){
+            formData.append('is_draft', false)
+            formData.append('id',routes.currentRoute.value.params.post_id)
+                
+            for (const [key, value] of Object.entries(post_data.value)) {
+                if(value != post_data_initial.value[key]){
+                    if(key=='title' || key=='description' || key=='body'){formData.append(key, value)}
+                    else if(key=='thumbnail'){
+                        console.log(key, 'thumbnail', `Initial: ${post_data_initial.value[key]}, post_data: ${value}`)
+                        if(value == null){formData.append("thumbnail", value)}
+                        else{formData.append("thumbnail", value[0])}
+                    }
+                    else if(key=='tags'){formData.append('tags', JSON.stringify(value));}
+                    else if(key=='allow_comments'){formData.append('allow_comments', value =='yes' ? JSON.stringify(true) : JSON.stringify(false))}
+                    else if(key=='publish_option'){formData.append('is_publish', true)}
+                    else if(key=='publish_datetime'){formData.append('publish_datetime', null)}
+                }
+               
+            }
+             
         }
-        store.dispatch('journal/createPost', formData)
-    }
-
+        else{
+            formData.append('is_draft', false)
+            formData.append('is_publish', true)
+            formData.append('publish_datetime', null)
+            formData.append('id',routes.currentRoute.value.params.post_id) 
+        }
+        store.dispatch('journal/partialUpdatePost',  formData)   
+        
+        routes.go(-1)
+    }    
 }
+
 
 let post_data_initial = ref({
         'title':  '',
@@ -311,7 +398,7 @@ let post_data_initial = ref({
         'body': '',
         'tags': [],
         'publish_option': 'now',
-        'publish_date': null,
+        'publish_datetime': null,
         'allow_comments': 'yes'
 })
 
@@ -323,7 +410,7 @@ let post_data = ref({
         'body': '',
         'tags': [],
         'publish_option': 'now',
-        'publish_date': null,
+        'publish_datetime': null,
         'allow_comments': 'yes'
 })
 
@@ -339,18 +426,28 @@ const validator_rules = computed(() => {
 const validator = useVuelidate(validator_rules, post_data)
 
 
+
+watch(post_data, (newValues, oldValues) => {
+        if(mountedComplete.value == true){saveToDraftBtnDisabled.value = false}
+        else{mountedComplete.value = true}
+    }, {deep: true }
+)
+
+
 onMounted(async () => {
     const post_id = routes.currentRoute.value.params.post_id
     await store.dispatch('journal/getPostDetail', post_id)
     await store.dispatch('journal/getTagsList')
 
     const postDetail = store.getters['journal/getPostDetail']
-    
+
     for(const [key, value] of Object.entries(postDetail)){
         switch (key){
-            case 'tags':
-                const tags = value.map(item => item.slug)
-                post_data_initial.value[key] = tags
+            case 'title': 
+                post_data_initial.value[key] = value
+                break
+            case 'description': 
+                post_data_initial.value[key] = value
                 break
             case 'thumbnail':
                 if(value != null){
@@ -360,16 +457,31 @@ onMounted(async () => {
                     post_data_initial.value['thumbnail_source'] = value
                 }
                 break
-
-            default:
+            case 'body': 
                 post_data_initial.value[key] = value
+                break
+            case 'tags':
+                const tags = value.map(item => item.slug)
+                post_data_initial.value[key] = tags
+                break
+            case 'publish_datetime':
+                if(value){
+                    post_data_initial.value[key] = format(value)
+                    post_data_initial.value['publish_option'] = 'later'
+                }
+                break
+            case 'allow_comments':
+                value == true ? post_data_initial.value[key] = 'yes' :  post_data_initial.value[key] = 'no'
+                break
+            default:
                 break
         }
     }
 
     post_data.value = Object.assign({}, post_data_initial.value);
-})
+    mountedComplete.value == true
 
+})
 
 
 const onFileChange = () => {
@@ -387,18 +499,18 @@ const onFileClear = () => {
 
 
 const changePublishOption = () => {
-    if(post_data.value.publish_date != ''){
-        post_data.value.publish_date = null
+    if(post_data.value.publish_datetime != ''){
+        post_data.value.publish_datetime = null
     }
 }
 
 const format = (datetime) => {
         const date = new Date(datetime)
 
-        const day = date.getDate();
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
-        const hours = date.getHours();
+        const day = date.getDate().toString().padStart(2, '0');;
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');;
+        const year = date.getFullYear().toString().padStart(4, '0');;
+        const hours = date.getHours().toString().padStart(2, '0');;
         const minutes = date.getMinutes().toString().padStart(2, '0');
 
         const new_date = `${day}/${month}/${year} ${hours}:${minutes}`;
