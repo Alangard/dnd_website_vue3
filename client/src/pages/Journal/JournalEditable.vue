@@ -77,10 +77,16 @@
 
             <div class="body mb-3">
                 <span class="text-subtitle-1">Post body</span>
-                <div v-if="post_data?.body" >
-                    <TextEditor :initialContent="post_data?.body" @editor-content="(data) => {post_data.body = data}"></TextEditor>
+                <div v-if="route_name == 'journal_edit'">
+                    <div v-if="post_data?.body" >
+                        <TextEditor :initialContent="post_data?.body" @editor-content="(data) => {post_data.body = data}"></TextEditor>
+                    </div>
+                    <div v-else></div>
                 </div>
-                <div v-else></div>
+                <div v-else>
+                    <TextEditor @editor-content="(data) => {post_data.body = data}"></TextEditor>
+                </div>
+                
                 <div class="v-input__details px-4 pt-3" v-if="validator.body.$errors">
                     <v-container class="v-messages__message pa-0 text-error">{{validator.body.$errors.map(e => e.$message)[0]}}</v-container>
                 </div>
@@ -168,7 +174,7 @@
             <div class="save">
                 <v-btn class='mx-2' variant="outlined" @click="save_to_draft" :disabled="saveToDraftBtnDisabled">Save to draft</v-btn>
                 <v-btn class='mx-2 my-2' v-if="post_data.publish_option == 'later'" variant="outlined" @click="postponed_publish">Postponed publication</v-btn>
-                <v-btn class='mx-2 my-2' v-else variant="outlined" @click="publish">Publish with changes</v-btn> 
+                <v-btn class='mx-2 my-2' v-else variant="outlined" @click="publish">{{route_name.value == 'journal_edit' ? 'Publish with changes' : 'Publish'}}</v-btn> 
             </div>
         </v-card-actions>
 
@@ -245,6 +251,7 @@ let store = useStore();
 const tagList = computed(() => store.getters['journal/getTagsList'])
 const tagsSlugList = computed(() => tagList.value.map(tag => tag.slug));
 const tagSerch = ref(null)
+const route_name = ref(routes.currentRoute.value.name)
 
 
 let showDialogButton = ref(false)
@@ -263,14 +270,15 @@ const save_to_draft=()=>{
         const formData = new FormData();
 
         formData.append('is_draft', true)
-        formData.append('id',routes.currentRoute.value.params.post_id)
-            
+        if(route_name.value=='journal_edit'){formData.append('id',routes.currentRoute.value.params.post_id)}
+        
         for (const [key, value] of Object.entries(post_data.value)) {
-            if(value != post_data_initial.value[key]){
-                if(key=='title' || key=='description' || key=='body'){
+            if(key=='title' || key=='description' || key=='body'){
                     if(value==''){formData.append(key, `Here could be a ${value} of your post`)}
                     else{formData.append(key, value)}
-                }
+            }
+            if(value != post_data_initial.value[key]){
+                if(key=='title' || key=='description' || key=='body'){}
                 else if(key=='thumbnail'){
                     if(value == null){formData.append("thumbnail", value)}
                     else{formData.append("thumbnail", value[0])}
@@ -297,9 +305,14 @@ const save_to_draft=()=>{
             }   
         }
 
-        store.dispatch('journal/partialUpdatePost',  formData)
+        if(route_name.value=='journal_edit'){
+            store.dispatch('journal/partialUpdatePost',  formData)
+        }
+        else if(route_name.value=='journal_create'){
+            store.dispatch('journal/createPost',  formData)
+        }
 
-        routes.go(-1)
+        // routes.go(-1)
     }
 
 
@@ -314,7 +327,7 @@ const postponed_publish=async()=>{
         if(Object.entries(post_data.value).toString() != Object.entries(post_data_initial.value).toString()){
 
             formData.append('is_draft', false)
-            formData.append('id',routes.currentRoute.value.params.post_id)
+            if(route_name.value=='journal_edit'){formData.append('id',routes.currentRoute.value.params.post_id)}
                 
             for (const [key, value] of Object.entries(post_data.value)) {
                 if(value != post_data_initial.value[key]){
@@ -345,9 +358,14 @@ const postponed_publish=async()=>{
             formData.append('id',routes.currentRoute.value.params.post_id) 
         }
 
-        store.dispatch('journal/partialUpdatePost',  formData)
+        if(route_name.value=='journal_edit'){
+            store.dispatch('journal/partialUpdatePost',  formData)
+        }
+        else if(route_name.value=='journal_create'){
+            store.dispatch('journal/createPost',  formData)
+        }
 
-        routes.go(-1)
+        // routes.go(-1)
     }
 }
 
@@ -358,7 +376,7 @@ const publish = async()=>{
         let formData = new FormData();
         if(Object.entries(post_data.value).toString() != Object.entries(post_data_initial.value).toString()){
             formData.append('is_draft', false)
-            formData.append('id',routes.currentRoute.value.params.post_id)
+            if(route_name.value=='journal_edit'){formData.append('id',routes.currentRoute.value.params.post_id)}
                 
             for (const [key, value] of Object.entries(post_data.value)) {
                 if(value != post_data_initial.value[key]){
@@ -383,9 +401,14 @@ const publish = async()=>{
             formData.append('publish_datetime', null)
             formData.append('id',routes.currentRoute.value.params.post_id) 
         }
-        store.dispatch('journal/partialUpdatePost',  formData)   
+        if(route_name.value=='journal_edit'){
+            store.dispatch('journal/partialUpdatePost',  formData)
+        }
+        else if(route_name.value=='journal_create'){
+            store.dispatch('journal/createPost',  formData)
+        }
         
-        routes.go(-1)
+        // routes.go(-1)
     }    
 }
 
@@ -435,50 +458,53 @@ watch(post_data, (newValues, oldValues) => {
 
 
 onMounted(async () => {
-    const post_id = routes.currentRoute.value.params.post_id
-    await store.dispatch('journal/getPostDetail', post_id)
     await store.dispatch('journal/getTagsList')
 
-    const postDetail = store.getters['journal/getPostDetail']
+    if(route_name.value=='journal_edit'){
+        const post_id = routes.currentRoute.value.params.post_id
+        await store.dispatch('journal/getPostDetail', post_id)
 
-    for(const [key, value] of Object.entries(postDetail)){
-        switch (key){
-            case 'title': 
-                post_data_initial.value[key] = value
-                break
-            case 'description': 
-                post_data_initial.value[key] = value
-                break
-            case 'thumbnail':
-                if(value != null){
-                    const thumbnail_name = value.split("/").pop(); 
-                    const file_obj = new File([""], thumbnail_name)
-                    post_data_initial.value['thumbnail'] = [file_obj]
-                    post_data_initial.value['thumbnail_source'] = value
-                }
-                break
-            case 'body': 
-                post_data_initial.value[key] = value
-                break
-            case 'tags':
-                const tags = value.map(item => item.slug)
-                post_data_initial.value[key] = tags
-                break
-            case 'publish_datetime':
-                if(value){
-                    post_data_initial.value[key] = format(value)
-                    post_data_initial.value['publish_option'] = 'later'
-                }
-                break
-            case 'allow_comments':
-                value == true ? post_data_initial.value[key] = 'yes' :  post_data_initial.value[key] = 'no'
-                break
-            default:
-                break
+        const postDetail = store.getters['journal/getPostDetail']
+
+        for(const [key, value] of Object.entries(postDetail)){
+            switch (key){
+                case 'title': 
+                    post_data_initial.value[key] = value
+                    break
+                case 'description': 
+                    post_data_initial.value[key] = value
+                    break
+                case 'thumbnail':
+                    if(value != null){
+                        const thumbnail_name = value.split("/").pop(); 
+                        const file_obj = new File([""], thumbnail_name)
+                        post_data_initial.value['thumbnail'] = [file_obj]
+                        post_data_initial.value['thumbnail_source'] = value
+                    }
+                    break
+                case 'body': 
+                    post_data_initial.value[key] = value
+                    break
+                case 'tags':
+                    const tags = value.map(item => item.slug)
+                    post_data_initial.value[key] = tags
+                    break
+                case 'publish_datetime':
+                    if(value){
+                        post_data_initial.value[key] = format(value)
+                        post_data_initial.value['publish_option'] = 'later'
+                    }
+                    break
+                case 'allow_comments':
+                    value == true ? post_data_initial.value[key] = 'yes' :  post_data_initial.value[key] = 'no'
+                    break
+                default:
+                    break
+            }
         }
-    }
 
-    post_data.value = Object.assign({}, post_data_initial.value);
+        post_data.value = Object.assign({}, post_data_initial.value);
+    }
     mountedComplete.value == true
 
 })
@@ -488,13 +514,13 @@ const onFileChange = () => {
     const file = post_data.value.thumbnail[0];
     if (file) {
         post_data.value.thumbnail_source = URL.createObjectURL(file)
-        showDialogButton.value = true
+        // showDialogButton.value = true
     }
 }
 
 const onFileClear = () => {
     post_data.value.thumbnail_source = null
-    showDialogButton.value = false
+    // showDialogButton.value = false
 }
 
 

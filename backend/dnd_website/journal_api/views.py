@@ -73,31 +73,51 @@ class PostViewSet(viewsets.ModelViewSet):
         
         # Проверяем, есть ли все необходимые поля
         required_fields = ['title', 'description', 'body']
-        if not all(field in request.data for field in required_fields):
-            return Response({"error": "Необходимо указать заголовок, описание и содержимое поста"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Получаем данные в необходимом формате
-        is_draft = bool(request.data.get('is_draft'))
-        thumbnail = request.FILES.get('thumbnail')
-        tags = json.loads(request.data.get('tags', '[]'))
-        
-        # Создаем пост
+        if request.data.get('is_draft') != 'true':
+            if not all(field in request.data for field in required_fields):
+                return Response({"error": "Необходимо указать заголовок, описание и содержимое поста"}, status=status.HTTP_400_BAD_REQUEST)
+
         data = {
             'title': request.data.get('title'),
             'description': request.data.get('description'),
             'body': request.data.get('body'),
-            'thumbnail': thumbnail,
-            'author': request.user.id
+            'author': request.user.id,
         }
+
+        print(data)
+
+        for key, value in request.data.items():
+            match key:
+                case 'thumbnail':
+                    data[key] = request.FILES.get('thumbnail')
+                case 'tags':
+                    data[key] = json.loads(request.data.get('tags', '[]'))
+                case 'is_draft':
+                    if request.data.get('is_draft') == 'true': data[key] = True 
+                    else: data[key] = False
+                case 'is_publish':
+                    if request.data.get('is_publish') == 'true': data[key] = True 
+                    else: data[key] = False
+                case 'publish_datetime':
+                    publish_datetime = parse_datetime(request.data.get('publish_datetime'))
+                    data[key] = publish_datetime
+                case _:
+                    data[key] = request.data.get(key)
+
         
         post_serializer = self.get_serializer(data=data)
         if post_serializer.is_valid(raise_exception=True):
-            post = post_serializer.save(is_publish=False, is_draft=True) if is_draft else post_serializer.save(is_publish=True)
-            
+
+            if data.get('publish_datetime') != None and data.get('is_draft') == False: 
+                print('make celery task')
+            post = post_serializer.save()  
+
             # Создаем и добавляем новые тэги к посту
-            for tag in tags:
-                tag, created = Tag.objects.get_or_create(name=tag, slug=tag)
-                post.tags.add(tag)
+            if data.get('tags'):
+                if data.get('tags') != []:
+                    for tag in data['tags']:
+                        tag, created = Tag.objects.get_or_create(name=tag, slug=slugify(tag))
+                        post.tags.add(tag)
         
             return Response(post_serializer.data, status=status.HTTP_201_CREATED)
         else:
@@ -198,7 +218,36 @@ class PostViewSet(viewsets.ModelViewSet):
         self.ordering = ['-created_datetime']
         self.pagination_class = PostListPagination
 
+        def myfilters(queryset):
+            instance = queryset
+            params = request.query_params
+
+            for param in params:
+
+                if param == 'start_date' and params[param] != None:
+                    start_date_obj = datetime.strptime(params[param], '%d/%m/%Y')
+                    instance = instance.filter(created_datetime__gte=start_date_obj)
+
+                if param == 'end_date' and params[param] != None:
+                    end_date_obj = datetime.strptime(params[param], '%d/%m/%Y')
+                    instance = instance.filter(created_datetime__lte = end_date_obj)
+
+                if param == 'tags' and params[param] != None:
+                    tags_list = params[param].split(',')
+                    for tag in tags_list:
+                        instance = instance.filter(tags__name=tag)
+
+                if param == 'username' and params[param] != None:
+                    instance = instance.filter(author__username__exact=params[param])
+
+                if param == 'ordering' and params[param] != None:
+                    ordering_list = params[param].split(',')
+                    instance = instance.order_by(*ordering_list)
+
+            return instance
+
         instance = self.queryset.filter(is_publish=True).select_related('author').prefetch_related('tags','post_reactions','comments') 
+        instance = myfilters(instance)
 
         page = self.paginate_queryset(instance)
         if page is not None: 

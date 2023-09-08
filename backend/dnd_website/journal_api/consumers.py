@@ -264,28 +264,30 @@ class PostConsumer(GenericAsyncAPIConsumer):
 
         match action.value:
             case 'create':
-                return {
-                    'status': '200',
-                    'status_message': "Post has been created",
-                    'data': data,
-                    'action': 'create_post'
-                }
+
+                if data.get('is_publish') == True and (data.get('is_draft') == False or data.get('is_draft') is None):
+                    print(data.get('is_publish')==True)
+                    return {
+                        'status': '200',
+                        'status_message': "Post has been created",
+                        'action': 'create_post'
+                    }
             
-            case 'delete':
-                return {
-                    'status': '200',
-                    'status_message': "Post has been deleted ",
-                    'data': data,
-                    'action': 'delete_post'
-                }
+            # case 'delete':
+            #     return {
+            #         'status': '200',
+            #         'status_message': "Post has been deleted ",
+            #         'data': data,
+            #         'action': 'delete_post'
+            #     }
                     
-            case 'update':
-                return {
-                    'status': '200',
-                    'status_message': "Post was updated",
-                    'data': data,
-                    'action': 'update_post'
-                }
+            # case 'update':
+            #     return {
+            #         'status': '200',
+            #         'status_message': "Post was updated",
+            #         'data': data,
+            #         'action': 'update_post'
+            #     }
             
         return {
                 'status': '200',

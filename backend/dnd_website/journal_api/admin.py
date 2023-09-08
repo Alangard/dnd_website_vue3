@@ -45,7 +45,7 @@ class CommentInline(admin.TabularInline):
 
 class PostAdmin(admin.ModelAdmin):
     # inlines = (PostReactionsInline, CommentInline)
-    list_display = ['id','author','created_datetime', 'is_publish', 'title', 'description', ]
+    list_display = ['id','author','created_datetime', 'is_publish','is_draft', 'publish_datetime', 'title', 'description', ]
 
 class TagAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'slug']

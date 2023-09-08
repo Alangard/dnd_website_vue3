@@ -400,7 +400,7 @@ const textHighlight = ref('#000000')
 const fontFamily = ref('Roboto')
 
 onBeforeUnmount(() => {
-  editor.destroy();
+  editor.value.destroy();
 });
 
 editor.value = new Editor({

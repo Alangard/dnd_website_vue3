@@ -136,11 +136,12 @@ export const journal = {
       catch(error){console.log(error)}
     },
 
-    async getPostList({commit}, paginate_url){
+    async getPostList({commit}, {paginate_url, request_type}){
       try{
         const response = await interceptorsInstance.get(BASE_URL + `post/${paginate_url}`, { headers: authHeader() })
-        commit('setPostListInStore', response.data)
-        return response
+        if(request_type == 'normal'){commit('setPostListInStore', response.data)}
+        else if(request_type == 'load_more'){commit('addPostInStore', response.data)}
+        return response.data
       }
       catch(error){console.log(error)}
     },
@@ -233,7 +234,8 @@ export const journal = {
     },
 
     addPostInStore(state, data){
-      state.PostsList.results.unshift(data)
+      state.PostsList.count = data.count
+      state.PostsList.results.unshift(...data.results)
     },
 
     deletePostInStore(state, data){

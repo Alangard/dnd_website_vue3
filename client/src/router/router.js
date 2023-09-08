@@ -13,7 +13,7 @@ const routes = [
     path: '/journal',
     name: 'journal',
     meta: {navbar_name: 'Journal', navbar_style: 'default'},
-    component: () => import('@/pages/Journal/Journal.vue'),
+    component: () => import('@/pages/Journal/JournalList.vue'),
   },
 
   {
@@ -27,14 +27,14 @@ const routes = [
     path: '/journal/create',
     name: 'journal_create',
     meta: {navbar_name: 'Post creation', navbar_style: 'default', requiresAuth: true },
-    component: () => import('@/pages/Journal/JournalCreate.vue'),
+    component: () => import('@/pages/Journal/JournalEditable.vue'),
   },
 
   {
     path: '/journal/:post_id/edit',
     name: 'journal_edit',
     meta: {navbar_name: 'Post editing', navbar_style: 'default', requiresAuth: true },
-    component: () => import('@/pages/Journal/JournalEdit.vue'),
+    component: () => import('@/pages/Journal/JournalEditable.vue'),
   },
 
   {

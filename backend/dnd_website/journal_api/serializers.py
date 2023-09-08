@@ -227,7 +227,7 @@ class PostPartialUpdateSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)
     class Meta:
         model = Post
-        fields = fields = ['author', 'title', 'description', 'thumbnail', 'body', 'tags', 'is_publish', 'is_draft', 'publish_datetime', 'allow_comments']
+        fields = ['author', 'title', 'description', 'thumbnail', 'body', 'tags', 'is_publish', 'is_draft', 'publish_datetime', 'allow_comments']
 
 class PostListReadSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)
@@ -272,9 +272,10 @@ class PostListReadSerializer(serializers.ModelSerializer):
   
 class PostCreateSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)
+    
     class Meta:
         model = Post
-        fields = ['author', 'title', 'description', 'thumbnail', 'body', 'tags', 'is_publish', 'publish_datetime']
+        fields = ['author', 'title', 'description', 'thumbnail', 'body', 'tags', 'is_publish', 'is_draft', 'publish_datetime', 'allow_comments']
 
 
 class ReportReasonSerializer(serializers.ModelSerializer):
