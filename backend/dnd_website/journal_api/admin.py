@@ -1,6 +1,10 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from . import models
+from django.db import models as models_dict
+from django.forms import TextInput, Textarea
+from .forms import MultiLineCharField
 
 class CustomAccountAdmin(UserAdmin):
     search_fields = ('username',)
@@ -45,6 +49,8 @@ class CommentInline(admin.TabularInline):
 
 class PostAdmin(admin.ModelAdmin):
     # inlines = (PostReactionsInline, CommentInline)
+    formfield_overrides = {models_dict.CharField: {'widget': forms.Textarea},}
+
     list_display = ['id','author','created_datetime', 'is_publish','is_draft', 'publish_datetime', 'title', 'description', ]
 
 class TagAdmin(admin.ModelAdmin):

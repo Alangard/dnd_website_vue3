@@ -1,11 +1,10 @@
-import JournalService from '@/api/JournalAPI/index'
-import AuthService from '@/api/AuthAPI/auth'
+// import JournalService from '@/api/JournalAPI/index'
+// import AuthService from '@/api/AuthAPI/auth'
 import axios from 'axios';
-
 import interceptorsInstance, {authHeader} from '@/api/main'
 
 
-const user = JSON.parse(localStorage.getItem('user'));
+// const user = JSON.parse(localStorage.getItem('user'));
 const BASE_URL = axios.defaults.baseURL;
 
 const initialState = { haveInitialPosts: false, PostsList: [], TagsList: [], postDetail: {}};
@@ -158,70 +157,76 @@ export const journal = {
     async getTagsList({commit}){
       try{
         const response = await interceptorsInstance.get(BASE_URL + `tag/`)
-        console.log(response)
         commit('setTagsInStore', response.data)
-
         return response.data
       }
       catch(error){console.log(error)}
     },
 
-    get_posts({ commit }, url) {
-      return JournalService.get_posts(url).then(
-        posts_data => {
-          commit('gettingPostSuccess', posts_data.data);
-          return Promise.resolve(posts_data.data);
-        },
-        error => {
-          commit('gettingPostFailure');
-          return Promise.reject(error);
-        }
-      );
-    },
+    // get_posts({ commit }, url) {
+    //   return JournalService.get_posts(url).then(
+    //     posts_data => {
+    //       commit('gettingPostSuccess', posts_data.data);
+    //       return Promise.resolve(posts_data.data);
+    //     },
+    //     error => {
+    //       commit('gettingPostFailure');
+    //       return Promise.reject(error);
+    //     }
+    //   );
+    // },
 
-    getReactions({ commit }, data){
-      return JournalService.get_reactions(data.post_id).then(
-        reactions_data => {
-          commit('gettingReactionsSuccess', reactions_data.data);
-          return Promise.resolve(reactions_data.data);
-        },
-        error => {
-          return Promise.reject(error);
-        }
-      );
-    },
+    // getReactions({ commit }, data){
+    //   return JournalService.get_reactions(data.post_id).then(
+    //     reactions_data => {
+    //       commit('gettingReactionsSuccess', reactions_data.data);
+    //       return Promise.resolve(reactions_data.data);
+    //     },
+    //     error => {
+    //       return Promise.reject(error);
+    //     }
+    //   );
+    // },
 
-    set_reaction({ commit, dispatch}, data){
+    async set_reaction({ commit, dispatch}, data){
       //Если пользователь оставлял реакцию
       if(data.user_reaction.reacted){
 
         //Если выбранная реакция соответствует оставленной
         if(data.reaction_type == data.user_reaction.reaction_type){
-          
-          commit('removeReaction', {'post_id': data.post_id,'reaction_type': data.reaction_type})
-
-          JournalService.remove_reaction(data.post_id).then(
-            response => {return Promise.resolve(response.data);},
-            error => {return Promise.reject(error);}
-          );
+          try{     
+            const response = await interceptorsInstance.delete(`post/${data.post_id}/remove_reaction/`, 
+              { headers: authHeader()}
+            )
+            commit('removeReaction', {'post_id': data.post_id,'reaction_type': data.reaction_type})
+            return response.data
+          }
+          catch(error){console.log(error)}
         }
         else{
-          commit('changeReaction', {'post_id': data.post_id,'reaction_type': data.reaction_type})
-
-          JournalService.change_reaction({'post_id': data.post_id,'reaction_type': data.reaction_type}).then(
-            response => {return Promise.resolve(response.data);},
-            error => {return Promise.reject(error);}
-          );            
+          try{ 
+            const response = await interceptorsInstance.patch(`post/${data.post_id}/update_reaction/`, 
+              {'reaction_type': data.reaction_type}, 
+              {headers: authHeader()}
+            )
+            commit('changeReaction', {'post_id': data.post_id,'reaction_type': data.reaction_type})
+            return response.data
+          }
+          catch(error){console.log(error)}          
         }
       }
 
       else{
-        commit('setReaction', {'post_id': data.post_id,'reaction_type': data.reaction_type})
+        try{
+          const response = await interceptorsInstance.post(`post/${data.post_id}/add_reaction/`, 
+            {'reaction_type': data.reaction_type}, 
+            {headers: authHeader()}
+          )
+          commit('setReaction', {'post_id': data.post_id,'reaction_type': data.reaction_type})
+          return response.data
 
-        JournalService.add_reaction({'post_id': data.post_id,'reaction_type': data.reaction_type}).then(
-          response => {return Promise.resolve(response.data);},
-          error => {return Promise.reject(error);}
-        );
+        }
+        catch(error){console.log(error)}
       }
     },
   },
@@ -258,14 +263,6 @@ export const journal = {
       else{
         console.log('Post has not been found', post_index)
       }
-    },
-
-    setTagsInStore(state, data){
-      state.TagsList = data
-    },
-
-    gettingReactionsSuccess(state, reactions_data){
-      state.Reactions = reactions_data;
     },
 
     setReaction(state, chosen_data){
@@ -320,30 +317,13 @@ export const journal = {
   },
 
   getters: {
+    getPostsData(state){return state.PostsList},
 
-    getPostsData(state){
-      return state.PostsList
-    },
+    getPosts(state){return state.PostsList.results},
 
-    getPosts(state){
-      return state.PostsList.results
-    },
+    getPostDetail(state){return state.postDetail},
 
-    getPostById(state, post_id){
-      return state.PostsList.results.filter(post => post.id == 2)
-    },
-
-    getPostDetail(state){
-      return state.postDetail 
-    },
-
-    getTagsList(state){
-      return state.TagsList
-    },
-
-
-
-    
+    getTagsList(state){return state.TagsList},    
   }
 
 };
