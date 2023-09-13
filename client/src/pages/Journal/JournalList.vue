@@ -331,6 +331,9 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+
+    
+
     .main-container{
         display: flex;
         flex-direction: column;

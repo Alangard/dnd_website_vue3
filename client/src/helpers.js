@@ -13,8 +13,10 @@ export function Separator (index, array_of_objects = []) {
 
 // Convert datetime to the format "n-time from publication
 export function DateTimeFormat (datetime_str) {
+
     let moment = require('moment');
-    return moment(datetime_str).fromNow()
+    const datetime = new Date(datetime_str).toString()
+    return moment(datetime).fromNow()
 }
 
 

@@ -234,6 +234,10 @@ export const journal = {
 
   mutations: {
 
+    setTagsInStore(state, data){
+      state.TagsList = data
+    },
+
     setPostListInStore(state, data){
       state.PostsList = data
     },

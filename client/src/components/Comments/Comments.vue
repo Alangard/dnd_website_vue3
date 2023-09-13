@@ -1,8 +1,8 @@
 
 <template>
-  <v-card class="comment_container mt-4 pa-4">
+  <v-card class="comment_container mt-4 px-4">
     <v-card-title class="d-flex flex-row align-center pl-0 text-h6">Comments 
-      <span class="text-h6 font-weight-light pl-2"> {{ comments.num_comments }}</span>
+      <span class="text-h6 font-weight-light pl-2">({{ comments.num_comments }})</span>
     </v-card-title>
 
     <v-card-subtitle class="pl-0 mb-2" v-if="!loggedIn">
@@ -11,15 +11,16 @@
     </v-card-subtitle>
 
     <v-textarea
-        variant="solo"
-        label="Comment"
-        clearable
-        clear-icon="mdi-close-circle"
-        rows="2"
-        no-resize
-        hide-details
-        auto-grow
-        v-model="newTextComment"
+      v-if="loggedIn || props.allow_comments"
+      variant="solo"
+      label="Comment"
+      clearable
+      clear-icon="mdi-close-circle"
+      rows="2"
+      no-resize
+      hide-details
+      auto-grow
+      v-model="newTextComment"
       >
 
 
@@ -78,7 +79,7 @@
 
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watchEffect } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watchEffect, defineProps } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
 import routes from '@/router/router'
@@ -88,6 +89,7 @@ import Comment from './Comment.vue'
 import EmojiContent from '../Emoji/EmojiContent.vue';
 
 const store = useStore();
+const props = defineProps(['allow_comments'])
 const { width } = useDisplay();
 
 const url = `ws://${axios.defaults.baseURL.split('http://')[1]}ws/comment_socket-server/`

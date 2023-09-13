@@ -41,8 +41,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
-
 FRONTEND_AUTHORITY = "http://localhost:8080"
 
 CORS_ALLOWED_ORIGINS = [
@@ -222,7 +220,6 @@ DATABASES = {
     }
 
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators

@@ -198,7 +198,7 @@ class PostViewSet(viewsets.ModelViewSet):
             return Response({"error": "Пользователь не является создателем поста или не имеет достаточно прав"}, status=status.HTTP_403_FORBIDDEN)
 
     def retrieve(self, request, *args, **kwargs):
-        self.serializer_class = PostDetailOwnerSerializer 
+        self.serializer_class = PostDetailViewerSerializer 
         post_id = kwargs.get('pk')
         instance = get_object_or_404(self.queryset, pk=post_id)
         

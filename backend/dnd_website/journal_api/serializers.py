@@ -206,11 +206,31 @@ class PostBodyImageUploadSerializer(serializers.ModelSerializer):
 class PostDetailViewerSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)
     author = ShortAccountSerializer(read_only=True)
+    user_reaction = serializers.SerializerMethodField()
+    post_reactions = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = '__all__'
-        exclude=['author', 'title', 'description', 'thumbnail', 'updated_datetime', 'is_publish', 'is_draft', 'publish_datetime', 'commented', 'reacted', 'num_comments', 'allow_comments']
+        fields = ['id', 'author', 'title', 'description', 'thumbnail', 'is_publish', 'publish_datetime',
+                  'created_datetime', 'updated_datetime', 'body', 'tags', 'user_reaction','post_reactions']
+        read_only_fields = ['tags','author', 'user_reaction', 'post_reactions']
+
+    def get_post_reactions(self, obj):
+        post_reactions = obj.post_reactions.all()
+        num_likes = post_reactions.filter(reaction_type='like').count()
+        num_dislikes = post_reactions.filter(reaction_type='dislike').count()
+        total_reactions = num_likes + num_dislikes
+        return {'num_likes': num_likes, 'num_dislikes': num_dislikes, 'total_reactions': total_reactions}
+
+    
+    def get_user_reaction(self, obj):
+        print(self.context)
+        if 'request' in self.context:
+            user = self.context['request'].user.id
+            if obj.post_reactions.filter(author=user).exists():
+                for post in obj.post_reactions.filter(author=user):
+                    return {'reacted': True, 'reaction_type': post.reaction_type}
+        return {'reacted': False, 'reaction_type': ''}
 
 
 class PostDeleteSerializer(serializers.ModelSerializer):

@@ -252,6 +252,7 @@ const tagList = computed(() => store.getters['journal/getTagsList'])
 const tagsSlugList = computed(() => tagList.value.map(tag => tag.slug));
 const tagSerch = ref(null)
 const route_name = ref(routes.currentRoute.value.name)
+const previous_page = ref(routes.options.history.state)
 
 
 let showDialogButton = ref(false)
@@ -312,7 +313,8 @@ const save_to_draft=()=>{
             store.dispatch('journal/createPost',  formData)
         }
 
-        // routes.go(-1)
+
+        previous_page.value ? routes.go(-1) : routes.push({name: 'journal'})
     }
 
 
@@ -365,7 +367,7 @@ const postponed_publish=async()=>{
             store.dispatch('journal/createPost',  formData)
         }
 
-        // routes.go(-1)
+        previous_page.value ? routes.go(-1) : routes.push({name: 'journal'})
     }
 }
 
@@ -408,7 +410,7 @@ const publish = async()=>{
             store.dispatch('journal/createPost',  formData)
         }
         
-        // routes.go(-1)
+        previous_page.value ? routes.go(-1) : routes.push({name: 'journal'})
     }    
 }
 
@@ -551,6 +553,8 @@ const cancelPostCreation = () => {
             return
         }
     }
+    const lastPath = routes.options.history.state.back
+    lastPath ? lastPath : '/journal'
     routes.go(-1)
 }
 
