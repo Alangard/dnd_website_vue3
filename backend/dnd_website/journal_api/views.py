@@ -58,11 +58,14 @@ class PostListPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 1000
 
+class PostReactionPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     filter_backends = [DjangoFilters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_class  = PostListFilter
 
     def create(self, request, *args, **kwargs):
         self.serializer_class = PostCreateSerializer
@@ -83,8 +86,6 @@ class PostViewSet(viewsets.ModelViewSet):
             'body': request.data.get('body'),
             'author': request.user.id,
         }
-
-        print(data)
 
         for key, value in request.data.items():
             match key:
@@ -260,6 +261,125 @@ class PostViewSet(viewsets.ModelViewSet):
         else:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         
+class PostReactionViewSet(viewsets.ModelViewSet):
+    queryset = PostReaction.objects.all()
+    filter_backends = [DjangoFilters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    serializer_class = PostReactionSerializer
+
+    def create(self, request, *args, **kwargs):
+
+        # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        post_id = request.data.get('post_id')
+        try:
+            Post.objects.all().get(id=post_id)
+        except Post.DoesNotExist:
+            return Response({"error": "Пост не существует"}, status=status.HTTP_404_NOT_FOUND)
+        
+
+        instance = self.queryset.filter(post=post_id, author__id=request.user.id).first()
+        if instance is None:
+    
+            data = {
+                'reaction_type': request.data.get('reaction_type'),
+                'post': post_id,
+                'author': request.user.id,
+            }
+            
+            serializer = self.serializer_class(data=data)
+            
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"error": "Сериализация не пройдена"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "Реакция к посту уже имеется"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, *args, **kwargs):
+
+        # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        reaction_id = kwargs.get('pk')
+    
+        try:
+            instance = self.queryset.get(id=reaction_id)
+        except PostReaction.DoesNotExist:
+            return Response({"error": "Реакция к посту не существует"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if request.user.id == instance.author.id:
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({"error": "Пользователь не является создателем реакции"}, status=status.HTTP_403_FORBIDDEN)
+    
+    def partial_update(self, request, *args, **kwargs):
+
+        # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        reaction_id = kwargs.get('pk')
+        
+        try:
+            instance = self.queryset.get(id=reaction_id)
+        except PostReaction.DoesNotExist:
+            return Response({"error": "Реакция к посту не существует"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if request.user.id == instance.author.id:
+            serializer = self.serializer_class(instance, data={'reaction_type': request.data.get('reaction_type')}, partial=True)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()  
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Сериализация не пройдена"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "Пользователь не является создателем реакции"}, status=status.HTTP_403_FORBIDDEN)
+  
+    def list(self, request, *args, **kwargs):
+        self.serializer_class = PostReactionsListSerializer
+        self.ordering = ['-reacted_at']
+        self.pagination_class = PostReactionPagination
+
+        def myfilters(queryset):
+            instance = queryset
+            params = request.query_params
+
+            for param in params:
+
+                if param == 'post_id' and params[param] != None:
+                    instance = instance.filter(post=params[param])
+
+                if param == 'start_date' and params[param] != None:
+                    start_date_obj = datetime.strptime(params[param], '%d/%m/%Y')
+                    instance = instance.filter(reacted_at__gte=start_date_obj)
+
+                if param == 'end_date' and params[param] != None:
+                    end_date_obj = datetime.strptime(params[param], '%d/%m/%Y')
+                    instance = instance.filter(reacted_at__lte = end_date_obj)
+
+                if param == 'reaction_type' and params[param] != None:
+                    instance = instance.filter(reaction_type__exact=params[param])
+
+                if param == 'username' and params[param] != None:
+                    instance = instance.filter(author__username__exact=params[param])
+
+                if param == 'ordering' and params[param] != None:
+                    ordering_list = params[param].split(',')
+                    instance = instance.order_by(*ordering_list)
+
+            return instance
+
+        instance = myfilters(self.queryset)
+
+        page = self.paginate_queryset(instance)
+        if page is not None: 
+            serializer = self.serializer_class(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
@@ -382,179 +502,12 @@ class ResetPasswordConfirm(APIView):
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
-
-# Post's views ########################################################
-
-
-
-class PostListView(generics.ListAPIView):
-
-    def get_queryset(self):
-        queryset = Post.objects.filter(is_publish=True).\
-            select_related('author').\
-            prefetch_related('tags','post_reactions','comments')
-            # annotate(num_comments=Count('comments'))
-        return queryset
-    
-    serializer_class = PostListReadSerializer
-    permission_classess = [AllowAny,]
-    filter_backends = [DjangoFilters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_class  = PostListFilter
-    search_fields = ['title', 'description', 'body']
-    ordering_fields  = ['id', 'created_datetime']
-    ordering = ['-created_datetime']
-    pagination_class = PostListPagination
-
-
-
-# class PostCreateView(generics.CreateAPIView):
-    # serializer_class = PostCreateSerializer
-    # permission_classes = (IsAuthenticated,) 
-
-    # async def post(self, request, *args, **kwargs):
-    #     payload = kwargs['payload']
-
-    #     if 'Authorization' in request.headers:
-    #         auth_header = request.headers['Authorization']
-    #         token = auth_header.split('Bearer ')[1]
-
-    #         try:
-    #             user = await get_user_obj(token)
-    #             if user is None:
-    #                 raise UserNotFound
-    #             else:
-    #                 user_id = user.id
-    #                 post_data = {**payload, 'author': user_id}
-    #                 serialized_data =  PostCreateSerializer(data=post_data)
-
-    #                 await sync_to_async(serialized_data.is_valid)()
-    #                 if not serialized_data.is_valid():
-    #                     raise serializers.ValidationError(serialized_data.errors)     
-                    
-    #                 try:
-    #                     post = Post(author=user, title=payload['title'], description=payload['description'],  
-    #                                 body=payload['body'],  is_publish=payload['is_publish'],  publish_datetime=payload['publish_datetime'])
-    #                     await sync_to_async(post.save)()
-                        
-    #                     for tag_name in payload['tags']:
-    #                         try:
-    #                             tag = await sync_to_async(Tag.objects.get)(name=tag_name)
-    #                         except Tag.DoesNotExist:
-    #                             tag = await sync_to_async(Tag.objects.create)(name=tag_name)
-    #                         await sync_to_async(post.tags.add)(tag)
-
-    #                 except ValidationError as e:
-    #                     await self.send_json({'request_id': request_id, 'status': '500', 'error_message': 'Your model instance has not been saved'})
-                        
-
-    #         except (InvalidToken, TokenError) as e:
-    #             await self.send_json({'request_id': request_id, 'status': '401', 'error_message': 'Token is invalid or expired'})
-    #         except UserNotFound as e:
-    #             await self.send_json({'request_id': request_id, 'status': '404', 'error_message': 'User object does not exist'})
-    #         except serializers.ValidationError as e:
-    #             await self.send_json({'request_id': request_id, 'status': '400', 'error_message': f'Something wrong with serialization.{e.detail}'})
-    #         except Exception as e:
-    #             await self.send_json({'request_id': request_id, 'status': '400', 'error_message': e})
-
-
-class PostReadUpdateView(generics.RetrieveUpdateAPIView):
-    def get_queryset(self):
-        queryset = Post.objects.all().filter(is_publish=True).\
-            select_related('author').\
-            prefetch_related('tags','post_reactions','comments').\
-            annotate(num_comments=Count('comments'))
-        return queryset
-    
-    serializer_class = PostListReadSerializer
-    permission_classes = (IsOwnerOrReadOnly,)
-
-class PostDestroyView(generics.RetrieveDestroyAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostDetailOwnerSerializer
-    permission_classes = (IsOwnerOrAdmin,)
-
-    
 # Post reactions views #############################################################
 
-class PostReactionsListView(generics.ListAPIView):
-    def get_queryset(self):
-        post_id = self.kwargs['post_id']
-        queryset = PostReaction.objects.filter(post=post_id)
-        return queryset
     
-    serializer_class = PostReactionSerializer
-    permission_classes = (AllowAny,)
-    filter_backends = [DjangoFilters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_class  = PostReactionsFilter
-    ordering_fields  = ['author__username', 'reacted_at',]
-    ordering = ['-reacted_at']
-
-class PostReactionCreateView(generics.CreateAPIView):
-    serializer_class = PostReactionSerializer
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request, *args, **kwargs):
-        post_id = kwargs["post_id"]
-
-        try:
-            post = Post.objects.get(id=post_id)
-        except Post.DoesNotExist:
-            return Response(f"Post with id {post_id} does not exist", status=status.HTTP_404_NOT_FOUND)
-
-        post_reaction = PostReaction.objects.create(
-            reaction_type=request.data.get('reaction_type'),
-            post=post,
-            author=request.user
-        )
-        post.save()
-
-        serializer = self.get_serializer(post_reaction)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['post_id'] = self.kwargs['post_id']
-        return context
-    
-class PostReactionReadView(generics.RetrieveAPIView):
-    queryset = PostReaction.objects.all()
-    serializer_class = PostReactionSerializer
-    permission_classes = (AllowAny,)
-
-class PostReactionUpdateView(generics.UpdateAPIView):
-    queryset = PostReaction.objects.all()
-    serializer_class = PostReactionSerializer
-    permission_classes = (IsOwnerOrReadOnly, IsAuthenticated)
-    
-    def patch(self, request, *args, **kwargs):
-        post_id = self.kwargs.get('post_id')
-
-        if Post.objects.filter(id=post_id).exists():
-            post_reaction = get_object_or_404(PostReaction, post_id=post_id, author=request.user)
-            serializer = self.get_serializer(post_reaction, data=request.data, partial=True)
-
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-
-        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class PostReactionDeleteView(generics.DestroyAPIView):
-    queryset = PostReaction.objects.all()
-    serializer_class = PostReactionSerializer
-    permission_classes = (IsOwnerOrReadOnly, )
 
-    def destroy(self, request, *args, **kwargs):
-        post_id = kwargs["post_id"]
-
-        post = get_object_or_404(Post, id=post_id)
-        post_reaction = get_object_or_404(PostReaction, post=post, author=request.user)
-
-        post_reaction.delete()
-        post.save()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 # Commetns views ########################################################
 

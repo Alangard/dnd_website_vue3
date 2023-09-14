@@ -134,9 +134,9 @@ import {DateTimeFormat} from '@/helpers'
 const Comments = defineAsyncComponent(() => import('@/components/Comments/Comments.vue'));
 
 let store = useStore();
+let editor = ref()
 
 const postDetail = computed(() => store.getters['journal/getPostDetail'])
-let editor = ref()
 
 onBeforeMount(async () => {
     const post_id = 38
@@ -173,22 +173,21 @@ const ratingPercentage = (post_reactions_obj) => {
 }
 
 const pressReaction = (data) =>{
-
-    // сделать добавление во vuex для postDetail
     // добавить allow_comments поле в response get_comments
 
     store.dispatch('journal/set_reaction', 
         {
             'post_id': data.post_id,
             'reaction_type': data.reaction_type,
-            'user_reaction': data.user_reaction
+            'id': data.user_reaction.id,
+            'user_reaction': data.user_reaction,
+            'set_reaction_in': 'post_detail',
         }
     )   
+
 }
 
-onBeforeUnmount(() => {
-    editor.value.destroy();
-});
+onBeforeUnmount(() => {editor.value.destroy();});
 
 
 

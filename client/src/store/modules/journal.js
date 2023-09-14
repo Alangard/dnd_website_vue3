@@ -195,21 +195,16 @@ export const journal = {
         //Если выбранная реакция соответствует оставленной
         if(data.reaction_type == data.user_reaction.reaction_type){
           try{     
-            const response = await interceptorsInstance.delete(`post/${data.post_id}/remove_reaction/`, 
-              { headers: authHeader()}
-            )
-            commit('removeReaction', {'post_id': data.post_id,'reaction_type': data.reaction_type})
+            const response = await interceptorsInstance.delete(BASE_URL + `post_reactions/${data.id}/`, { headers: authHeader()})
+            commit('removeReaction', {'post_id': data.post_id,'reaction_type': data.reaction_type, 'set_reaction_in': data.set_reaction_in})
             return response.data
           }
           catch(error){console.log(error)}
         }
         else{
           try{ 
-            const response = await interceptorsInstance.patch(`post/${data.post_id}/update_reaction/`, 
-              {'reaction_type': data.reaction_type}, 
-              {headers: authHeader()}
-            )
-            commit('changeReaction', {'post_id': data.post_id,'reaction_type': data.reaction_type})
+            const response = await interceptorsInstance.patch(BASE_URL + `post_reactions/${data.id}/`,{'reaction_type': data.reaction_type},  { headers: authHeader()}) 
+            commit('changeReaction', {'post_id': data.post_id,'reaction_type': data.reaction_type, 'id': response.data.post, 'set_reaction_in': data.set_reaction_in})
             return response.data
           }
           catch(error){console.log(error)}          
@@ -218,17 +213,22 @@ export const journal = {
 
       else{
         try{
-          const response = await interceptorsInstance.post(`post/${data.post_id}/add_reaction/`, 
-            {'reaction_type': data.reaction_type}, 
-            {headers: authHeader()}
-          )
-          commit('setReaction', {'post_id': data.post_id,'reaction_type': data.reaction_type})
+          const response = await interceptorsInstance.post(BASE_URL + `post_reactions/`, {'reaction_type': data.reaction_type, 'post_id': data.post_id}, {headers: authHeader()})
+          commit('setReaction', {'post_id': data.post_id, 'reaction_type': data.reaction_type, 'id': response.data.id, 'set_reaction_in': data.set_reaction_in})
           return response.data
 
         }
         catch(error){console.log(error)}
       }
     },
+
+    async get_reaction({commit, }, filter_params_str){
+      try{  
+        const response = await interceptorsInstance.get(BASE_URL + `post_reactions/${filter_params_str}`,)
+        return response.data
+      }
+      catch(error){console.log(error)}
+    }
   },
 
 
@@ -270,7 +270,11 @@ export const journal = {
     },
 
     setReaction(state, chosen_data){
-      const post_obj =  state.PostsList.results.find(post => post.id == chosen_data.post_id)
+
+      const post_obj = chosen_data.set_reaction_in == 'post_list' 
+        ? state.PostsList.results.find(post => post.id == chosen_data.post_id) 
+        : state.postDetail
+
       switch (chosen_data.reaction_type){
         case 'like':
           post_obj.post_reactions.num_likes += 1
@@ -281,11 +285,14 @@ export const journal = {
       }
       post_obj.post_reactions.total_reactions += 1
       
-      post_obj.user_reaction = {'reacted': true, 'reaction_type': chosen_data.reaction_type}
+      post_obj.user_reaction = {'reacted': true, 'reaction_type': chosen_data.reaction_type, 'id': chosen_data.id}
     },
 
     removeReaction(state, chosen_data){
-      const post_obj =  state.PostsList.results.find(post => post.id == chosen_data.post_id)
+      const post_obj = chosen_data.set_reaction_in == 'post_list' 
+        ? state.PostsList.results.find(post => post.id == chosen_data.post_id) 
+        : state.postDetail
+
       switch (chosen_data.reaction_type){
         case 'like':
           post_obj.post_reactions.num_likes -= 1
@@ -301,7 +308,10 @@ export const journal = {
     },
 
     changeReaction(state, chosen_data){
-      const post_obj =  state.PostsList.results.find(post => post.id == chosen_data.post_id)
+      const post_obj = chosen_data.set_reaction_in == 'post_list' 
+        ? state.PostsList.results.find(post => post.id == chosen_data.post_id) 
+        : state.postDetail
+
       switch(chosen_data.reaction_type){
         case 'like':
           post_obj.post_reactions.num_likes += 1

@@ -134,18 +134,23 @@ class TagDetailSerializer(serializers.ModelSerializer):
 # Post reactions serializers ###################################################
 
 class PostReactionSerializer(serializers.ModelSerializer):
-    author = ShortAccountSerializer(read_only=True)
 
     class Meta:
         model = PostReaction
-        fields = ['id', 'reaction_type', 'author', 'reacted_at', 'post', ]
-        read_only_fields = ['post']
+        fields = ['id','reaction_type', 'author', 'reacted_at', 'post', ]
+
+class PostReactionsListSerializer(serializers.ModelSerializer):
+    author = ShortAccountSerializer(read_only=True)
     
-    def create(self, validated_data):
-        post_id = self.context.get('post_id')
-        post = get_object_or_404(Post, id=post_id, reacted=False)
-        validated_data['post'] = post
-        return super().create(validated_data)
+    class Meta:
+        model = PostReaction
+        fields = '__all__'
+    
+    # def create(self, validated_data):
+    #     post_id = self.context.get('post_id')
+    #     post = get_object_or_404(Post, id=post_id, reacted=False)
+    #     validated_data['post'] = post
+    #     return super().create(validated_data)
 
     
 # class PostReactionDetailSerializer(serializers.ModelSerializer):
@@ -196,13 +201,6 @@ class PostDetailOwnerSerializer(serializers.ModelSerializer):
         model = Post
         fields = '__all__'
 
-
-class PostBodyImageUploadSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = PostBodyImage
-        fields = '__all__'
-
 class PostDetailViewerSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)
     author = ShortAccountSerializer(read_only=True)
@@ -229,9 +227,8 @@ class PostDetailViewerSerializer(serializers.ModelSerializer):
             user = self.context['request'].user.id
             if obj.post_reactions.filter(author=user).exists():
                 for post in obj.post_reactions.filter(author=user):
-                    return {'reacted': True, 'reaction_type': post.reaction_type}
-        return {'reacted': False, 'reaction_type': ''}
-
+                    return {'reacted': True, 'reaction_type': post.reaction_type, 'id': post.id}
+        return {'reacted': False, 'reaction_type': '', 'id': ''}
 
 class PostDeleteSerializer(serializers.ModelSerializer):
     author = ShortAccountSerializer(read_only=True)

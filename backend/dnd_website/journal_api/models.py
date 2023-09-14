@@ -51,20 +51,6 @@ class Post(models.Model):
         verbose_name = "Post"
         verbose_name_plural = "Post"
 
-class PostBodyImage(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='images/post_body/%Y/%m/%d/', blank=True)
-    created_datetime = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f'{self.id} - {self.post}/{self.image}'
-
-    class Meta:
-        ordering = ['-created_datetime']
-        db_table = "PostBodyImage"
-        verbose_name = "PostBodyImage"
-        verbose_name_plural = "PostBodyImage"
-
 class PostReaction(models.Model):
     REACTION_CHOICES = (('like', 'Like'),('dislike', 'Dislike'))
     reaction_type = models.CharField(max_length=10, blank=True, null=True, choices = REACTION_CHOICES)  #like or dislike
