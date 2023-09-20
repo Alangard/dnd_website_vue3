@@ -50,6 +50,8 @@ from .permisions import IsOwnerOrAdmin, IsOwnerOrReadOnly
 from django.utils.text import slugify
 from django.utils.dateparse import parse_datetime
 
+from PIL import Image
+
 
 
 
@@ -64,7 +66,7 @@ class PostReactionPagination(PageNumberPagination):
     max_page_size = 1000
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
+    queryset = Post.objects.all().select_related('author').prefetch_related('tags', 'post_reactions', 'comments')
     filter_backends = [DjangoFilters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
 
     def create(self, request, *args, **kwargs):
@@ -229,6 +231,8 @@ class PostViewSet(viewsets.ModelViewSet):
                     start_date_obj = datetime.strptime(params[param], '%d/%m/%Y')
                     instance = instance.filter(created_datetime__gte=start_date_obj)
 
+
+
                 if param == 'end_date' and params[param] != None:
                     end_date_obj = datetime.strptime(params[param], '%d/%m/%Y')
                     instance = instance.filter(created_datetime__lte = end_date_obj)
@@ -239,15 +243,17 @@ class PostViewSet(viewsets.ModelViewSet):
                         instance = instance.filter(tags__name=tag)
 
                 if param == 'username' and params[param] != None:
-                    instance = instance.filter(author__username__exact=params[param])
+                    username_list = params[param].split(',')
+                    for username in username_list:
+                        instance = instance.filter(author__username__exact=username)
 
                 if param == 'ordering' and params[param] != None:
                     ordering_list = params[param].split(',')
-                    instance = instance.order_by(*ordering_list)
+                    instance = instance.order_by(params[param])
 
             return instance
 
-        instance = self.queryset.filter(is_publish=True).select_related('author').prefetch_related('tags','post_reactions','comments') 
+        instance = self.queryset.filter(is_publish=True)
         instance = myfilters(instance)
 
         page = self.paginate_queryset(instance)

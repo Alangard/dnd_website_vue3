@@ -1,6 +1,7 @@
 <template>
     <v-container fluid class="pb-12">
-        <v-app-bar class="d-flex flex-row justify-space-between" v-if="routes.currentRoute.value.meta.navbar_style == 'default'">
+        <v-app-bar class="d-flex flex-row justify-space-between" 
+            v-if="routes.currentRoute.value.meta.navbar_style == 'default'">
 
             <v-app-bar-nav-icon 
                 variant="text" 
@@ -55,13 +56,13 @@
                     <v-list-item value="0" active-color="primary">
                         <template v-slot:prepend>
                             <v-avatar class="avatar mr-2" style="cursor:pointer" >
-                                <v-img v-if="currUserData.avatar" :src="currUserData.avatar" :alt="currUserData.username"></v-img>
+                                <v-img v-if="currUserData?.avatar" :src="currUserData?.avatar" :alt="currUserData?.username"></v-img>
                                 <v-icon icon="mdi-account-circle" size='x-large' v-else></v-icon>
                             </v-avatar>
                         </template>
                         <v-list-item-content>
-                            <v-list-item-title v-text="currUserData.username"></v-list-item-title> 
-                            <v-list-item-subtitle v-text="currUserData.role"></v-list-item-subtitle> 
+                            <v-list-item-title v-text="currUserData?.username"></v-list-item-title> 
+                            <v-list-item-subtitle v-text="currUserData?.role"></v-list-item-subtitle> 
                         </v-list-item-content>
                     </v-list-item>
 
@@ -145,7 +146,7 @@ const currentRouteName = computed(() => {return routes.currentRoute.value.meta.n
 
 const loggedIn = computed(() => {return store.getters['auth/loginState']});
 
-const currUserData = computed(() => {return store.getters.getCurrUserData;})
+const currUserData = computed(() => {return store.getters['auth/getUserData'];})
 
 
     
@@ -156,4 +157,5 @@ const currUserData = computed(() => {return store.getters.getCurrUserData;})
 </script>
 
 <style lang='scss' scoped>
+.v-toolbar__content{width: 100vw !important;}
 </style>

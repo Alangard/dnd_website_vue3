@@ -6,6 +6,8 @@ from django.contrib.sites.shortcuts import get_current_site
 
 from .models import *
 
+from django.db.models import Count, Q, Sum
+
 
 ## JWT serializers ################################################################
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -259,18 +261,15 @@ class PostListReadSerializer(serializers.ModelSerializer):
         fields = ['id', 'author', 'title', 'description', 'thumbnail', 'is_publish', 'publish_datetime',
                   'created_datetime', 'updated_datetime', 'body', 'tags', 'num_comments', 'user_reaction',
                   'commented', 'post_reactions']
-        read_only_fields = ['tags','author', 'user_reaction', 'post_reactions']
 
     def get_post_reactions(self, obj):
-        post_reactions = obj.post_reactions.all()
+        post_reactions = obj.post_reactions.all().only('reaction_type')
         num_likes = post_reactions.filter(reaction_type='like').count()
         num_dislikes = post_reactions.filter(reaction_type='dislike').count()
         total_reactions = num_likes + num_dislikes
         return {'num_likes': num_likes, 'num_dislikes': num_dislikes, 'total_reactions': total_reactions}
-
     
     def get_user_reaction(self, obj):
-        print(self.context)
         if 'request' in self.context:
             user = self.context['request'].user.id
             if obj.post_reactions.filter(author=user).exists():
@@ -286,6 +285,7 @@ class PostListReadSerializer(serializers.ModelSerializer):
     
     def get_num_comments(self, obj):
         return obj.comments.count()
+
   
 class PostCreateSerializer(serializers.ModelSerializer):
     tags = TagListSerializer(many=True, read_only=True)

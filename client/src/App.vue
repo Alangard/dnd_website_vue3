@@ -25,42 +25,17 @@
 
 <script setup>
 import {ref, defineAsyncComponent, onBeforeMount} from 'vue';
-import {useStore} from 'vuex';
 import { useTheme } from 'vuetify/lib/framework.mjs';
-import { useDisplay } from 'vuetify';
-import router from '@/router/router';
 
 const Navbar = defineAsyncComponent(() => import('@/components/Navbar.vue'));
 
-const store = useStore();
-const { width } = useDisplay();
 let theme = useTheme();
 
-let filterAsideState = ref(false);
 let showAuthDialog = ref(false);
 let darkTheme = ref(false);
-let currURLObj = ref({});
-let ActivationState = ref({state: false, variant: null});
+
 
 const main_menu_drawer = ref(false);
-
-
-const checkExpirationToken = () => {
-  if(localStorage.getItem('user')){
-    // const isExpired = store.dispatch("auth/checkExpirationToken", JSON.parse(localStorage.getItem('user')).access);
-    // if(isExpired){store.dispatch("auth/refreshToken")}
-
-
-    // store.dispatch("auth/verifyToken").catch(error => {
-    //   store.dispatch("auth/refreshToken")
-    // });
-  }
-  
-};
-
-
-
-// }
 
 const LocalStorageThemeManager = () => {
     if(localStorage.getItem('theme')){
@@ -75,7 +50,6 @@ const LocalStorageThemeManager = () => {
 
 
 onBeforeMount(() => {
-  checkExpirationToken();
   LocalStorageThemeManager();
 })
 

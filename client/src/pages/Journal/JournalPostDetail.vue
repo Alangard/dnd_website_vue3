@@ -139,7 +139,7 @@ let editor = ref()
 const postDetail = computed(() => store.getters['journal/getPostDetail'])
 
 onBeforeMount(async () => {
-    const post_id = 38
+    const post_id = routes.currentRoute.value.params.post_id
     await store.dispatch('journal/getPostDetail', post_id)
 
     editor.value = new Editor({

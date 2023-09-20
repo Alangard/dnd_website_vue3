@@ -266,7 +266,7 @@ let mountedComplete = ref(false)
 
 const save_to_draft=()=>{
 
-    if(Object.entries(post_data.value).toString() != Object.entries(post_data_initial.value).toString()){
+    if(JSON.stringify(post_data.value) !== JSON.stringify(post_data_initial.value)){
         validator.value.$errors = [] 
         const formData = new FormData();
 
@@ -278,7 +278,7 @@ const save_to_draft=()=>{
                     if(value==''){formData.append(key, `Here could be a ${value} of your post`)}
                     else{formData.append(key, value)}
             }
-            if(value != post_data_initial.value[key]){
+            if(JSON.stringify(value) !== JSON.stringify(post_data_initial.value[key])){
                 if(key=='title' || key=='description' || key=='body'){}
                 else if(key=='thumbnail'){
                     if(value == null){formData.append("thumbnail", value)}
@@ -326,16 +326,15 @@ const postponed_publish=async()=>{
     if(validation_result == false){validationErrorAlert.value = true}
     else{ 
         let formData = new FormData();
-        if(Object.entries(post_data.value).toString() != Object.entries(post_data_initial.value).toString()){
+        if(JSON.stringify(post_data.value) !== JSON.stringify(post_data_initial.value)){
 
             formData.append('is_draft', false)
             if(route_name.value=='journal_edit'){formData.append('id',routes.currentRoute.value.params.post_id)}
                 
             for (const [key, value] of Object.entries(post_data.value)) {
-                if(value != post_data_initial.value[key]){
+                if(JSON.stringify(value) !== JSON.stringify(post_data_initial.value[key])){
                     if(key=='title' || key=='description' || key=='body'){formData.append(key, value)}
                     else if(key=='thumbnail'){
-                        console.log(key, 'thumbnail', `Initial: ${post_data_initial.value[key]}, post_data: ${value}`)
                         if(value == null){formData.append("thumbnail", value)}
                         else{formData.append("thumbnail", value[0])}
                     }
@@ -376,15 +375,14 @@ const publish = async()=>{
     if(validation_result == false){validationErrorAlert.value = true}
     else{
         let formData = new FormData();
-        if(Object.entries(post_data.value).toString() != Object.entries(post_data_initial.value).toString()){
+        if(JSON.stringify(post_data.value) !== JSON.stringify(post_data_initial.value)){
             formData.append('is_draft', false)
             if(route_name.value=='journal_edit'){formData.append('id',routes.currentRoute.value.params.post_id)}
                 
             for (const [key, value] of Object.entries(post_data.value)) {
-                if(value != post_data_initial.value[key]){
+                if(JSON.stringify(value) !== JSON.stringify(post_data_initial.value[key])){
                     if(key=='title' || key=='description' || key=='body'){formData.append(key, value)}
                     else if(key=='thumbnail'){
-                        console.log(key, 'thumbnail', `Initial: ${post_data_initial.value[key]}, post_data: ${value}`)
                         if(value == null){formData.append("thumbnail", value)}
                         else{formData.append("thumbnail", value[0])}
                     }
@@ -535,10 +533,10 @@ const changePublishOption = () => {
 const format = (datetime) => {
         const date = new Date(datetime)
 
-        const day = date.getDate().toString().padStart(2, '0');;
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');;
-        const year = date.getFullYear().toString().padStart(4, '0');;
-        const hours = date.getHours().toString().padStart(2, '0');;
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear().toString().padStart(4, '0');
+        const hours = date.getHours().toString().padStart(2, '0');
         const minutes = date.getMinutes().toString().padStart(2, '0');
 
         const new_date = `${day}/${month}/${year} ${hours}:${minutes}`;

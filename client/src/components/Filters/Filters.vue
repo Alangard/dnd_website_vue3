@@ -32,20 +32,21 @@ import {useDisplay} from 'vuetify'
 
 const { width } = useDisplay();
 const store = useStore()
-const emit = defineEmits(['filterToolbarIsOpen'])
+const emit = defineEmits(['filterToolbarIsOpen', 'orderChange'])
 
 const curr_order_variant = ref({title: 'New first', value: '?ordering=-created_datetime'})
 const order_variants = ref([
-        {title: 'New first', value: '&ordering=-created_datetime'},
-        {title: 'Old first', value: '&ordering=created_datetime'},
-        {title: 'Asc likes', value: ''},
-        {title: 'Desc likes', value: ''},
-        {title: 'Asc comments', value: ''},
-        {title: 'Desc comments', value: ''},
+        {title: 'New first', value: 'ordering=-created_datetime'},
+        {title: 'Old first', value: 'ordering=created_datetime'},
+        // {title: 'Asc likes', value: 'ordering=post_reactions__total_reactions'},
+        // {title: 'Desc likes', value: 'ordering=-post_reactions__total_reactions'},
+        // {title: 'Asc comments', value: 'ordering=num_comments'},
+        // {title: 'Desc comments', value: 'ordering=-num_comments'},
 ])
 
 const onOrderChange = async () => {
-        store.dispatch('fetchPostData', {'parametrs': curr_order_variant.value})
+        emit('orderChange', curr_order_variant.value)
+        // store.dispatch('fetchPostData', {'parametrs': curr_order_variant.value})
 }
 
 const openFilterAside =() => {emit('filterToolbarIsOpen');}

@@ -17,7 +17,14 @@ const routes = [
   },
 
   {
-    path: '/journal/:id',
+    path: '/journal/:filter_params',
+    name: 'journal_filters',
+    meta: {navbar_name: 'Journal', navbar_style: 'default'},
+    component: () => import('@/pages/Journal/JournalList.vue'),
+  },
+
+  {
+    path: '/journal/:post_id',
     name: 'journal_detail',
     meta: {navbar_name: 'Post detail', navbar_style: 'default'},
     component: () => import('@/pages/Journal/JournalPostDetail.vue'),

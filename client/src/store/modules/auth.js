@@ -1,134 +1,110 @@
-import AuthService from '@/api/AuthAPI/auth';
-import interceptorsInstance from '@/api/main'
-import axios from 'axios';
+
+import interceptorsInstance, {authHeader, accessToken} from '@/api/main'
+import axios from 'axios'
 
 const user = JSON.parse(localStorage.getItem('user'));
-const BASE_URL = axios.defaults.baseURL;
+const BASE_URL = axios.defaults.baseURL + 'auth/'
 
 const initialState = user
-  ? { status: { loggedIn: true }, user}
-  : { status: { loggedIn: false }, user: null};
+  ? { status: { loggedIn: true }, user, usersList: null}
+  : { status: { loggedIn: false }, user: null, usersList: null};
 
 export const auth = {
   namespaced: true,
   state: initialState,
   actions: {
-    login({ commit }, user_data) {
-      return AuthService.login(user_data).then(
-        user_data => {
-          commit('loginSuccess', user_data);
-          return Promise.resolve(user_data);
-        },
-        error => {
-          commit('loginFailure');
-          return Promise.reject(error);
-        }
-      );
-    },
-
-    logout({ commit }) {
-      AuthService.logout();
-      commit('logout');
-    },
-
-    register({ commit }, user_data) {
-      return AuthService.user_create(user_data).then(
-        response => {
-          commit('registerSuccess');
-          return Promise.resolve(response.data);
-        },
-        error => {
-          commit('registerFailure');
-          return Promise.reject(error);
-        }
-      );
-    },
-
-    user_activate({commit}, confirmation_code){
-      return AuthService.user_activate(confirmation_code).then(
-        response => {return Promise.resolve(response.data)},
-        error => {return Promise.reject(error)}
-      )
-    },
-
-    send_confirmation_code({commit}, email){
-      return AuthService.send_confirmation_code(email).then(
-        response => {return Promise.resolve(response.data)},
-        error => {return Promise.reject(error)}
-      )
-    },
-
-    reset_password({commit}, user_email){
-      return AuthService.reset_password(user_email).then(
-        response => { return Promise.resolve(response.data)},
-        error => { return Promise.reject(error) }
-      )
-    },
-
-    reset_password_confirm({commit}, user_data){
-      return AuthService.reset_password_confirmation(user_data).then(
-        response => { return Promise.resolve(response.data)},
-        error => { return Promise.reject(error) }
-      )
-    },
-
-    dontRemember(){
-      AuthService.logout();
-    },
-
-    checkExpirationToken({commit}, token){
-      return AuthService.expired_token(token);
-    },
-
-
-    async refreshToken({commit,getters, dispatch}){
-      const response = await AuthService.refresh_access_token()
-      console.log(response)
-      // response.then(resp => {
-      //   commit('setUser', JSON.parse(localStorage.getItem('user')))
-      // }).catch(error => {
-      //   if(getters.loginState){
-      //     dispatch('logout')
-      //   }
-        
-      // })
-      return response
-    },
-
-    async verifyToken({commit}){
-      return await AuthService.verify_access_token()
-    },
-
-    async getUsersList({}){
+    async login({ commit }, user_data){
       try{
-        const response = await axios.get(BASE_URL + 'auth/users/')
+        const response = await interceptorsInstance.post(BASE_URL + `jwt/create/`, user_data)
+       
+        if(response.data.access){
+          localStorage.setItem('user', JSON.stringify(response.data))
+        }
+        return  response.data
+      }
+      catch(error){console.log(error)}
+    },
+
+    async logout({ commit }) {
+      try{
+        localStorage.removeItem('user');
+        commit('logout');
+      }
+      catch(error){console.log(error)}
+
+    },
+
+    async register({ commit }, user_data) {
+      try{
+        const response = interceptorsInstance.post(BASE_URL + 'user/register/', user_data)
+        return response.data
+      }
+      catch(error){console.log(error)}
+
+    },
+
+    async user_activate({commit}, confirmation_code){
+      try{
+        const response = interceptorsInstance.post(BASE_URL + 'user/activation/', {confirmation_code: confirmation_code })
+        return response.data
+      }
+      catch(error){console.log(error)}
+    },
+
+    async send_confirmation_code({commit}, email){
+      try{
+        const response = interceptorsInstance.post(BASE_URL + 'user/send_confirmation_code/', {email: email})
+        return response.data
+      }
+      catch(error){console.log(error)}
+    },
+
+    async reset_password_confirm({commit}, user_data){
+      try{
+        const response = interceptorsInstance.post(BASE_URL + 'user/reset_password_confirm/', user_data)
+        return response.data
+      }
+      catch(error){console.log(error)}
+    },
+
+    async dontRemember({commit}, ){
+      localStorage.removeItem('user');
+    },
+
+    async refreshToken({commit}, ){
+      try{
+        const refresh = JSON.parse(localStorage.getItem('user')).refresh
+        const user_data = JSON.parse(localStorage.getItem('user')).user_data
+
+        const response = await interceptorsInstance.post(BASE_URL + 'jwt/refresh/', {refresh: refresh})
+
+        localStorage.setItem('user', JSON.stringify({'user_data': user_data, 'access': response.data.access, 'refresh': refresh}))
+        return response.data;
+      }
+      catch(error){console.log(error)}
+    },
+
+    async verifyToken({commit}, ){
+      try{
+        const response = await interceptorsInstance.post('auth/jwt/verify/', accessToken())
+        return response.data
+      }
+      catch(error){console.log(error)}
+    },
+
+    async getUsersList({commit},){
+      try{
+        const response = await interceptorsInstance.get(BASE_URL + 'users/')
+        commit('setUsersListInStore', response.data)
         return response.data
       }  
       catch(error){console.log(error)}
     }
-
-
-
-
   },
   mutations: {
-    loginSuccess(state, user) {
-      state.status.loggedIn = true;
-      state.user = user;
-    },
-    loginFailure(state) {
-      state.status.loggedIn = false;
-      state.user = null;
-    },
     logout(state) {
       state.status.loggedIn = false;
       state.user = null;
-    },
-    registerSuccess(state) {
-      state.status.loggedIn = false;
-    },
-    registerFailure(state) {
-      state.status.loggedIn = false;
     },
 
     setUser(state, user){
@@ -140,6 +116,10 @@ export const auth = {
       state.user.access = access_token
       const user = state?.user
       localStorage.setItem('user', JSON.stringify(user))
+    },
+
+    setUsersListInStore(state, data){
+      state.usersList = data;
     }
   },
   getters: {
@@ -174,5 +154,9 @@ export const auth = {
       }
       return null 
     },
+
+    getUsersList(state){
+      return state.usersList
+    }
   }
 };

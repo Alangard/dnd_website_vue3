@@ -3,13 +3,16 @@
     <FilterAside 
         v-if='filterAsideState' 
         :isOpenAside="filterAsideState"
-        @filterToolbarIsOpen="filterAsideState =! filterAsideState">
+        @filterToolbarIsOpen="filterAsideState =! filterAsideState"
+        @setFilter="(value) => {handleFilterChange(value)}">
     </FilterAside>
 
     <v-container style="max-width: 750px;">
     
-        <Filters @filterToolbarIsOpen="filterAsideState =! filterAsideState"></Filters>
-
+        <Filters 
+            @filterToolbarIsOpen="filterAsideState =! filterAsideState"
+            @orderChange="(value) => {handleOrderChange(value)}">
+        </Filters>
     
         <v-row class='mb-4' no-gutters>
             <v-col :cols="width < 600 ? '12' : '8'" v-if="new_posts_count > 0">
@@ -24,19 +27,15 @@
                 <v-btn class="create_post_btn w-100" rounded="sm" prepend-icon="mdi-plus-thick" @click="routes.push({name: 'journal_create'})">Create post</v-btn>
             </v-col>
         </v-row>            
-        
-
-
 
         <div class="d-flex flex-column align-center h-auto" ref="scrollComponent">
 
             <v-card class="main-container elevation-8 w-100" v-for="post in postsList" :key="post">
-                        <div class="user_data d-flex flex-row align-center justify-start mb-1" style="width:max-content"
-                           >
+                        <div class="user_data d-flex flex-row align-center justify-start mb-1" style="width:max-content">
 
                             <v-avatar class="clickable transformable avatar" size="x-small"
                                 @click="routes.push({name: 'user_profile', params: { username: post.author.username }})">
-                                <v-img v-if="post.author.avatar != ''"
+                                <v-img v-if="post.author.avatar"
                                     :src="post.author.avatar"
                                     :alt="post.author.username">
                                 </v-img>
@@ -55,13 +54,12 @@
                         </div>
 
                         <div class="title clickable font-weight-bold text-justify text-subtitle-1 mb-2"
-                            @click="routes.push({name: 'journal_detail', params: { id: post.id }})">
+                            @click="routes.push({name: 'journal_detail', params: { post_id: post.id }})">
                             {{post.title}}
                         </div>
 
-                        <v-img 
-                            class='thumbnail clickable mw-100 rounded mb-2'
-                            @click="routes.push({name: 'journal_detail', params: { id: post.id }})"
+                        <v-img class='thumbnail clickable mw-100 rounded mb-2'
+                            @click="routes.push({name: 'journal_detail', params: { post_id: post.id }})"
                             v-if="post.thumbnail"
                             :src="post.thumbnail"
                             alt="post_img"
@@ -70,16 +68,15 @@
                         </v-img>
                                             
                         <div class="description clickable text-justify text-subtitle-1 mb-2 "
-                            @click="routes.push({name: 'journal_detail', params: { id: post.id }})">
-                            <div v-html="post.description" :text-data="post.description"></div>
-                            <!-- {{post.description}} -->
+                            @click="routes.push({name: 'journal_detail', params: { post_id: post.id }})">
+                            {{post.description}}
                         </div>
 
                         <div class="tags_container d-flex f-row flex-wrap mb-2" v-if="post.tags.length">
                             <v-chip
                                 class="tag_element clickable transformable rounded mr-2 mb-2" size="small"
                                 v-for="tag in post.tags"
-                                @click="handleFilterChange(`tags=${tag.slug}`)">
+                                @click="handleFilterChange([`tags=${tag.slug}`])">
                                 #{{ tag.name }}
                             </v-chip>
                         </div>
@@ -91,25 +88,6 @@
                         <div class="d-flex flex-row justify-space-between pt-2 w-100">
 
                             <div class="reactions_container">
-                                <!-- <div class="d-flex flex-row align-center">
-                                    <div class="like clickable transformable d-flex flex-column align-center justify-space-between"
-                                        :class="{ 'text-info': post.user_reaction.reaction_type == 'like' }" 
-                                        :id="`post_${post.id}_like_btn`" 
-                                        @click="pressReaction({'post_id':post.id, 'reaction_type': 'like', 'user_reaction': post.user_reaction})">
-                                            <v-icon class="like">mdi-arrow-up-bold-circle-outline</v-icon>
-                                    </div>
-
-                                    <span class="mx-3" :class="{ 'text-info': post.user_reaction.reacted}">{{ post.post_reactions.total_reactions }}</span>
-
-                                    <div class="dislike clickable transformable d-flex flex-column align-center justify-space-between"
-                                        :class="{ 'text-info': post.user_reaction.reaction_type == 'dislike' }"
-                                        :id="`post_${post.id}_dislike_btn`" 
-                                        @click="pressReaction({'post_id':post.id, 'reaction_type': 'dislike', 'user_reaction': post.user_reaction})">
-                                            <v-icon class="dislike">mdi-arrow-down-bold-circle-outline</v-icon>
-                                    </div>
-                                </div> -->
-
-
                  
                                 <div class="d-flex flex-row align-center">
                                     <v-btn
@@ -217,6 +195,8 @@ const current_page = ref(1)
 const page_count = ref(1)
 const page_size = 15
 let page_url = ref(`?page=1&page_size=${page_size}`)
+let filters = ref([])
+let orderings = ref([])
 
 let new_posts_count = ref(0)
 let isLoading = ref(false);
@@ -228,14 +208,50 @@ let filterAsideState = ref(false);
 const postsList = computed(() => {return store.getters['journal/getPosts']});
 
 const handlePageChange = async(newPage) => {
-    page_url.value = `?page=${newPage}&page_size=${page_size}`
+    current_page.value = newPage
+    page_url.value = `?page=${newPage}&page_size=${page_size}` + `&${filters.value}`
+    routes.push({name: 'journal_filters', params: { filter_params: `${page_url.value}` }})
+
     await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'normal'})
     window.scrollTo({top: 0,behavior: "smooth"});
 }
 
-const handleFilterChange = async(filter_str) =>{
-    page_url.value = `?page=${current_page.value}&page_size=${page_size}` + `&${filter_str}`
+const handleOrderChange = async(order_param) => {
+    const new_order_str = order_param.split('=')[1]
+    const order_without_direction =  new_order_str[0] == '-' ? new_order_str.slice(1) : new_order_str
+    const index_in_orderings = orderings.value.indexOf(order_without_direction)
+    const page_url_params_list = page_url.value.slice(1).split('&')
+    const index_in_url = page_url_params_list.indexOf(order_without_direction)
+
+    if(index_in_orderings != -1){
+        orderings.value.splice(index_in_orderings, 1, new_order_str);
+        page_url_params_list.splice(index_in_url, 1, order_param)
+    }
+    else{
+        orderings.value.push(new_order_str)
+        page_url_params_list.push(order_param)
+    }
+
+    page_url.value = '?' + page_url_params_list.join('&')
     page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'normal'})).count / page_size)
+    routes.replace({name: 'journal_filters', params: { filter_params: page_url.value }})
+
+
+}
+
+const handleFilterChange = async(filter_params) =>{
+    if(filter_params !== null){
+        filters.value = filter_params
+        page_url.value = filter_params.length > 0 ? `?${filter_params.join('&')}` : `?page=1&page_size=${page_size}`
+        current_page.value = 1
+    }
+    else{
+        page_url.value = `?page=1&page_size=${page_size}`
+        current_page.value = 1
+        filters.value = []
+    }  
+    page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'normal'})).count / page_size)
+    routes.replace({name: 'journal_filters', params: { filter_params: page_url.value }}) 
     window.scrollTo({top: 0,behavior: "smooth"}); 
 }
 
@@ -267,52 +283,6 @@ const pressReaction = (data) =>{
     )   
 }
 
-
-
-
-
-/*Filter post_list by one tag*/
-const setTagFilter = async (tag_slug) => {
-    store.dispatch('fetchPostData', {'url': `posts/?page=1&page_size=7&tags=${tag_slug}`, 'setVariable': true})
-}
-
-
-const createPost = () => {
-        const payload ={
-            title:'Test title post',
-            body:"<h1>This is header</h1><p>This is paragraph</p>",
-            description: 'Test description post',
-            is_publish:true,
-            publish_datetime:null,
-            tags:['test12', 'abya'],
-        }
-    store.dispatch('journal/createPost', payload)
-}
-
-const deletePost = () => {
-    const post_id = 1000
-    store.dispatch('journal/deletePost', post_id)
-}
-
-const partialUpdatePost =() => {
-    const payload ={
-        id: 14,
-        description: "nnnn",
-        title: 'mmmmm'
-    }
-    store.dispatch('journal/partialUpdatePost', payload)
-}
-
-const getPostList =(paginate_url) => {
-    store.dispatch('journal/getPostList', paginate_url)
-}
-
-const getPostDetail =() => {
-    const post_id = 5
-    store.dispatch('journal/getPostDetail', post_id)
-}
-
-
 onMounted(async () => {
     page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'normal'})).count / page_size)
     
@@ -321,7 +291,6 @@ onMounted(async () => {
         if(data.action == 'create_post'){new_posts_count.value += 1}
     }
 })
-
 
 onUnmounted(() => {
     websocket.close()
