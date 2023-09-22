@@ -8,261 +8,263 @@ import { comments } from './modules/comments';
 export default createStore({
   state(){
     return{
-      isMobile: null,
-      modals_info: {id: 0, state: false, modal_type: '', action_pressed: false},
+      mobileWidthLimit: 750,
+      // modals_info: {id: 0, state: false, modal_type: '', action_pressed: false},
 
-      postData: {},
-      postList: [],
-      usersList: [],
-      TagsList: [],
-      currUserData: {},
+      // postData: {},
+      // postList: [],
+      // usersList: [],
+      // TagsList: [],
+      // currUserData: {},
 
 
-      postListStyle: 'list',
+      // postListStyle: 'list',
 
-      page_size: 7,
-      page: 1,
-      baseUrl: `/api/v1/`
+      // page_size: 7,
+      // page: 1,
+      // baseUrl: `/api/v1/`
     }
     
   },
   getters: {
 
-    getModalActionStatus(state){
-      return state.modals_info.action_pressed;
-    },
 
     //returns true/false
-    getIsMobileState (state) {
-      return state.isMobile;
+    getMobileWidthLimit (state) {
+      return state.mobileWidthLimit;
     },
 
-    getPostListStyle(state){
-      return state.postListStyle;
-    },
+    // getModalActionStatus(state){
+    //   return state.modals_info.action_pressed;
+    // },
 
-    getBaseUrl(state){
-      return state.baseUrl;
-    },
 
-    getPage(state){
-      return state.page;
-    },
+    // getPostListStyle(state){
+    //   return state.postListStyle;
+    // },
 
-    getPageSize(state){
-      return state.page_size;
-    },
+    // getBaseUrl(state){
+    //   return state.baseUrl;
+    // },
 
-    getPostData(state){
-      return state.postData;
-    },
+    // getPage(state){
+    //   return state.page;
+    // },
 
-    getNextPostPageUrl(state){
-      return state.postData.nextPageUrl;
-    },
+    // getPageSize(state){
+    //   return state.page_size;
+    // },
 
-    getPostsList(state){
-      return state.postList;
-    },
+    // getPostData(state){
+    //   return state.postData;
+    // },
 
-    getUsersList(state){
-      return state.usersList
-    },
+    // getNextPostPageUrl(state){
+    //   return state.postData.nextPageUrl;
+    // },
 
-    getTagsList(state){
-      return state.TagsList;
-    },
+    // getPostsList(state){
+    //   return state.postList;
+    // },
 
-    getCurrUserData(state){
-      return state.currUserData;
-    },
+    // getUsersList(state){
+    //   return state.usersList
+    // },
 
-    getCurrUserResponseStatus(state){
-      return state.currUserData.status;
-    },
+    // getTagsList(state){
+    //   return state.TagsList;
+    // },
 
-    getCurrUserError(state){
-      return state.currUserData.error_info;
-    },
+    // getCurrUserData(state){
+    //   return state.currUserData;
+    // },
 
-    getJWT(state){
-      return {'access_token': state.currUserData.access_token, 
-              'refresh_token': state.currUserData.refresh_token, 
-            }
-    }
+    // getCurrUserResponseStatus(state){
+    //   return state.currUserData.status;
+    // },
+
+    // getCurrUserError(state){
+    //   return state.currUserData.error_info;
+    // },
+
+    // getJWT(state){
+    //   return {'access_token': state.currUserData.access_token, 
+    //           'refresh_token': state.currUserData.refresh_token, 
+    //         }
+    // }
 },
 
-  mutations: {
-    // Set posts_data /////////////////////////////////////////////////////////// there are we are use this code with a API
+//   mutations: {
+//     // Set posts_data /////////////////////////////////////////////////////////// there are we are use this code with a API
     
-    setPostData(state, fetching_data){
-      state.postData = fetching_data;
-    },
+//     setPostData(state, fetching_data){
+//       state.postData = fetching_data;
+//     },
 
-    setPostsList(state, fetching_data){
-      state.postList = fetching_data;
-    },
+//     setPostsList(state, fetching_data){
+//       state.postList = fetching_data;
+//     },
 
-    extendPostsList(state, array_data){
-      state.postList.push(...array_data)
-    },
+//     extendPostsList(state, array_data){
+//       state.postList.push(...array_data)
+//     },
 
-    setUsersData(state, fetching_data){
-      state.usersList = fetching_data
-    },
+//     setUsersData(state, fetching_data){
+//       state.usersList = fetching_data
+//     },
 
-    spliceUserList(state, index){
-      state.usersList.splice(index, 1)
-    },
+//     spliceUserList(state, index){
+//       state.usersList.splice(index, 1)
+//     },
 
-    pushUserList(state, element){
-      state.usersList.push(element)
-    },
+//     pushUserList(state, element){
+//       state.usersList.push(element)
+//     },
 
-    setTagsData(state, fetching_data){
-      state.TagsList = fetching_data;
-    },
+//     setTagsData(state, fetching_data){
+//       state.TagsList = fetching_data;
+//     },
 
-    changePostListStyle(state, post_syle){
-      state.postListStyle = post_syle;
-    },
+//     changePostListStyle(state, post_syle){
+//       state.postListStyle = post_syle;
+//     },
 
-    setCurrUserData(state, user_data){
-      state.currUserData = user_data
-    },
+//     setCurrUserData(state, user_data){
+//       state.currUserData = user_data
+//     },
 
-    setJWT(state, jwt_data){
-      state.currUserData['access_token']= jwt_data.access
-      state.currUserData['refresh_token']= jwt_data.access
-    },
+//     setJWT(state, jwt_data){
+//       state.currUserData['access_token']= jwt_data.access
+//       state.currUserData['refresh_token']= jwt_data.access
+//     },
 
-    setCurrUserError(state, err){
-      state.currUserData['error_info'] = err
-      state.currUserData['status'] = err.response.status
-    },
+//     setCurrUserError(state, err){
+//       state.currUserData['error_info'] = err
+//       state.currUserData['status'] = err.response.status
+//     },
 
-    setCurrUserResponseStatus(state, status){
-      state.currUserData['status'] = status
-    },
+//     setCurrUserResponseStatus(state, status){
+//       state.currUserData['status'] = status
+//     },
 
-    setToDefaultCurrUserData(state){
-      for(const [key, value] of Object.entries(state.currUserData)){
-        state.currUserData[key] = ''
-      }
-    },
-
-
-
-    ////////////////////////////////////////////////////////////
-
-    //Change the state of page size (true - mobile, false - desktop)
-    changeIsMobileFlag(state, flag_pos) {
-        state.isMobile = flag_pos;
-    },
-
-    //Change the website theme and add a value 'theme' to the local storage
-    changeTheme(state, chose_theme){
-      if(chose_theme == 'dark' || chose_theme == 'light'){
-        state.theme = chose_theme;
-        localStorage.theme = chose_theme;
-      }
-    },
-
-},
-  actions: {
-    async fetchPostData({ commit, dispatch, getters }, payload={'url': '', 'setVariable': false}) {
-
-      let url = getters.getBaseUrl
-      const yourConfig = {
-        headers: {
-           Authorization: "Bearer " + localStorage.getItem('access_token')
-        }
-     }
-
-      if (payload.url){url += payload.url}
-
-      try{
-        await axios.get(url, yourConfig).then(response => {
-          payload.setVariable && payload.setVariable == true ? commit('setPostsList', response.data.results) : commit('extendPostsList', response.data.results)
-          commit('setPostData', {'countPosts': response.data.count, 'nextPageUrl': response.data.next, 'previousPageUrl': response.data.previous})
-        })
-      }
-      catch(err){console.log(err)}
-
-    },
-
-    async fetchUsersData({ commit, dispatch, getters }, payload={'url': ''}) {
-
-      let url = getters.getBaseUrl
-
-      if (payload.url){url += payload.url}
-
-      try{
-        await axios.get(url).then(response => {
-          commit('setUsersData', response.data)
-        })
-      }
-      catch(err){console.log(err)}
-
-    },
-
-    async fetchTagsData({ commit, dispatch, getters }, payload={'url': ''}) {
-
-      let url = getters.getBaseUrl
-
-      if (payload.url){url += payload.url}
-
-      try{
-        await axios.get(url).then(response => {
-          commit('setTagsData', response.data)
-        })
-      }
-      catch(err){console.log(err)}
+//     setToDefaultCurrUserData(state){
+//       for(const [key, value] of Object.entries(state.currUserData)){
+//         state.currUserData[key] = ''
+//       }
+//     },
 
 
-    },
 
-    async auth_login({ commit, dispatch, getters, }, payload={'url': '', 'userdata': {}}) {
+//     ////////////////////////////////////////////////////////////
 
-      let url = getters.getBaseUrl
+//     //Change the state of page size (true - mobile, false - desktop)
+//     changeIsMobileFlag(state, flag_pos) {
+//         state.isMobile = flag_pos;
+//     },
 
-      if (payload.url){url += payload.url}
+//     //Change the website theme and add a value 'theme' to the local storage
+//     changeTheme(state, chose_theme){
+//       if(chose_theme == 'dark' || chose_theme == 'light'){
+//         state.theme = chose_theme;
+//         localStorage.theme = chose_theme;
+//       }
+//     },
 
-      try{
-        await axios.post(url, payload.userdata)
-        .then(response => {
-          commit('setCurrUserResponseStatus',  response.status)
-          commit('setJWT', response.data);
-          localStorage.setItem('access_token', response.data.access);
-          localStorage.setItem('refresh_token', response.data.refresh);
-        })
-        .catch((err) => {
-          commit('setCurrUserError',  err)
-          commit('setJWT', {'access': '', 'refresh': ''});
-        })
-      }
-      catch(err){}
-    },
+// },
+  // actions: {
+  //   async fetchPostData({ commit, dispatch, getters }, payload={'url': '', 'setVariable': false}) {
 
-    async create_account({ commit, dispatch, getters }, payload={'url': '', 'userdata':{}}){
-      let url = getters.getBaseUrl
+  //     let url = getters.getBaseUrl
+  //     const yourConfig = {
+  //       headers: {
+  //          Authorization: "Bearer " + localStorage.getItem('access_token')
+  //       }
+  //    }
 
-      if (payload.url){url += payload.url}
+  //     if (payload.url){url += payload.url}
 
-      try{
-        await axios.post(url, payload.userdata)
-        .then(response => {
-          commit('setCurrUserData', response.data)
-          commit('setCurrUserResponseStatus',  response.status)
-        })
-        .catch((err)=>{
-          commit('setCurrUserError',  err)
-        })
-      }
-      catch(err){console.log(err)}
-    }
+  //     try{
+  //       await axios.get(url, yourConfig).then(response => {
+  //         payload.setVariable && payload.setVariable == true ? commit('setPostsList', response.data.results) : commit('extendPostsList', response.data.results)
+  //         commit('setPostData', {'countPosts': response.data.count, 'nextPageUrl': response.data.next, 'previousPageUrl': response.data.previous})
+  //       })
+  //     }
+  //     catch(err){console.log(err)}
 
-  },
+  //   },
+
+  //   async fetchUsersData({ commit, dispatch, getters }, payload={'url': ''}) {
+
+  //     let url = getters.getBaseUrl
+
+  //     if (payload.url){url += payload.url}
+
+  //     try{
+  //       await axios.get(url).then(response => {
+  //         commit('setUsersData', response.data)
+  //       })
+  //     }
+  //     catch(err){console.log(err)}
+
+  //   },
+
+  //   async fetchTagsData({ commit, dispatch, getters }, payload={'url': ''}) {
+
+  //     let url = getters.getBaseUrl
+
+  //     if (payload.url){url += payload.url}
+
+  //     try{
+  //       await axios.get(url).then(response => {
+  //         commit('setTagsData', response.data)
+  //       })
+  //     }
+  //     catch(err){console.log(err)}
+
+
+  //   },
+
+  //   async auth_login({ commit, dispatch, getters, }, payload={'url': '', 'userdata': {}}) {
+
+  //     let url = getters.getBaseUrl
+
+  //     if (payload.url){url += payload.url}
+
+  //     try{
+  //       await axios.post(url, payload.userdata)
+  //       .then(response => {
+  //         commit('setCurrUserResponseStatus',  response.status)
+  //         commit('setJWT', response.data);
+  //         localStorage.setItem('access_token', response.data.access);
+  //         localStorage.setItem('refresh_token', response.data.refresh);
+  //       })
+  //       .catch((err) => {
+  //         commit('setCurrUserError',  err)
+  //         commit('setJWT', {'access': '', 'refresh': ''});
+  //       })
+  //     }
+  //     catch(err){}
+  //   },
+
+  //   async create_account({ commit, dispatch, getters }, payload={'url': '', 'userdata':{}}){
+  //     let url = getters.getBaseUrl
+
+  //     if (payload.url){url += payload.url}
+
+  //     try{
+  //       await axios.post(url, payload.userdata)
+  //       .then(response => {
+  //         commit('setCurrUserData', response.data)
+  //         commit('setCurrUserResponseStatus',  response.status)
+  //       })
+  //       .catch((err)=>{
+  //         commit('setCurrUserError',  err)
+  //       })
+  //     }
+  //     catch(err){console.log(err)}
+  //   }
+
+  // },
 
   modules: {
     auth,

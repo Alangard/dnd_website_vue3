@@ -27,7 +27,7 @@
       <template v-slot:append-inner>
             <v-menu :close-on-content-click="false"  location="start">
               <template v-slot:activator="{ props }">  
-                <v-icon v-if="width >= 600" class="clickable" medium v-bind="props">mdi-emoticon</v-icon>
+                <v-icon v-if="width >= mobileWidthLimit" class="clickable" medium v-bind="props">mdi-emoticon</v-icon>
               </template>
 
               <v-card width="300">
@@ -35,7 +35,7 @@
               </v-card>
             </v-menu>
 
-            <v-icon v-if="width < 600" class="clickable" medium @click="mobileEmoticonDrawer = !mobileEmoticonDrawer">mdi-emoticon</v-icon>
+            <v-icon v-if="width < mobileWidthLimit" class="clickable" medium @click="mobileEmoticonDrawer = !mobileEmoticonDrawer">mdi-emoticon</v-icon>
             <v-icon class="clickable" medium @click="saveComment">mdi-send</v-icon>
       </template>
     </v-textarea>
@@ -56,7 +56,7 @@
       />
   </v-card>
 
-  <v-navigation-drawer v-if="width < 600" class="mobile_emoticon h-50" v-model="mobileEmoticonDrawer" location="bottom" temporary>
+  <v-navigation-drawer v-if="width < mobileWidthLimit" class="mobile_emoticon h-50" v-model="mobileEmoticonDrawer" location="bottom" temporary>
     <v-card class="h-100">
       <EmojiContent></EmojiContent>
     </v-card>
@@ -66,16 +66,6 @@
   
 
 </template>
-
-
-
-
-
-
-
-
-
-
 
 
 <script setup>
@@ -95,6 +85,7 @@ const { width } = useDisplay();
 const url = `ws://${axios.defaults.baseURL.split('http://')[1]}ws/comment_socket-server/`
 const websocket = new WebSocket(url)
 
+const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 const loggedIn = computed(() => {return store.getters['auth/loginState']})
 const comments = computed(() => {return store.getters['comments/getComments']})
 

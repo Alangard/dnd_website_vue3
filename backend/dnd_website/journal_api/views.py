@@ -67,7 +67,6 @@ class PostReactionPagination(PageNumberPagination):
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().select_related('author').prefetch_related('tags', 'post_reactions', 'comments')
-    filter_backends = [DjangoFilters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
 
     def create(self, request, *args, **kwargs):
         self.serializer_class = PostCreateSerializer
@@ -220,6 +219,7 @@ class PostViewSet(viewsets.ModelViewSet):
         self.serializer_class = PostListReadSerializer
         self.ordering = ['-created_datetime']
         self.pagination_class = PostListPagination
+  
 
         def myfilters(queryset):
             instance = queryset
@@ -230,8 +230,6 @@ class PostViewSet(viewsets.ModelViewSet):
                 if param == 'start_date' and params[param] != None:
                     start_date_obj = datetime.strptime(params[param], '%d/%m/%Y')
                     instance = instance.filter(created_datetime__gte=start_date_obj)
-
-
 
                 if param == 'end_date' and params[param] != None:
                     end_date_obj = datetime.strptime(params[param], '%d/%m/%Y')
@@ -250,6 +248,9 @@ class PostViewSet(viewsets.ModelViewSet):
                 if param == 'ordering' and params[param] != None:
                     ordering_list = params[param].split(',')
                     instance = instance.order_by(params[param])
+
+                if param == 'search' and params[param] != None:
+                    instance = instance.filter(Q(title__icontains=params[param]) | Q(description__icontains=params[param]))
 
             return instance
 

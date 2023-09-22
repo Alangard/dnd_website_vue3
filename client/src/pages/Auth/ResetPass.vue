@@ -1,6 +1,6 @@
 <template>
 <div class='d-flex flex-column align-center justify-center h-100 w-100'>
-  <v-card width="98%" max-width="550" :variant="width <= 740 ? 'flat' : 'elevated'"> 
+  <v-card width="98%" max-width="550" :variant="width <= mobileWidthLimit ? 'flat' : 'elevated'"> 
 
   <div class="confirm_code_card">
       <v-card-item class="text-subtitle-1">
@@ -47,13 +47,12 @@ const store = useStore();
 
 const formdata = ref({'email': ''})
 const validationsErrors = ref({'email': ''})
-const validator_rules = computed(() => {
-  return {
-    email: { required, email },
-  };
-});
+const validator_rules = computed(() => {return {email: { required, email }}});
+const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 
 const validator = useVuelidate(validator_rules, formdata)
+
+
 
 
 // Watch for textfield changes (remove the error display when data is changed in the field)
@@ -69,12 +68,8 @@ watch(() => formdata.value, (new_obj) => {
 const sendConfirmationCode = () => {
   if(validator.$errors == undefined){
     store.dispatch("auth/send_confirmation_code", formdata.value.email).then(
-      () => { 
-        router.push({ name: 'reset_password_confirmation', params: {'email' : formdata.value.email }}) 
-      },
-      (error) => {
-        validationsErrors.value['email'] = error.response.data.message  
-      }
+      () => { router.push({ name: 'reset_password_confirmation', params: {'email' : formdata.value.email }})},
+      (error) => {validationsErrors.value['email'] = error.response.data.message}
     )
   }
 }

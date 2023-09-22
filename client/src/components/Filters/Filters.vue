@@ -17,7 +17,7 @@
                         ></v-select>
                 </div>
 
-                <v-sheet class='d-flex flex-row align-center w-100 justify-end pb-2'>
+                <v-sheet class='d-flex flex-row align-center w-100 justify-end pb-2' v-if='width < mobileWidthLimit'>
                         <v-btn class='filter_btn' size="large" variant="plain" icon="mdi-tune" @click.stop="openFilterAside"></v-btn>
                 </v-sheet>  
 </v-card>     
@@ -26,13 +26,15 @@
 </template>
 
 <script setup>
-import { ref, defineEmits } from 'vue'
+import { ref, defineEmits, computed} from 'vue'
 import { useStore } from 'vuex'
 import {useDisplay} from 'vuetify'
 
 const { width } = useDisplay();
 const store = useStore()
 const emit = defineEmits(['filterToolbarIsOpen', 'orderChange'])
+
+const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 
 const curr_order_variant = ref({title: 'New first', value: '?ordering=-created_datetime'})
 const order_variants = ref([
@@ -44,23 +46,10 @@ const order_variants = ref([
         // {title: 'Desc comments', value: 'ordering=-num_comments'},
 ])
 
-const onOrderChange = async () => {
-        emit('orderChange', curr_order_variant.value)
-        // store.dispatch('fetchPostData', {'parametrs': curr_order_variant.value})
-}
-
+const onOrderChange = async () => {emit('orderChange', curr_order_variant.value)}
 const openFilterAside =() => {emit('filterToolbarIsOpen');}
-
 const displayPostInGridStyle =() => {store.commit('changePostListStyle', 'grid')}
-
 const displayPostInListStyle =() => {store.commit('changePostListStyle', 'list')}
-
-
-
-
-
-
-
 
 </script>
 

@@ -1,6 +1,6 @@
 <template>
 <div class='d-flex flex-column align-center justify-center h-100 w-100'>
-  <v-card width="98%" max-width="550" :variant="width <= 740 ? 'flat' : 'elevated'">
+  <v-card width="98%" max-width="550" :variant="width <= mobileWidthLimit ? 'flat' : 'elevated'">
         
       <v-card-item class="py-3 px-4">
           <v-card-title>Create account</v-card-title>
@@ -116,6 +116,7 @@ const store = useStore();
 
 let showPassword = ref(false);
 let showConfirmPassword = ref(false);
+const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 
 const formdata = ref({
     'username': '',

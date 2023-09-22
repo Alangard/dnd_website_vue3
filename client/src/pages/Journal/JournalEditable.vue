@@ -250,6 +250,7 @@ let store = useStore();
 
 const tagList = computed(() => store.getters['journal/getTagsList'])
 const tagsSlugList = computed(() => tagList.value.map(tag => tag.slug));
+
 const tagSerch = ref(null)
 const route_name = ref(routes.currentRoute.value.name)
 const previous_page = ref(routes.options.history.state)

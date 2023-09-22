@@ -23,7 +23,7 @@
 
           <v-menu location="start">
               <template v-slot:activator="{ props }">  
-                <v-btn v-if="width >= 600" icon="mdi-dots-vertical" variant="text" v-bind="props"></v-btn>
+                <v-btn v-if="width >= mobileWidthLimit" icon="mdi-dots-vertical" variant="text" v-bind="props"></v-btn>
               </template>
               <v-card>
                 <ComentFuncMenuContent 
@@ -32,7 +32,7 @@
               </v-card>
           </v-menu>
 
-          <v-btn v-if="width < 600" icon="mdi-dots-vertical" variant="text" @click="mobileAdditionalActionsDrawer = !mobileAdditionalActionsDrawer"></v-btn>
+          <v-btn v-if="width < mobileWidthLimit" icon="mdi-dots-vertical" variant="text" @click="mobileAdditionalActionsDrawer = !mobileAdditionalActionsDrawer"></v-btn>
           
         </div>
 
@@ -121,7 +121,7 @@
 
             <v-menu :close-on-content-click="false"  location="start">
               <template v-slot:activator="{ props }">  
-                <v-icon v-if="width >= 600" class="clickable_relpy" medium v-bind="props">mdi-emoticon</v-icon>
+                <v-icon v-if="width >= mobileWidthLimit" class="clickable_relpy" medium v-bind="props">mdi-emoticon</v-icon>
               </template>
               <v-card width="300">
                 <EmojiContent></EmojiContent>
@@ -129,7 +129,7 @@
             </v-menu>
 
 
-            <v-icon v-if="width < 600" class="clickable_relpy" medium @click="mobileEmoticonDrawer = !mobileEmoticonDrawer">mdi-emoticon</v-icon>
+            <v-icon v-if="width < mobileWidthLimit" class="clickable_relpy" medium @click="mobileEmoticonDrawer = !mobileEmoticonDrawer">mdi-emoticon</v-icon>
             <v-icon class="clickable_relpy" medium @click="updateCommentFunc()">mdi-send</v-icon>
           </template>
         </v-textarea>
@@ -156,7 +156,7 @@
 
             <v-menu :close-on-content-click="false"  location="start">
               <template v-slot:activator="{ props }">  
-                <v-icon v-if="width >= 600" class="clickable_relpy" medium v-bind="props">mdi-emoticon</v-icon>
+                <v-icon v-if="width >= mobileWidthLimit" class="clickable_relpy" medium v-bind="props">mdi-emoticon</v-icon>
               </template>
               <v-card width="300">
                 <EmojiContent></EmojiContent>
@@ -164,7 +164,7 @@
             </v-menu>
 
 
-            <v-icon v-if="width < 600" class="clickable_relpy" medium @click="mobileEmoticonDrawer = !mobileEmoticonDrawer">mdi-emoticon</v-icon>
+            <v-icon v-if="width < mobileWidthLimit" class="clickable_relpy" medium @click="mobileEmoticonDrawer = !mobileEmoticonDrawer">mdi-emoticon</v-icon>
             <v-icon class="clickable_relpy" medium @click="createReply">mdi-send</v-icon>
           </template>
         </v-textarea>
@@ -187,13 +187,13 @@
   </div>
 
 <!-- Popovers -->
-  <v-navigation-drawer v-if="width < 600" class="mobile_emoticon h-50" v-model="mobileEmoticonDrawer" location="bottom" temporary>
+  <v-navigation-drawer v-if="width < mobileWidthLimit" class="mobile_emoticon h-50" v-model="mobileEmoticonDrawer" location="bottom" temporary>
     <v-card class="h-100">
       <EmojiContent></EmojiContent>
     </v-card>
   </v-navigation-drawer>
 
-  <v-navigation-drawer v-if="width < 600" class="mobile_comment_additional-action h-auto" v-model="mobileAdditionalActionsDrawer" location="bottom" temporary>
+  <v-navigation-drawer v-if="width < mobileWidthLimit" class="mobile_comment_additional-action h-auto" v-model="mobileAdditionalActionsDrawer" location="bottom" temporary>
     <v-card class="h-100">
       <ComentFuncMenuContent 
         @comment-action="(action) => commentAdditionalActionManager(action)">
@@ -232,9 +232,8 @@ const emit = defineEmits(['replyIsPressed'])
 const store = useStore();
 const { width } = useDisplay();
 
-
-
 const replyIsPressed = computed(() => {return store.getters['comments/getReplyIsPressed']})
+const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 
 const comment = ref(props.comment);
 const websocket = ref(props.websocket);

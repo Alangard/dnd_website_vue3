@@ -1,7 +1,7 @@
 <template>
 
 <div class='d-flex flex-column align-center justify-center h-100 w-100'>
-  <v-card width="98%" max-width="550" :variant="width <= 740 ? 'flat' : 'elevated'" > 
+  <v-card width="98%" max-width="550" :variant="width <= mobileWidthLimit ? 'flat' : 'elevated'" > 
   
     <div class="confirm_code_card" v-if="activationSuccessed === null">
       <v-card-item class="text-subtitle-1">
@@ -88,9 +88,7 @@ import router from '@/router/router';
 const { width } = useDisplay();
 const store = useStore()
 
-
 const activationSuccessed = ref(null)
-
 const formdata = ref({'email': '', 'confirmation_code': ''})
 const validationsErrors = ref({'email': '', 'confirmation_code': ''})
 const validator_rules = computed(() => {
@@ -99,6 +97,7 @@ const validator_rules = computed(() => {
     confirmation_code: {required,maxLength: maxLength(6)}
   };
 });
+const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 
 const validator = useVuelidate(validator_rules, formdata)
 

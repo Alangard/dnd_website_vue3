@@ -23,21 +23,6 @@ const options = ref({
 })
 
 
-{/* <div class="rounded-editor mb-5 ql-container ql-snow">
-    <div class="ql-editor" data-gramm="false" contenteditable="true" data-placeholder="Enter a comment...">
-        <p>dasdad</p>
-    </div>
-    <div class="ql-clipboard" contenteditable="true" tabindex="-1"></div>
-    <div class="ql-tooltip ql-editing" data-mode="link" style="left: -116.172px; top: 28px;">
-        <a class="ql-preview" rel="noopener noreferrer" target="_blank" href="about:blank"></a>
-        <input type="text" data-formula="e=mc^2" data-link="https://quilljs.com" data-video="Embed URL" placeholder="https://quilljs.com">
-        <a class="ql-action"></a>
-        <a class="ql-remove"></a>
-    </div>
-</div> */}
-
-
-
 </script>
 
 

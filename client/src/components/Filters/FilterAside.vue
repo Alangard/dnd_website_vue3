@@ -1,108 +1,208 @@
 <template>
-    <v-navigation-drawer class="h-a" v-if="width <= 740" v-model="props.isOpenAside"  disable-resize-watcher='false' location="right" width="740" temporary>
+        <v-navigation-drawer 
+                class="d-flex flex-column align-baseline" 
+                v-if="props.type == 'mobile'" 
+                v-model="props.isOpenAside"  
+                disable-resize-watcher='false' 
+                location="right"
+                permanent="true"
+                width="750"
+                temporary>
 
-        <v-sheet class='d-flex flex-row align-center w-100 justify-space-between pt-1'>
-                <v-btn class="close_aside" variant="plain" rounded='lg' size="large" prepend-icon="mdi-arrow-left" @click.stop="changeStateFilterAside">Filters</v-btn>
-                <v-btn class="clear_form" v-if='clearable_form' variant="plain" size="large" @click.stop="clearAllFilters">Clear all</v-btn>
-        </v-sheet>  
+                <div class='d-flex flex-row align-center justify-space-between pt-1' style="width: 100vw;">
+                        <v-btn class="close_aside" variant="plain" rounded='lg' size="large" prepend-icon="mdi-arrow-left" @click.stop="changeStateFilterAside">Filters</v-btn>
+                        <v-btn class="clear_form" v-if='clearable_form' variant="plain" size="large" @click.stop="clearAllFilters">Clear all</v-btn>
+                </div>  
 
-        <v-divider></v-divider>
-
-        <v-text-field class="search_post"
-                v-model="output_filters_data.filter__post_search_result"
-                :loading="loading" 
-                clearable
-                density="compact" 
-                variant="default"
-                label="Search by post's title/description" 
-                append-inner-icon="mdi-magnify"
-                single-line
-                hide-details
-                @click:append-inner="startSearch"
-                @keydown.enter.stop="startSearch">
-        </v-text-field>
-
-        <v-divider></v-divider>
-
-        <v-card class="filters_blocks" rounded='0' flat="true" style="height: 100%; width: 100vw;">
-                <div class="filters_postdate_block my-3 mx-5">
-                        <span>Filter by post date</span>
-
-                        <VueDatePicker 
-                                class="mt-2"
-                                v-model="output_filters_data.filter__post_date_result" 
-                                :format="format"
-                                placeholder="Input date range" 
-                                :max-date="new Date()" 
-                                :enable-time-picker="false"
-                                :clearable="true"
-                                :dark="theme.global.name.value == 'dark'? true : false" 
-                                range 
-                        />
-                </div>
                 <v-divider></v-divider>
 
-                <div class="filters_author_block my-3 mx-5">
-                        <span>Filter by author</span>
-                        <v-combobox
-                                v-model="output_filters_data.filter__post_author_result"
-                                :items="usernameList"
-                                v-model:search="userSerch"
-                                :hide-no-data="false"
-                                variant="outlined"
-                                density="compact"
-                                clearable
-                                hide-selected
-                                multiple
-                                chips
-                                closable-chips
-                                persistent-hint>
+                <v-text-field class="search_post"
+                        v-model="output_filters_data.filter__post_search_result"
+                        :loading="loading" 
+                        clearable
+                        density="compact" 
+                        variant="default"
+                        label="Search by post's title/description" 
+                        append-inner-icon="mdi-magnify"
+                        single-line
+                        hide-details
+                        @click:append-inner="startSearch"
+                        @keydown.enter.stop="startSearch">
+                </v-text-field>
 
-                                <template v-slot:no-data>
-                                        <v-list-item>
-                                        <v-list-item-title style="white-space: normal; overflow: hidden;">
-                                        No results matching "<strong>{{ userSerch }}</strong>". Press <kbd>enter</kbd> to create a new one
-                                        </v-list-item-title>
-                                        </v-list-item>
-                                </template>
-                        </v-combobox>
+                <v-divider></v-divider>
+
+                <v-card class="filters_blocks" rounded='0' flat="true" style="height: 100%; width: 100vw;">
+                        <div class="filters_postdate_block my-3 mx-5">
+                                <span>Filter by post date</span>
+
+                                <VueDatePicker 
+                                        class="mt-2"
+                                        v-model="output_filters_data.filter__post_date_result" 
+                                        :format="format"
+                                        placeholder="Input date range" 
+                                        :max-date="new Date()" 
+                                        :enable-time-picker="false"
+                                        :clearable="true"
+                                        :dark="theme.global.name.value == 'dark'? true : false" 
+                                        range 
+                                />
+                        </div>
+                        <v-divider></v-divider>
+
+                        <div class="filters_author_block my-3 mx-5">
+                                <span>Filter by author</span>
+                                <v-combobox
+                                        v-model="output_filters_data.filter__post_author_result"
+                                        :items="usernameList"
+                                        v-model:search="userSerch"
+                                        :hide-no-data="false"
+                                        variant="outlined"
+                                        density="compact"
+                                        clearable
+                                        hide-selected
+                                        multiple
+                                        chips
+                                        closable-chips
+                                        persistent-hint>
+
+                                        <template v-slot:no-data>
+                                                <v-list-item>
+                                                <v-list-item-title style="white-space: normal; overflow: hidden;">
+                                                No results matching "<strong>{{ userSerch }}</strong>". Press <kbd>enter</kbd> to create a new one
+                                                </v-list-item-title>
+                                                </v-list-item>
+                                        </template>
+                                </v-combobox>
+                                
+                        </div>
+                        <v-divider></v-divider>
+
+                        <div class="filters_tags_block my-3 mx-5">
+                                <span>Filter by tags</span>
+                                <v-combobox
+                                        v-model="output_filters_data.filter__post_tags_result"
+                                        :items="tagsSlugList"
+                                        v-model:search="tagSerch"
+                                        :hide-no-data="false"
+                                        variant="outlined"
+                                        density="compact"
+                                        clearable
+                                        hide-selected
+                                        multiple
+                                        chips
+                                        closable-chips
+                                        persistent-hint>
+
+                                        <template v-slot:no-data>
+                                                <v-list-item>
+                                                <v-list-item-title style="white-space: normal; overflow: hidden;">
+                                                No results matching "<strong>{{ tagSerch }}</strong>". Press <kbd>enter</kbd> to create a new one
+                                                </v-list-item-title>
+                                                </v-list-item>
+                                        </template>
+                                </v-combobox>
+
+                        </div>
+                        <v-divider></v-divider>
+                        <v-card-actions>
+                                <v-btn block variant="elevated" @click.stop="applyFilters" :disabled="applyFilterBtnDisabled">Apply filters</v-btn>
+                        </v-card-actions>
+                </v-card>
+
+        </v-navigation-drawer>
+
+        <div class="filters-container mt-5 mb-4 pr-4" v-if="props.type == 'desktop'" rounded='0' flat="true" style="max-width: 350px; min-width: 300px">
+
+                <v-text-field class="search_post"
+                        v-model="output_filters_data.filter__post_search_result"
+                        :loading="loading" 
+                        clearable
+                        density="compact" 
+                        variant="solo"
+                        label="Search by post's title/description" 
+                        append-inner-icon="mdi-magnify"
+                        hide-details
+                        @click:append-inner="startSearch"
+                        @keydown.enter.stop="startSearch">
+                </v-text-field>
+
+                <v-card class="my-2 px-2">
+                        <div class="filters_postdate_block my-3 mb-1">
+                                <span>Filter by post date</span>
+
+                                <VueDatePicker 
+                                        v-model="output_filters_data.filter__post_date_result" 
+                                        :format="format"
+                                        placeholder="Input date range" 
+                                        :max-date="new Date()" 
+                                        :enable-time-picker="false"
+                                        :clearable="true"
+                                        :dark="theme.global.name.value == 'dark'? true : false" 
+                                        range 
+                                />
+                        </div>
+
+                        <div class="filters_author_block my-5 mb-1">
+                                <span>Filter by author</span>
+                                <v-combobox
+                                        v-model="output_filters_data.filter__post_author_result"
+                                        :items="usernameList"
+                                        v-model:search="userSerch"
+                                        :hide-no-data="false"
+                                        variant="solo"
+                                        density="compact"
+                                        clearable
+                                        hide-selected
+                                        multiple
+                                        chips
+                                        closable-chips
+                                        persistent-hint>
+
+                                        <template v-slot:no-data>
+                                                <v-list-item>
+                                                <v-list-item-title style="white-space: normal; overflow: hidden;">
+                                                No results matching "<strong>{{ userSerch }}</strong>". Press <kbd>enter</kbd> to create a new one
+                                                </v-list-item-title>
+                                                </v-list-item>
+                                        </template>
+                                </v-combobox>
+                                
+                        </div>
+
+                        <div class="filters_tags_block my-3 mb-1">
+                                <span>Filter by tags</span>
+                                <v-combobox
+                                        v-model="output_filters_data.filter__post_tags_result"
+                                        :items="tagsSlugList"
+                                        v-model:search="tagSerch"
+                                        :hide-no-data="false"
+                                        variant="solo"
+                                        density="compact"
+                                        clearable
+                                        hide-selected
+                                        multiple
+                                        chips
+                                        closable-chips
+                                        persistent-hint>
+
+                                        <template v-slot:no-data>
+                                                <v-list-item>
+                                                <v-list-item-title style="white-space: normal; overflow: hidden;">
+                                                No results matching "<strong>{{ tagSerch }}</strong>". Press <kbd>enter</kbd> to create a new one
+                                                </v-list-item-title>
+                                                </v-list-item>
+                                        </template>
+                                </v-combobox>
+
+                        </div> 
                         
-                </div>
-                <v-divider></v-divider>
-
-                <div class="filters_tags_block my-3 mx-5">
-                        <span>Filter by tags</span>
-                        <v-combobox
-                                v-model="output_filters_data.filter__post_tags_result"
-                                :items="tagsSlugList"
-                                v-model:search="tagSerch"
-                                :hide-no-data="false"
-                                variant="outlined"
-                                density="compact"
-                                clearable
-                                hide-selected
-                                multiple
-                                chips
-                                closable-chips
-                                persistent-hint>
-
-                                <template v-slot:no-data>
-                                        <v-list-item>
-                                        <v-list-item-title style="white-space: normal; overflow: hidden;">
-                                        No results matching "<strong>{{ tagSerch }}</strong>". Press <kbd>enter</kbd> to create a new one
-                                        </v-list-item-title>
-                                        </v-list-item>
-                                </template>
-                        </v-combobox>
-    
-                </div>
-                <v-divider></v-divider>
-        </v-card>
-
-        <div class="apply_filters_btn_container" >
-                <v-btn block @click.stop="applyFilters" :disabled="applyFilterBtnDisabled">Apply</v-btn>
+                        <v-card-actions class="d-flex flex-column px-0">
+                                <v-btn class="apply_form mb-2 mx-0" @click.stop="applyFilters" color="text-info" block variant="elevated" size="large" density="default" >Apply filter</v-btn>
+                                <v-btn class="clear_form mx-0" @click.stop="clearAllFilters"  block variant="elevated" size="large" density="default" >Clear filter</v-btn>
+                        </v-card-actions>
+                </v-card>
         </div>
-    </v-navigation-drawer>
 
 </template>
 
@@ -115,16 +215,17 @@ import routes from '@/router/router'
 
 
 let theme = useTheme()
-const props = defineProps(['isOpenAside'])
+const props = defineProps(['isOpenAside', 'type'])
 const emit = defineEmits(['setFilter', 'filterToolbarIsOpen'])
 
-
+const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 const userList = computed(() => store.getters['auth/getUsersList'])
-const usernameList = computed(() => userList?.value?.map(user => user.username));
-const userSerch = ref(null)
-
 const tagList = computed(() => store.getters['journal/getTagsList'])
+
+const usernameList = computed(() => userList?.value?.map(user => user.username));
 const tagsSlugList = computed(() => tagList?.value?.map(tag => tag.slug));
+
+const userSerch = ref(null)
 const tagSerch = ref(null)
 
 
@@ -162,8 +263,33 @@ const format = (dates) => {
 }
 
 onBeforeMount(async () => {
+        await store.dispatch('auth/getUsersList')
+        await store.dispatch('journal/getTagsList')  
+})
 
-        const current_filter_params = routes.currentRoute.value?.params?.filter_params?.slice(1)
+onUpdated(() => {
+        //Disable scroll when a aside toolbar is opened
+        if(props.isOpenAside){document.documentElement.style.overflow = 'hidden'}
+        else{document.documentElement.style.overflow = 'visible'}
+})
+
+// Watch for changes in the input fields, if at least one of them changes, change the visibility of the "clear all" button
+watch(() => output_filters_data.value, (new_obj) => {
+        if(Object.entries(new_obj).toString() != Object.entries(filters_data_initial.value).toString()){
+                for(const [key, value] of Object.entries(new_obj)){
+                        if(value != filters_data_initial.value[key]){
+                                clearable_form.value = true
+                                applyFilterBtnDisabled.value = false
+                                break
+                        }
+                }
+        }
+        else{ applyFilterBtnDisabled.value = true}
+},{deep: true}
+)
+
+watch(() => routes.currentRoute.value?.params?.filter_params?.slice(1), async (new_obj) => {
+        const current_filter_params = new_obj
         const filter_group = current_filter_params?.split('&')
         filter_group?.forEach(filter_param => {
                 // Разделяем ключ и значение фильтра
@@ -200,35 +326,8 @@ onBeforeMount(async () => {
                                 break
                 }
         });
-
-
-
-
-        await store.dispatch('auth/getUsersList')
-        await store.dispatch('journal/getTagsList')
         
 })
-
-onUpdated(() => {
-        //Disable scroll when a aside toolbar is opened
-        if(props.isOpenAside){document.documentElement.style.overflow = 'hidden'}
-        else{document.documentElement.style.overflow = 'visible'}
-})
-
-// Watch for changes in the input fields, if at least one of them changes, change the visibility of the "clear all" button
-watch(() => output_filters_data.value, (new_obj) => {
-        if(Object.entries(new_obj).toString() != Object.entries(filters_data_initial.value).toString()){
-                for(const [key, value] of Object.entries(new_obj)){
-                        if(value != filters_data_initial.value[key]){
-                                clearable_form.value = true
-                                applyFilterBtnDisabled.value = false
-                                break
-                        }
-                }
-        }
-        else{ applyFilterBtnDisabled.value = true}
-},{deep: true}
-)
 
 const applyFilters =() => {
 

@@ -1,7 +1,7 @@
 <template>
     <v-container fluid class="pb-12">
         <v-app-bar class="d-flex flex-row justify-space-between" 
-            v-if="routes.currentRoute.value.meta.navbar_style == 'default'">
+            v-if="routes.currentRoute.value.meta.navbar_style == 'default'" style="width: 100vw;">
 
             <v-app-bar-nav-icon 
                 variant="text" 
@@ -125,28 +125,26 @@ const store = useStore();
 const emit = defineEmits(['openAuthDialog', 'openMenuDrawer', 'changeTheme'])
 const prop = defineProps(['darkTheme'])
 
-const toggleDarkMode = () => {
-    theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
-    localStorage.setItem('theme', theme.global.name.value)
-    emit('changeTheme');
-}
+
+const currentRouteName = computed(() => {return routes.currentRoute.value.meta.navbar_name})
+const loggedIn = computed(() => {return store.getters['auth/loginState']});
+const currUserData = computed(() => {return store.getters['auth/getUserData'];})
 
 const sections = ref([
     { section_name: 'Profile', page_name: 'profile', icon: 'mdi-account' },
     { section_name: 'Settings', page_name: 'settings', icon: 'mdi-cog' },
 ])
 
+const toggleDarkMode = () => {
+    theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
+    localStorage.setItem('theme', theme.global.name.value)
+    emit('changeTheme');
+}
 const clickOnSection = (section_name) => {console.log(section_name)}
-
 const logout = () => {store.dispatch("auth/logout")}
-
 const openMenuDrawer = () => {emit('openMenuDrawer')}
 
-const currentRouteName = computed(() => {return routes.currentRoute.value.meta.navbar_name})
 
-const loggedIn = computed(() => {return store.getters['auth/loginState']});
-
-const currUserData = computed(() => {return store.getters['auth/getUserData'];})
 
 
     

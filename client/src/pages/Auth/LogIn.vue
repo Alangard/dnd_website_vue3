@@ -3,7 +3,7 @@
   <v-card 
     width="98%" 
     max-width="550" 
-    :variant="width <= 740 ? 'flat' : 'elevated'">
+    :variant="width <= mobileWidthLimit ? 'flat' : 'elevated'">
 
     <v-card-item class="py-3 px-4">
         <v-card-title>Log In</v-card-title>
@@ -75,7 +75,7 @@
 </template>
 
 <script setup>
-import {ref, defineProps, watch} from 'vue';
+import {ref, defineProps, watch, computed} from 'vue';
 import {useStore} from 'vuex';
 import {useDisplay} from 'vuetify'
 import router from '@/router/router';
@@ -85,6 +85,7 @@ const props = defineProps(['currURLObj'])
 const store = useStore();
 
 let showPassword = ref(false);
+const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 
 const formdata = ref({
   'username': '',
