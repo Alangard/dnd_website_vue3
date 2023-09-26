@@ -100,10 +100,10 @@ export const comments = {
         }else{console.log('You are logout')}
     },
 
-    async getInitialComments({state}, post_id){
+    async getInitialComments({commit}, post_id){
         try{
-            const response = await axios.get(BASE_URL + `post/${post_id}/comments/`)
-            state.Comments = response.data
+            const response = await axios.get(BASE_URL + `post_comments/?post_id=${post_id}`)
+            commit('setCommentsInStore', response.data)
         }
         catch(error){
             console.log(error)
@@ -133,6 +133,10 @@ export const comments = {
 
   
   mutations: {
+
+    setCommentsInStore(state, data){
+        state.Comments = data
+    },
   
     addCommentInStore(state, data){
         state.Comments.comments.unshift(data)

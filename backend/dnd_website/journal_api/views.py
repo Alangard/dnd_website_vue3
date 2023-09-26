@@ -347,7 +347,7 @@ class PostReactionViewSet(viewsets.ModelViewSet):
         else:
             return Response({"error": "Пользователь не является создателем реакции"}, status=status.HTTP_403_FORBIDDEN)
   
-    def list(self, request, *args, **kwargs):
+    # def list(self, request, *args, **kwargs):
         self.serializer_class = PostReactionsListSerializer
         self.ordering = ['-reacted_at']
         self.pagination_class = PostReactionPagination
@@ -387,6 +387,40 @@ class PostReactionViewSet(viewsets.ModelViewSet):
         if page is not None: 
             serializer = self.serializer_class(page, many=True)
             return self.get_paginated_response(serializer.data)
+
+class PostCommentsViewSet(viewsets.ModelViewSet):
+    queryset =  Comment.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        print('list')
+        self.serializer_class = CommentSerializer
+        self.ordering = ['-created_datetime']
+        # self.pagination_class = PostListPagination
+
+
+        post_id = self.request.query_params.get('post_id')
+
+        try:
+            instance = Post.objects.all().get(id=post_id)
+        except Post.DoesNotExist:
+            return Response({"error": "Пост не существуют"}, status=status.HTTP_400_BAD_REQUEST)
+
+        comments = self.queryset.filter(parent=None, post=post_id).\
+            select_related('author').\
+            prefetch_related('comment_reactions')
+        
+        serializer = self.get_serializer(comments, many=True, context={'request': request})          
+        data = {
+            'num_comments': Comment.objects.filter(post=post_id).count(),
+            'comments': serializer.data,
+        }
+        
+        return Response(data)  
+
+    def retrieve(self, request, *args, **kwargs):
+        print('retrieve')
+  
+
 
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()

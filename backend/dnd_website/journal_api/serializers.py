@@ -105,13 +105,11 @@ class CommentSerializer(serializers.ModelSerializer):
             if replies.exists():
                 data = []
                 for reply in replies:
-                    user_data = {'id': reply.parent.author.id, 'username': reply.parent.author.username, 'avatar': reply.parent.author.avatar}
+                    user_data = {'id': reply.parent.author.id, 'username': reply.parent.author.username, 'avatar': reply.parent.author.avatar if reply.parent.author.avatar else None}
                     reply_data = CommentSerializer(reply, context={'request': request}).data
                     reply_data['parent'] = user_data
                     data.append(reply_data)
                 return data
-                # serializer = CommentSerializer(replies, many=True, context={'request': request})
-                # return serializer.data
         return None
     
     def get_comment_reactions(self, obj):

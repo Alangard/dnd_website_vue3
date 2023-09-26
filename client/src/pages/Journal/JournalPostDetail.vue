@@ -103,7 +103,10 @@
             </v-card-actions>
         </v-card>
 
-        <Comments :allow_comments="postDetail?.allow_comments"></Comments>
+        <Comments 
+            :allow_comments="postDetail?.allow_comments"
+            :post_id="post_id">
+        </Comments>
     </div>
 
 </template>
@@ -137,10 +140,10 @@ let store = useStore();
 let editor = ref()
 
 const postDetail = computed(() => store.getters['journal/getPostDetail'])
+const post_id = ref(routes.currentRoute.value.params.post_id)
 
 onBeforeMount(async () => {
-    const post_id = routes.currentRoute.value.params.post_id
-    await store.dispatch('journal/getPostDetail', post_id)
+    await store.dispatch('journal/getPostDetail', post_id.value)
 
     editor.value = new Editor({
         content: postDetail.value.body,

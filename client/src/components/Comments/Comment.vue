@@ -6,7 +6,7 @@
           <div class="avatar_username_container d-flex flex-row">
             <v-avatar class="clickable transformable avatar" size="41"
                 @click="routes.push({name: 'user_profile', params: { username: comment.author.username }})">
-                <v-img v-if="comment.author.avatar != ''"
+                <v-img v-if="comment.author.avatar !== null"
                     :src="comment.author.avatar"
                     :alt="comment.author.username">
                 </v-img>

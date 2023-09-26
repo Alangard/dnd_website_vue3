@@ -79,7 +79,7 @@ import Comment from './Comment.vue'
 import EmojiContent from '../Emoji/EmojiContent.vue';
 
 const store = useStore();
-const props = defineProps(['allow_comments'])
+const props = defineProps(['allow_comments', 'post_id'])
 const { width } = useDisplay();
 
 const url = `ws://${axios.defaults.baseURL.split('http://')[1]}ws/comment_socket-server/`
@@ -103,8 +103,7 @@ const saveComment = () => {
 
 
 onMounted(() => {
-  const post_id = routes.currentRoute.value.params.id
-  store.dispatch("comments/getInitialComments", post_id)
+  store.dispatch("comments/getInitialComments", props.post_id)
 })
 
 onUnmounted(() => {
