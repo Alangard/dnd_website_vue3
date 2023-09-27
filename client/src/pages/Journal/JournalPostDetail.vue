@@ -104,7 +104,6 @@
         </v-card>
 
         <Comments 
-            :allow_comments="postDetail?.allow_comments"
             :post_id="post_id">
         </Comments>
     </div>

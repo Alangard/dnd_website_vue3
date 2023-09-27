@@ -105,8 +105,8 @@ class Comment(models.Model):
 
 class CommentReaction(models.Model):
     REACTION_CHOICES = (('like', 'Like'),('dislike', 'Dislike'))
-    reaction_type = models.CharField(max_length=10, null=True, choices = REACTION_CHOICES)  #like or dislike
-    comment = models.ForeignKey('Comment', on_delete=models.CASCADE, related_name='comment_reactions')
+    reaction_type = models.CharField(max_length=10, blank=True, null=True, choices = REACTION_CHOICES)  #like or dislike
+    comment = models.ForeignKey('Comment', on_delete=models.CASCADE, related_name='comment_reactions', null=True, blank=True)
     reacted_at = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey('Account', on_delete=models.SET_DEFAULT, default="user doesn't exist")
 

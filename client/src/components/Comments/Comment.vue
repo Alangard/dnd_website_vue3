@@ -53,10 +53,6 @@
             Reply
           </v-btn>
 
-          <v-btn class="pb-1" variant="text">
-            Delete
-          </v-btn>
-
           <div class="reactions_container px-3">
             <div class="d-flex flex-row align-center">
               <v-btn
@@ -186,6 +182,7 @@
     </div>
   </div>
 
+
 <!-- Popovers -->
   <v-navigation-drawer v-if="width < mobileWidthLimit" class="mobile_emoticon h-50" v-model="mobileEmoticonDrawer" location="bottom" temporary>
     <v-card class="h-100">
@@ -246,22 +243,10 @@ let mobileAdditionalActionsDrawer = ref(false)
 let deleteCommentDialog = ref(false)
 
 
-onMounted(() => {
+onMounted(async() => {
 
-  websocket.value.onmessage = function(e){
-        let data = JSON.parse(e.data)
+  // (await store.dispatch('comments/getCommentsList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
 
-        switch (data.action){
-          case 'create':
-            store.commit('comments/addCommentInStore', data.data)
-          case 'create_reply':
-            store.commit('comments/addCommentReplyInStore', data.data)
-          case 'delete_comment':
-            store.commit('comments/deleteCommentInStore', data.data)
-          case 'update_comment':
-            store.commit('comments/updateCommentInStore', data.data)
-        }
-  }
 })
 
 

@@ -9,6 +9,7 @@ router = routers.DefaultRouter()
 router.register(r'post', PostViewSet, basename='post')
 router.register(r'post_reactions', PostReactionViewSet, basename='post_reactions')
 router.register(r'post_comments', PostCommentsViewSet, basename='post_comments')
+router.register(r'comment_reactions', CommentReactionViewSet, basename='comment_reactions')
 router.register(r'tag', TagViewSet, basename='tag')
 
 

@@ -105,8 +105,8 @@
                                             size="24"
                                             variant="text"
                                             class="like mx-0" 
-                                            :id="`post_${post.id}_like_btn`" 
-                                            @click="pressReaction({'post_id':post.id, 'reaction_type': 'like', 'user_reaction': post.user_reaction})">
+                                            :id="`post_${post?.id}_like_btn`" 
+                                            @click="pressReaction({'post_id':post?.id, 'reaction_type': 'like', 'user_reaction': post?.user_reaction})">
                                                 <v-icon 
                                                     size="24" 
                                                     class="like"  
@@ -115,18 +115,18 @@
                                                 </v-icon>
                                         </v-btn>
 
-                                        <span class="mx-3" :class="{ 'text-info': post.user_reaction.reacted}">{{ post.post_reactions.total_reactions }}</span>
+                                        <span class="mx-3" :class="{ 'text-info': post?.user_reaction.reacted}">{{ post?.post_reactions.total_reactions }}</span>
 
                                         <v-btn
                                             size="24"
                                             variant="text"
                                             class="dislike mx-0"
-                                            :id="`post_${post.id}_dislike_btn`" 
-                                            @click="pressReaction({'post_id':post.id, 'reaction_type': 'dislike', 'user_reaction': post.user_reaction})">
+                                            :id="`post_${post?.id}_dislike_btn`" 
+                                            @click="pressReaction({'post_id':post?.id, 'reaction_type': 'dislike', 'user_reaction': post?.user_reaction})">
                                                 <v-icon 
                                                     size="24" 
                                                     class="dislike" 
-                                                    :class="{ 'text-info': post.user_reaction.reaction_type == 'dislike' }">
+                                                    :class="{ 'text-info': post?.user_reaction.reaction_type == 'dislike' }">
                                                     mdi-arrow-down-bold-circle-outline
                                                 </v-icon>
                                         </v-btn>
@@ -228,11 +228,12 @@ const handlePageChange = async(newPage) => {
     page_url.value = `?page=${newPage}&page_size=${page_size}` + `&${filters.value}`
     routes.push({name: 'journal_filters', params: { filter_params: `${page_url.value}` }})
 
-    await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'normal'})
+    await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'initial'})
     window.scrollTo({top: 0,behavior: "smooth"});
 }
 
 const handleOrderChange = async(order_param) => {
+    //orderings можно сделать строкой, всё равно выставить сортировку можно лишь одну
     const new_order_str = order_param.split('=')[1]
     const order_without_direction =  new_order_str[0] == '-' ? new_order_str.slice(1) : new_order_str
     const index_in_orderings = orderings.value.indexOf(order_without_direction)
@@ -249,7 +250,7 @@ const handleOrderChange = async(order_param) => {
     }
 
     page_url.value = '?' + page_url_params_list.join('&')
-    page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'normal'})).count / page_size)
+    page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
     routes.replace({name: 'journal_filters', params: { filter_params: page_url.value }})
 
 
@@ -266,7 +267,7 @@ const handleFilterChange = async(filter_params) =>{
         current_page.value = 1
         filters.value = []
     }  
-    page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'normal'})).count / page_size)
+    page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
     routes.replace({name: 'journal_filters', params: { filter_params: page_url.value }}) 
     window.scrollTo({top: 0,behavior: "smooth"}); 
 }
@@ -294,13 +295,15 @@ const pressReaction = (data) =>{
         {
             'post_id': data.post_id,
             'reaction_type': data.reaction_type,
-            'user_reaction': data.user_reaction
+            'id': data.user_reaction.id,
+            'user_reaction': data.user_reaction,
+            'set_reaction_in': 'post_list' ,
         }
     )   
 }
 
 onMounted(async () => {
-    page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'normal'})).count / page_size)
+    page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
     
     websocket.onmessage = function(e){
         let data = JSON.parse(e.data)

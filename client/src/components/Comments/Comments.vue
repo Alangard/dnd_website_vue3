@@ -2,7 +2,7 @@
 <template>
   <v-card class="comment_container mt-4 px-4">
     <v-card-title class="d-flex flex-row align-center pl-0 text-h6">Comments 
-      <span class="text-h6 font-weight-light pl-2">({{ comments.num_comments }})</span>
+      <span class="text-h6 font-weight-light pl-2">({{ comments?.num_comments }})</span>
     </v-card-title>
 
     <v-card-subtitle class="pl-0 mb-2" v-if="!loggedIn">
@@ -50,10 +50,20 @@
     <Comment 
       class='comment_element' 
       style=" min-width: 300px;" 
-      v-for="comment in comments.comments" :key="comment.id" 
+      v-for="comment in comments?.comments" :key="comment.id" 
       :comment="comment" 
       :websocket="websocket"
       />
+
+      <div class="pagination text-center">
+        <v-pagination
+            v-model="current_page"
+            @update:model-value="handlePageChange"
+            :length="page_count"
+            :total-visible="7"
+            size="small"
+        ></v-pagination>
+    </div>
   </v-card>
 
   <v-navigation-drawer v-if="width < mobileWidthLimit" class="mobile_emoticon h-50" v-model="mobileEmoticonDrawer" location="bottom" temporary>
@@ -79,7 +89,7 @@ import Comment from './Comment.vue'
 import EmojiContent from '../Emoji/EmojiContent.vue';
 
 const store = useStore();
-const props = defineProps(['allow_comments', 'post_id'])
+const props = defineProps(['post_id'])
 const { width } = useDisplay();
 
 const url = `ws://${axios.defaults.baseURL.split('http://')[1]}ws/comment_socket-server/`
@@ -89,21 +99,43 @@ const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLim
 const loggedIn = computed(() => {return store.getters['auth/loginState']})
 const comments = computed(() => {return store.getters['comments/getComments']})
 
+const current_page = ref(1)
+const page_count = ref(1)
+const page_size = 10
+let page_url = ref(`?post_id=${props.post_id}&page=1&page_size=${page_size}`)
+let filters = ref([])
+let orderings = ref('')
+
 const newTextComment = ref('')
-const selectedCommentOrder = ref('popularity')
+const selectedCommentOrder = ref('date')
 const mobileEmoticonDrawer = ref(false)
 
 const onOrderChange = async () => {
-  console.log(`New parametr: ${selectedCommentOrder.value}`)
+  const order_param = selectedCommentOrder.value
+  const page_url_params_list = page_url.value.slice(1).split('&')
+  const index_in_url = page_url_params_list.findIndex(item => item.includes("ordering="));
+
+  if(index_in_url != -1){page_url_params_list.splice(index_in_url, 1, `ordering=${order_param}`)}
+  else{page_url_params_list.push(`ordering=${order_param}`)}
+  orderings.value = order_param
+
+  page_url.value = '?' + page_url_params_list.join('&')
+  page_count.value = Math.ceil((await store.dispatch('comments/getCommentsList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
 };
 
 const saveComment = () => {
   console.log(`send:${newTextComment.value}`)
 };
 
+const handlePageChange = async(newPage) => {
+    current_page.value = newPage
+    page_url.value = `?post_id=${props.post_id}&page=${newPage}&page_size=${page_size}` + `&${filters.value}`
+    await store.dispatch('comments/getCommentsList', {'paginate_url': page_url.value, 'request_type': 'initial'})
+}
 
-onMounted(() => {
-  store.dispatch("comments/getInitialComments", props.post_id)
+
+onMounted(async() => {
+  page_count.value = Math.ceil((await store.dispatch('comments/getCommentsList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
 })
 
 onUnmounted(() => {

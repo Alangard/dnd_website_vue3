@@ -1,8 +1,8 @@
 import axios from 'axios';
+import interceptorsInstance, {authHeader} from '@/api/main'
 
 
 const BASE_URL = axios.defaults.baseURL;
-
 const initialState = { Comments: [], replyIsPressed: ''}
 
 export const comments = {
@@ -100,14 +100,14 @@ export const comments = {
         }else{console.log('You are logout')}
     },
 
-    async getInitialComments({commit}, post_id){
+    async getCommentsList({commit}, {paginate_url, request_type}){
         try{
-            const response = await axios.get(BASE_URL + `post_comments/?post_id=${post_id}`)
-            commit('setCommentsInStore', response.data)
+            const response = await interceptorsInstance.get(BASE_URL + `post_comments/${paginate_url}`)
+            if(request_type == 'initial'){commit('setCommentsInStore', response.data)}
+            
+            return response.data
         }
-        catch(error){
-            console.log(error)
-        }
+        catch(error){console.log(error)}
     },
 
     async createComment({dispatch}, data){
@@ -234,7 +234,7 @@ export const comments = {
 
   getters: {
     getComments(state){
-        return state.Comments
+        return state.Comments.results
     },
   
     getReplyIsPressed(state){

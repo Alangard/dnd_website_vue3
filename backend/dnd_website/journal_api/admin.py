@@ -58,7 +58,7 @@ class TagAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
 
 class CommentAdmin(admin.ModelAdmin):
-    inlines = (CommentReactionsInline,)
+    # inlines = (CommentReactionsInline,)
     list_display = ['id', 'text', 'author', 'parent', 'created_datetime']
     list_filter = ('author', 'created_datetime')
     search_fields = ('text', 'author__username')

@@ -65,6 +65,11 @@ class PostReactionPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 1000
 
+class CommentsListPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().select_related('author').prefetch_related('tags', 'post_reactions', 'comments')
 
@@ -178,7 +183,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 case _:
                     data[key] = request.data.get(key)
 
-        if request.user.is_staff or request.user.id == instance.author.id:
+        if request.user.id == instance.author.id:
             post_serializer = self.get_serializer(instance, data=data, partial=True)
             if post_serializer.is_valid(raise_exception=True):
 
@@ -204,9 +209,6 @@ class PostViewSet(viewsets.ModelViewSet):
         post_id = kwargs.get('pk')
         instance = get_object_or_404(self.queryset, pk=post_id)
         
-        # if not instance.is_publish:
-        #     return Response({"error": "Пост не существует или не опубликован"}, status=status.HTTP_404_NOT_FOUND)
-            
         if request.user.is_authenticated and request.user.id == instance.author.id:
             post_serializer = self.get_serializer(instance) 
             return Response(post_serializer.data)
@@ -219,7 +221,6 @@ class PostViewSet(viewsets.ModelViewSet):
         self.serializer_class = PostListReadSerializer
         self.ordering = ['-created_datetime']
         self.pagination_class = PostListPagination
-  
 
         def myfilters(queryset):
             instance = queryset
@@ -246,7 +247,6 @@ class PostViewSet(viewsets.ModelViewSet):
                         instance = instance.filter(author__username__exact=username)
 
                 if param == 'ordering' and params[param] != None:
-                    ordering_list = params[param].split(',')
                     instance = instance.order_by(params[param])
 
                 if param == 'search' and params[param] != None:
@@ -259,14 +259,14 @@ class PostViewSet(viewsets.ModelViewSet):
 
         page = self.paginate_queryset(instance)
         if page is not None: 
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-            
-        if request.user.is_authenticated: 
-            serializer = self.get_serializer(instance, many=True)
-            return Response(serializer.data)
-        else:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+            if request.user.is_authenticated: 
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+            else:
+                serializer = self.get_serializer(instance, many=True)
+                return Response(serializer.data)
+                # return Response(status=status.HTTP_401_UNAUTHORIZED)
+        
         
 class PostReactionViewSet(viewsets.ModelViewSet):
     queryset = PostReaction.objects.all()
@@ -391,37 +391,251 @@ class PostReactionViewSet(viewsets.ModelViewSet):
 class PostCommentsViewSet(viewsets.ModelViewSet):
     queryset =  Comment.objects.all()
 
+    def create(self, request, *args, **kwargs):
+        self.serializer_class = CommentSerializer
+
+        post_id = kwargs['post_id']
+
+        try:
+            post = Post.objects.all().get(id=post_id, is_draft = False, is_publish = True)
+        except Post.DoesNotExist:
+            return Response({"error": "Пост не существует или не опубликован"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        comment_text = request.data.get('text')
+        parent_id = request.data.get('parent')
+
+        if parent_id is None:
+            comment_obj = Comment.objects.create(
+                status = 'n',
+                post = post,
+                author=request.user,
+                text = comment_text
+            )
+        else:
+            try:
+                parent_comment = self.queryset.get(pk=parent_id)
+                comment_obj = Comment.objects.create(
+                    status = 'n',
+                    post = post,
+                    parent=parent_comment,
+                    author=request.user,
+                    text = comment_text
+                )
+            except Comment.DoesNotExist:
+                return Response({"error": "Родительского комментария не существует"}, status=status.HTTP_400_BAD_REQUEST)
+       
+        serializer = self.get_serializer(comment_obj)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, *args, **kwargs):
+        self.serializer_class = CommentSerializer
+
+        comment_id = kwargs.get('pk')
+
+        # Проверяем, существует ли комментарий
+        try:
+            comment = self.queryset.get(pk=comment_id)
+        except Comment.DoesNotExist:
+            return Response({"error": "Комментарий не существует"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if request.user.is_staff or request.user.id == comment.author.id:
+            has_replies = comment.objects.filter(replies__id=comment_id).exists()
+
+            if request.user.id == comment.author.id:
+                who_delete = request.user.username
+            elif request.user.is_staff:
+                who_delete = 'staff'
+
+            if(has_replies):
+                comment.text = f'Comment was deleted by {who_delete}'
+                comment.status = 'd'
+                comment.save(update_fields=['text', 'status'])
+            else:
+                comment.delete()
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({"error": "Пользователь не является создателем поста или не имеет достаточно прав"}, status=status.HTTP_403_FORBIDDEN)
+
+    def partial_update(self, request, *args, **kwargs):
+        self.serializer_class = CommentSerializer
+        
+        comment_id = kwargs.get('pk')
+
+        # Проверяем, существует ли комментарий
+        try:
+            comment = self.queryset.get(pk=comment_id)
+        except Comment.DoesNotExist:
+            return Response({"error": "Комментарий не существует"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if request.user.id == comment.author.id:
+            serializer = self.get_serializer(comment, data=request.data, partial=True)
+
+            if serializer.is_valid(raise_exception=True):
+                serializer.save() 
+                return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Пользователь не является создателем поста или не имеет достаточно прав"}, status=status.HTTP_403_FORBIDDEN)
+
     def list(self, request, *args, **kwargs):
-        print('list')
         self.serializer_class = CommentSerializer
         self.ordering = ['-created_datetime']
-        # self.pagination_class = PostListPagination
-
+        self.pagination_class = CommentsListPagination
 
         post_id = self.request.query_params.get('post_id')
 
         try:
-            instance = Post.objects.all().get(id=post_id)
+            post = Post.objects.all().get(id=post_id, is_draft = False, is_publish = True)
         except Post.DoesNotExist:
-            return Response({"error": "Пост не существуют"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Пост не существует или не опубликован"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        def myfilters(queryset):
+            instance = queryset
+            params = request.query_params
+            print(params)
 
-        comments = self.queryset.filter(parent=None, post=post_id).\
-            select_related('author').\
-            prefetch_related('comment_reactions')
+            for param in params:
+
+                if param == 'start_date' and params[param] != None:
+                    start_date_obj = datetime.strptime(params[param], '%d/%m/%Y')
+                    instance = instance.filter(created_datetime__gte=start_date_obj)
+
+                if param == 'end_date' and params[param] != None:
+                    end_date_obj = datetime.strptime(params[param], '%d/%m/%Y')
+                    instance = instance.filter(created_datetime__lte = end_date_obj)
+
+                if param == 'username' and params[param] != None:
+                    username_list = params[param].split(',')
+                    for username in username_list:
+                        instance = instance.filter(author__username__exact=username)
+
+                if param == 'ordering' and params[param] != None:
+                    if params[param] == 'popularity':
+                        instance = instance.annotate(reactions_count=Count('comment_reactions')).order_by('-reactions_count')
+                    elif params[param] == 'date':
+                        instance = instance.order_by('-created_datetime')
+
+                if param == 'search' and params[param] != None:
+                    instance = instance.filter(Q(text__icontains=params[param]) | Q(text__icontains=params[param]))
+
+            return instance
         
-        serializer = self.get_serializer(comments, many=True, context={'request': request})          
-        data = {
-            'num_comments': Comment.objects.filter(post=post_id).count(),
-            'comments': serializer.data,
-        }
-        
-        return Response(data)  
+        comments = self.queryset.filter(parent=None, post=post_id).select_related('author').prefetch_related('comment_reactions')
+        instance = myfilters(comments)
+
+        page = self.paginate_queryset(instance)
+        if page is not None: 
+            serializer = self.get_serializer(page, many=True, context={'request': request})
+            data = {
+                'allow_comments': post.allow_comments,
+                'num_comments': Comment.objects.filter(post=post_id).count(),
+                'comments': serializer.data, 
+            }
+            return self.get_paginated_response(data)
 
     def retrieve(self, request, *args, **kwargs):
-        print('retrieve')
+        self.serializer_class = CommentSerializer
+
+        comment_id = kwargs.get('pk')
+
+        # Проверяем, существует ли комментарий
+        try:
+            comment = self.queryset.get(pk=comment_id)
+        except Comment.DoesNotExist:
+            return Response({"error": "Комментарий не существует"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        serializer = self.get_serializer(comment)
+        return Response(serializer.data)
   
 
+class CommentReactionViewSet(viewsets.ModelViewSet):
+    queryset = CommentReaction.objects.all()
+    filter_backends = [DjangoFilters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    serializer_class = CommentReactionSerializer
 
+    def create(self, request, *args, **kwargs):
+
+        # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        comment_id = request.data.get('post_id')
+        try:
+            Comment.objects.all().get(id=comment_id)
+        except Comment.DoesNotExist:
+            return Response({"error": "Комментарий не существует"}, status=status.HTTP_404_NOT_FOUND)
+        
+        instance = self.queryset.filter(comment=comment_id, author__id=request.user.id).first()
+        if instance is None:
+            data = {
+                'reaction_type': request.data.get('reaction_type'),
+                'comment': comment_id,
+                'author': request.user.id,
+            }
+            
+            serializer = self.serializer_class(data=data)
+            
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"error": "Сериализация не пройдена"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "Реакция к комментарию уже имеется"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, *args, **kwargs):
+
+        # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        reaction_id = kwargs.get('pk')
+    
+        try:
+            instance = self.queryset.get(id=reaction_id)
+        except CommentReaction.DoesNotExist:
+            return Response({"error": "Реакция к комментарию не существует"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if request.user.id == instance.author.id:
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({"error": "Пользователь не является создателем реакции"}, status=status.HTTP_403_FORBIDDEN)
+    
+    def partial_update(self, request, *args, **kwargs):
+         # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        reaction_id = kwargs.get('pk')
+        
+        try:
+            instance = self.queryset.get(id=reaction_id)
+        except CommentReaction.DoesNotExist:
+            return Response({"error": "Реакция к комментарию не существует"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if request.user.id == instance.author.id:
+            serializer = self.serializer_class(instance, data={'reaction_type': request.data.get('reaction_type')}, partial=True)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()  
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Сериализация не пройдена"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "Пользователь не является создателем реакции"}, status=status.HTTP_403_FORBIDDEN)
+    
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
 

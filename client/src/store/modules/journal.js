@@ -119,7 +119,7 @@ export const journal = {
         commit('deletePostInStore', response.data)
         return response
       }
-      catch(error){}
+      catch(error){console.log(error)}
     },
 
     async partialUpdatePost({commit}, post_data){
@@ -138,7 +138,7 @@ export const journal = {
     async getPostList({commit}, {paginate_url, request_type}){
       try{
         const response = await interceptorsInstance.get(BASE_URL + `post/${paginate_url}`, { headers: authHeader() })
-        if(request_type == 'normal'){commit('setPostListInStore', response.data)}
+        if(request_type == 'initial'){commit('setPostListInStore', response.data)}
         else if(request_type == 'load_more'){commit('addPostInStore', response.data)}
         return response.data
       }
