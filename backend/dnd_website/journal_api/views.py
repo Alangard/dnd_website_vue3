@@ -39,6 +39,7 @@ from jwt import decode as jwt_decode
 from django.contrib.auth import get_user_model
 from asgiref.sync import sync_to_async
 
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 # //////////////////////////////////////////////////////////////////////
@@ -205,15 +206,21 @@ class PostViewSet(viewsets.ModelViewSet):
             return Response({"error": "Пользователь не является создателем поста или не имеет достаточно прав"}, status=status.HTTP_403_FORBIDDEN)
 
     def retrieve(self, request, *args, **kwargs):
-        self.serializer_class = PostDetailViewerSerializer 
+        self.serializer_class = PostDetailViewerSerializer
+        params = request.query_params
+
         post_id = kwargs.get('pk')
+        editable = bool(params['editable'])
+
         instance = get_object_or_404(self.queryset, pk=post_id)
-        
-        if request.user.is_authenticated and request.user.id == instance.author.id:
+
+        if editable and request.user.is_authenticated and request.user.id == instance.author.id:
+            instance = self.queryset.get(pk=post_id)
             post_serializer = self.get_serializer(instance) 
             return Response(post_serializer.data)
+        
             
-        instance = self.queryset.filter(pk=post_id, is_publish=True).select_related('author').prefetch_related('tags','post_reactions','comments')
+        instance = self.queryset.get(pk=post_id, is_publish=True, is_draft=False)
         post_serializer = self.get_serializer(instance)
         return Response(post_serializer.data)
         
@@ -254,7 +261,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
             return instance
 
-        instance = self.queryset.filter(is_publish=True)
+        instance = self.queryset.filter(is_publish=True, is_draft=False)
         instance = myfilters(instance)
 
         page = self.paginate_queryset(instance)
@@ -263,8 +270,8 @@ class PostViewSet(viewsets.ModelViewSet):
                 serializer = self.get_serializer(page, many=True)
                 return self.get_paginated_response(serializer.data)
             else:
-                serializer = self.get_serializer(instance, many=True)
-                return Response(serializer.data)
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
                 # return Response(status=status.HTTP_401_UNAUTHORIZED)
         
         
@@ -405,6 +412,9 @@ class PostCommentsViewSet(viewsets.ModelViewSet):
         if not request.user.is_authenticated:
             return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
         
+        if post.allow_comments == False:
+            return Response({"error": "Создание комментариев к данном посту запрещено автором"}, status=status.HTTP_401_UNAUTHORIZED)
+        
         comment_text = request.data.get('text')
         parent_id = request.data.get('parent')
 
@@ -495,6 +505,7 @@ class PostCommentsViewSet(viewsets.ModelViewSet):
         self.pagination_class = CommentsListPagination
 
         post_id = self.request.query_params.get('post_id')
+        
 
         try:
             post = Post.objects.all().get(id=post_id, is_draft = False, is_publish = True)
@@ -536,8 +547,8 @@ class PostCommentsViewSet(viewsets.ModelViewSet):
         instance = myfilters(comments)
 
         page = self.paginate_queryset(instance)
-        if page is not None: 
-            serializer = self.get_serializer(page, many=True, context={'request': request})
+        if page is not None:
+            serializer = self.get_serializer(page, many=True, context={'request': self.request})
             data = {
                 'allow_comments': post.allow_comments,
                 'num_comments': Comment.objects.filter(post=post_id).count(),
@@ -571,7 +582,7 @@ class CommentReactionViewSet(viewsets.ModelViewSet):
         if not request.user.is_authenticated:
             return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        comment_id = request.data.get('post_id')
+        comment_id = request.data.get('comment_id')
         try:
             Comment.objects.all().get(id=comment_id)
         except Comment.DoesNotExist:

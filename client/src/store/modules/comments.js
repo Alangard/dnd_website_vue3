@@ -102,7 +102,7 @@ export const comments = {
 
     async getCommentsList({commit}, {paginate_url, request_type}){
         try{
-            const response = await interceptorsInstance.get(BASE_URL + `post_comments/${paginate_url}`)
+            const response = await interceptorsInstance.get(BASE_URL + `post_comments/${paginate_url}`, { headers: authHeader()})
             if(request_type == 'initial'){commit('setCommentsInStore', response.data)}
             
             return response.data
@@ -110,25 +110,41 @@ export const comments = {
         catch(error){console.log(error)}
     },
 
-    async createComment({dispatch}, data){
-        dispatch('conusmerSettings', {action: 'create_comment', data: data})
+    async set_reaction({ commit, dispatch}, data){
+        //Если пользователь оставлял реакцию
+        if(data.user_reaction.reacted){
+  
+          //Если выбранная реакция соответствует оставленной
+          if(data.reaction_type == data.user_reaction.reaction_type){
+            try{     
+              const response = await interceptorsInstance.delete(BASE_URL + `comment_reactions/${data.id}/`, { headers: authHeader()})
+              commit('removeReaction', {'comment_id': data.comment_id, 'reaction_type': data.reaction_type})
+              return response.data
+            }
+            catch(error){console.log(error)}
+          }
+          else{
+            try{ 
+              const response = await interceptorsInstance.patch(BASE_URL + `comment_reactions/${data.id}/`,{'reaction_type': data.reaction_type},  { headers: authHeader()}) 
+              commit('changeReaction', {'comment_id': data.comment_id,'reaction_type': data.reaction_type, 'id': response.data.post})
+              return response.data
+            }
+            catch(error){console.log(error)}          
+          }
+        }
+  
+        else{
+          try{
+            const response = await interceptorsInstance.post(BASE_URL + `comment_reactions/`, {'reaction_type': data.reaction_type, 'comment_id': data.comment_id}, {headers: authHeader()})
+            commit('setReaction', {'comment_id': data.comment_id, 'reaction_type': data.reaction_type, 'id': response.data.id})
+            return response.data
+  
+          }
+          catch(error){console.log(error)}
+        }
     },
-      
-    async createCommentReply({dispatch}, data){
-        dispatch('conusmerSettings', {action: 'create_reply_comment', data: data})
-    },
-    
-    async deleteComment({dispatch}, data){
-        dispatch('conusmerSettingsWithPerm', {action: 'delete_comment', data: data, only_for_owner: true})
-    },
-    
-    async partialUpdateComment({dispatch}, data){
-        dispatch('conusmerSettingsWithPerm', {action: 'partial_update_comment', data: data, only_for_owner: true})
-    },
-    
-    async banComment({dispatch}, data){
-        dispatch('conusmerSettingsWithPerm', {action: 'ban_comment', data: data, only_for_owner: false})
-    },
+  
+
   },
 
   
@@ -137,83 +153,133 @@ export const comments = {
     setCommentsInStore(state, data){
         state.Comments = data
     },
-  
-    addCommentInStore(state, data){
-        state.Comments.comments.unshift(data)
-    },
-  
-    addCommentReplyInStore(state, newReply) {
-    // Обходим список комментариев с помощью массива методов
-        function traverseComments(comments) {
-            for (let comment of comments) {
-                if (comment.id === newReply.parent) {
-                    // Найден комментарий, к которому добавляем новый ответ
-                    if (!comment.replies) {
-                    // Если у комментария еще нет списка ответов, создаем его
-                    comment.replies = [];
-                    }
-                    comment.replies.unshift(newReply);
-                    return;
-                } 
-                else if (comment.replies) {
-                    // Рекурсивно ищем комментарий с нужным id в ответах
-                    traverseComments(comment.replies);
-                }
-            }
-        }   
-    
-        traverseComments(state.Comments.comments);
-    },
-   
-    deleteCommentInStore(state, comment_data){
-        const commentId = comment_data.id;
 
-        // Обходим список комментариев с помощью массива методов
-        function traverseComments(comments) {
-            for (let i = 0; i < comments.length; i++) {
-                if (comments[i].id === commentId) {
-                    if(comments[i]?.replies?.length > 0){
-                    // Найденный комментарий с ответами, изменяем его статус
-                    comments[i].status = comment_data.status
-                    comments[i].text = comment_data.text
-                    }
-                    else{
-                    // Найденный комментарий без ответов, удаляем его из списка
-                    comments.splice(i, 1);
-                    state.Comments.num_comments -= 1
-                    }
-                    return;
-                } 
-                else if (comments[i].replies) {
-                    // Рекурсивно ищем комментарий с нужным id в ответах
-                    traverseComments(comments[i].replies);
-                }
-            }
+    setReaction(state, chosen_data){
+        const comment_obj = state.Comments.results.comments.find(comment => comment.id == chosen_data.comment_id) 
+
+        switch (chosen_data.reaction_type){
+          case 'like':
+            comment_obj.comment_reactions.num_likes += 1
+            break
+          case 'dislike':
+            comment_obj.comment_reactions.num_dislikes += 1
+            break
         }
+        comment_obj.comment_reactions.total_reactions += 1
         
-        traverseComments(state.Comments.comments);
+        comment_obj.user_reaction = {'reacted': true, 'reaction_type': chosen_data.reaction_type, 'id': chosen_data.id}
+    },
+
+    removeReaction(state, chosen_data){
+    const comment_obj = state.Comments.results.comments.find(comment => comment.id == chosen_data.comment_id) 
+
+    switch (chosen_data.reaction_type){
+        case 'like':
+        comment_obj.comment_reactions.num_likes -= 1
+        break
+        case 'dislike':
+        comment_obj.comment_reactions.num_dislikes -= 1
+        break
+    }
+    comment_obj.comment_reactions.total_reactions -= 1
+    comment_obj.user_reaction = {'reacted': false, 'reaction_type': ''}
+
+
+    },
+
+    changeReaction(state, chosen_data){
+    const comment_obj = state.Comments.results.comments.find(comment => comment.id == chosen_data.comment_id) 
+
+    switch(chosen_data.reaction_type){
+        case 'like':
+        comment_obj.comment_reactions.num_likes += 1
+        comment_obj.comment_reactions.num_dislikes -= 1
+        break
+        case 'dislike':
+        comment_obj.comment_reactions.num_dislikes += 1
+        comment_obj.comment_reactions.num_likes -= 1
+        break  
+    }
+    comment_obj.user_reaction.reaction_type = chosen_data.reaction_type
     },
   
-    updateCommentInStore(state, comment_data){
-        // Обходим список комментариев с помощью массива методов
-        function traverseComments(comments) {
-            for (let comment of comments) {
-                if (comment.id === comment_data.id) {
-                    // Найден комментарий, который обновляем
-                    comment.text = comment_data.text;
-                    comment.updated_datetime = comment_data.updated_datetime;
-                    comment.status = comment_data.status;
-                    return;
-                } 
-                else if (comment.replies) {
-                    // Рекурсивно ищем комментарий с нужным id в ответах
-                    traverseComments(comment.replies);
-                }
-                }
-        }
+  
+    // addCommentInStore(state, data){
+    //     state.Comments.comments.unshift(data)
+    // },
+  
+    // addCommentReplyInStore(state, newReply) {
+    // // Обходим список комментариев с помощью массива методов
+    //     function traverseComments(comments) {
+    //         for (let comment of comments) {
+    //             if (comment.id === newReply.parent) {
+    //                 // Найден комментарий, к которому добавляем новый ответ
+    //                 if (!comment.replies) {
+    //                 // Если у комментария еще нет списка ответов, создаем его
+    //                 comment.replies = [];
+    //                 }
+    //                 comment.replies.unshift(newReply);
+    //                 return;
+    //             } 
+    //             else if (comment.replies) {
+    //                 // Рекурсивно ищем комментарий с нужным id в ответах
+    //                 traverseComments(comment.replies);
+    //             }
+    //         }
+    //     }   
+    
+    //     traverseComments(state.Comments.comments);
+    // },
+   
+    // deleteCommentInStore(state, comment_data){
+    //     const commentId = comment_data.id;
+
+    //     // Обходим список комментариев с помощью массива методов
+    //     function traverseComments(comments) {
+    //         for (let i = 0; i < comments.length; i++) {
+    //             if (comments[i].id === commentId) {
+    //                 if(comments[i]?.replies?.length > 0){
+    //                 // Найденный комментарий с ответами, изменяем его статус
+    //                 comments[i].status = comment_data.status
+    //                 comments[i].text = comment_data.text
+    //                 }
+    //                 else{
+    //                 // Найденный комментарий без ответов, удаляем его из списка
+    //                 comments.splice(i, 1);
+    //                 state.Comments.num_comments -= 1
+    //                 }
+    //                 return;
+    //             } 
+    //             else if (comments[i].replies) {
+    //                 // Рекурсивно ищем комментарий с нужным id в ответах
+    //                 traverseComments(comments[i].replies);
+    //             }
+    //         }
+    //     }
         
-        traverseComments(state.Comments.comments);
-    },
+    //     traverseComments(state.Comments.comments);
+    // },
+  
+    // updateCommentInStore(state, comment_data){
+    //     // Обходим список комментариев с помощью массива методов
+    //     function traverseComments(comments) {
+    //         for (let comment of comments) {
+    //             if (comment.id === comment_data.id) {
+    //                 // Найден комментарий, который обновляем
+    //                 comment.text = comment_data.text;
+    //                 comment.updated_datetime = comment_data.updated_datetime;
+    //                 comment.status = comment_data.status;
+    //                 return;
+    //             } 
+    //             else if (comment.replies) {
+    //                 // Рекурсивно ищем комментарий с нужным id в ответах
+    //                 traverseComments(comment.replies);
+    //             }
+    //             }
+    //     }
+        
+    //     traverseComments(state.Comments.comments);
+    // },
 
     openReply(state, comment_id){
         if(state.replyIsPressed == comment_id){

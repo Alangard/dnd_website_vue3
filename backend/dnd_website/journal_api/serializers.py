@@ -87,11 +87,11 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
     def get_user_reaction(self, obj):
-        if 'request' in self.context:
-            user = self.context['request'].user.id
-            if obj.comment_reactions.filter(author=user).exists():
-                for comment in obj.comment_reactions.filter(author=user):
-                    return {'reacted': True, 'reaction_type': comment.reaction_type, 'id': comment.id}
+        request = self.context['request']
+        user = request.user.id
+        if obj.comment_reactions.filter(author=user).exists():
+            for comment in obj.comment_reactions.filter(author=user):
+                return {'reacted': True, 'reaction_type': comment.reaction_type, 'id': comment.id}
         return {'reacted': False, 'reaction_type': '', 'id': ''}
     
 

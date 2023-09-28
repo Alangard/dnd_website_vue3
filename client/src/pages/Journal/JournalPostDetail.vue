@@ -59,6 +59,7 @@
                                 variant="text"
                                 class="like mx-0" 
                                 :id="`post_${postDetail?.id}_like_btn`" 
+                                :disabled="!loggedIn"
                                 @click="pressReaction({'post_id':postDetail?.id, 'reaction_type': 'like', 'user_reaction': postDetail?.user_reaction})">
                                     <v-icon 
                                         size="24" 
@@ -75,6 +76,7 @@
                                 variant="text"
                                 class="dislike mx-0"
                                 :id="`post_${post?.id}_dislike_btn`" 
+                                :disabled="!loggedIn"
                                 @click="pressReaction({'post_id':postDetail?.id, 'reaction_type': 'dislike', 'user_reaction': postDetail?.user_reaction})">
                                     <v-icon 
                                         size="24" 
@@ -139,10 +141,11 @@ let store = useStore();
 let editor = ref()
 
 const postDetail = computed(() => store.getters['journal/getPostDetail'])
+const loggedIn = computed(() => {return store.getters['auth/loginState']})
 const post_id = ref(routes.currentRoute.value.params.post_id)
 
 onBeforeMount(async () => {
-    await store.dispatch('journal/getPostDetail', post_id.value)
+    await store.dispatch('journal/getPostDetail', {'post_id': post_id.value, 'editable': false})
 
     editor.value = new Editor({
         content: postDetail.value.body,

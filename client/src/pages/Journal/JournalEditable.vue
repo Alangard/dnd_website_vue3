@@ -463,7 +463,7 @@ onMounted(async () => {
 
     if(route_name.value=='journal_edit'){
         const post_id = routes.currentRoute.value.params.post_id
-        await store.dispatch('journal/getPostDetail', post_id)
+        await store.dispatch('journal/getPostDetail', {'post_id':post_id, 'editable': true})
 
         const postDetail = store.getters['journal/getPostDetail']
 

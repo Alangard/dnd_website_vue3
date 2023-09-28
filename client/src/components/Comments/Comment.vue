@@ -49,18 +49,18 @@
       </v-card-text>
       <v-card-actions>
         <div class="d-flex flex-row justify-space-between w-100">
-          <v-btn v-if="comment.status == 'n'" class="pb-1" variant="text" @click="replyPressed">
+          <v-btn v-if="comment.status == 'n'" class="pb-1" variant="text" :disabled="!loggedIn" @click="replyPressed">
             Reply
           </v-btn>
 
           <div class="reactions_container px-3">
             <div class="d-flex flex-row align-center">
               <v-btn
-                  :disabled="comment.status == 'd' || comment.status == 'b'"
+                  :disabled="comment.status == 'd' || comment.status == 'b' || !loggedIn"
                   class="mx-0" 
                   size="24"
                   :id="`post_${comment.post}_comment_${comment.id}_like_btn`" 
-                  @click="pressReaction({'post_id':comment.post, 'reaction_type': 'like', 'user_reaction': comment.user_reaction})">
+                  @click="pressReaction({'reaction_type': 'like', 'user_reaction': comment.user_reaction, 'comment_id': comment.id})">
                       <v-icon 
                         size="24" 
                         class="like"  
@@ -72,11 +72,11 @@
               <span class="mx-3" :class="{ 'text-info': comment.user_reaction.reacted}">{{ comment.comment_reactions.total_reactions }}</span>
 
               <v-btn
-                  :disabled="comment.status == 'd' || comment.status == 'b'"
+                  :disabled="comment.status == 'd' || comment.status == 'b' || !loggedIn"
                   class="mx-0"
                   size="24"
                   :id="`post_${comment.post}_comment_${comment.id}_dislike_btn`"
-                  @click="pressReaction({'post_id':comment.post, 'reaction_type': 'dislike', 'user_reaction': comment.user_reaction})">
+                  @click="pressReaction({'reaction_type': 'dislike', 'user_reaction': comment.user_reaction, 'comment_id': comment.id})">
                       <v-icon 
                         size="24" 
                         class="dislike" 
@@ -229,6 +229,7 @@ const emit = defineEmits(['replyIsPressed'])
 const store = useStore();
 const { width } = useDisplay();
 
+const loggedIn = computed(() => {return store.getters['auth/loginState']}) 
 const replyIsPressed = computed(() => {return store.getters['comments/getReplyIsPressed']})
 const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 
@@ -259,7 +260,15 @@ const ratingPercentage = (comment_reactions_obj) => {
 
 
 const pressReaction = (data) => {
-  
+
+  store.dispatch('comments/set_reaction', 
+        {
+            'comment_id': data.comment_id,
+            'reaction_type': data.reaction_type,
+            'id': data.user_reaction.id,
+            'user_reaction': data.user_reaction,
+        }
+  )   
 }
 
 const commentAdditionalActionManager = (action) => {

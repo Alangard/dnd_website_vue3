@@ -105,7 +105,8 @@
                                             size="24"
                                             variant="text"
                                             class="like mx-0" 
-                                            :id="`post_${post?.id}_like_btn`" 
+                                            :id="`post_${post?.id}_like_btn`"
+                                            :disabled="!loggedIn" 
                                             @click="pressReaction({'post_id':post?.id, 'reaction_type': 'like', 'user_reaction': post?.user_reaction})">
                                                 <v-icon 
                                                     size="24" 
@@ -121,7 +122,8 @@
                                             size="24"
                                             variant="text"
                                             class="dislike mx-0"
-                                            :id="`post_${post?.id}_dislike_btn`" 
+                                            :id="`post_${post?.id}_dislike_btn`"
+                                            :disabled="!loggedIn"
                                             @click="pressReaction({'post_id':post?.id, 'reaction_type': 'dislike', 'user_reaction': post?.user_reaction})">
                                                 <v-icon 
                                                     size="24" 
@@ -222,6 +224,7 @@ const websocket = new WebSocket(url)
 let filterAsideState = ref(false);
 const postsList = computed(() => {return store.getters['journal/getPosts']});
 const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
+const loggedIn = computed(() => {return store.getters['auth/loginState']})
 
 const handlePageChange = async(newPage) => {
     current_page.value = newPage

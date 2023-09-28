@@ -5,7 +5,7 @@
       <span class="text-h6 font-weight-light pl-2">({{ comments?.num_comments }})</span>
     </v-card-title>
 
-    <v-card-subtitle class="pl-0 mb-2" v-if="!loggedIn">
+    <v-card-subtitle class="pl-0 my-2" v-if="!loggedIn">
       <span class="text-info font-weight-bold" style="cursor: pointer" @click="routes.push({ name: 'login'})">Log In</span>
       to leave comments
     </v-card-subtitle>
