@@ -1,6 +1,6 @@
 
 <template>
-  <v-card class="comment_container mt-4 px-4">
+  <v-card class="comment_container mt-4 px-4" ref="comments_container">
     <v-card-title class="d-flex flex-row align-center pl-0 text-h6">Comments 
       <span class="text-h6 font-weight-light pl-2">({{ comments?.num_comments }})</span>
     </v-card-title>
@@ -10,8 +10,12 @@
       to leave comments
     </v-card-subtitle>
 
-    <v-textarea
-      v-if="loggedIn || props.allow_comments"
+    <v-card-title class="pl-0 my-2" v-if="comments?.allow_comments == false">
+      <span class="text-info font-weight-bold" style="white-space: normal;">Creating comments have been blocked by the author of the post</span>
+    </v-card-title >
+
+    <v-textarea class="new_comment_text"
+      v-if="loggedIn && comments?.allow_comments"
       variant="solo"
       label="Comment"
       clearable
@@ -36,7 +40,7 @@
             </v-menu>
 
             <v-icon v-if="width < mobileWidthLimit" class="clickable" medium @click="mobileEmoticonDrawer = !mobileEmoticonDrawer">mdi-emoticon</v-icon>
-            <v-icon class="clickable" medium @click="saveComment">mdi-send</v-icon>
+            <v-icon class="clickable" medium @click="saveNewComment">mdi-send</v-icon>
       </template>
     </v-textarea>
 
@@ -48,7 +52,8 @@
     </v-chip-group>
 
     <Comment 
-      class='comment_element' 
+      class='comment_element'
+      :class="{componentIsSticky: 'sticky'}" 
       style=" min-width: 300px;" 
       v-for="comment in comments?.comments" :key="comment.id" 
       :comment="comment" 
@@ -79,7 +84,7 @@
 
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watchEffect, defineProps } from 'vue';
+import { ref, onUnmounted, onBeforeMount, computed, defineProps } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
 import routes from '@/router/router'
@@ -110,6 +115,7 @@ const newTextComment = ref('')
 const selectedCommentOrder = ref('date')
 const mobileEmoticonDrawer = ref(false)
 
+
 const onOrderChange = async () => {
   const order_param = selectedCommentOrder.value
   const page_url_params_list = page_url.value.slice(1).split('&')
@@ -123,24 +129,27 @@ const onOrderChange = async () => {
   page_count.value = Math.ceil((await store.dispatch('comments/getCommentsList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
 };
 
-const saveComment = () => {
-  console.log(`send:${newTextComment.value}`)
-};
-
 const handlePageChange = async(newPage) => {
     current_page.value = newPage
     page_url.value = `?post_id=${props.post_id}&page=${newPage}&page_size=${page_size}` + `&${filters.value}`
     await store.dispatch('comments/getCommentsList', {'paginate_url': page_url.value, 'request_type': 'initial'})
 }
 
+const saveNewComment = async() => {
+  await store.dispatch('comments/createComment', {'post_id': props.post_id, 'text': newTextComment.value})
+  newTextComment.value = ''
+};
 
-onMounted(async() => {
+
+onBeforeMount(async() => {
   page_count.value = Math.ceil((await store.dispatch('comments/getCommentsList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
 })
 
 onUnmounted(() => {
   websocket.close()
 })
+
+
 
 
 
@@ -158,6 +167,11 @@ onUnmounted(() => {
   &:hover{
     cursor: pointer;
   }
+}
+
+.sticky {
+  position: fixed;
+  top: 0;
 }
 
 </style>

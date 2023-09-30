@@ -146,7 +146,6 @@ export const journal = {
     },
   
     async getPostDetail({commit}, data){
-      console.log('dispatch', data)
       try{
         const response = await interceptorsInstance.get(BASE_URL + `post/${data['post_id']}/?editable=${data['editable']}`, { headers: authHeader() })
         commit('setPostDetailInStore', response.data)

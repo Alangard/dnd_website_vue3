@@ -74,9 +74,18 @@ class ShortAccountSerializer(serializers.ModelSerializer):
 
 ## Comment Serializer #########################################################################
 
+class ParentCommentSerializer(serializers.ModelSerializer):
+    author = ShortAccountSerializer(read_only=True)
+
+    class Meta:  
+        model = Comment  
+        fields = ['id', 'author']
+      
+
 class CommentSerializer(serializers.ModelSerializer):
     author = ShortAccountSerializer(read_only=True)
-    user_reaction = serializers.SerializerMethodField()  
+    parent = ParentCommentSerializer(read_only=True)  
+    user_reaction = serializers.SerializerMethodField() 
     replies = serializers.SerializerMethodField() 
     comment_reactions = serializers.SerializerMethodField()
     
@@ -87,25 +96,32 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
     def get_user_reaction(self, obj):
-        request = self.context['request']
-        user = request.user.id
-        if obj.comment_reactions.filter(author=user).exists():
-            for comment in obj.comment_reactions.filter(author=user):
-                return {'reacted': True, 'reaction_type': comment.reaction_type, 'id': comment.id}
+        if 'request' in self.context:
+            request = self.context['request']
+            user = request.user.id
+            if obj.comment_reactions.filter(author=user).exists():
+                for comment in obj.comment_reactions.filter(author=user):
+                    return {'reacted': True, 'reaction_type': comment.reaction_type, 'id': comment.id}
         return {'reacted': False, 'reaction_type': '', 'id': ''}
     
 
-
     def get_replies(self, obj):
         if 'request' in self.context:
-            request = self.context['request']
             replies = Comment.objects.filter(parent=obj)
             if replies.exists():
                 data = []
                 for reply in replies:
-                    user_data = {'id': reply.parent.author.id, 'username': reply.parent.author.username, 'avatar': reply.parent.author.avatar if reply.parent.author.avatar else None}
-                    reply_data = CommentSerializer(reply, context={'request': request}).data
-                    reply_data['parent'] = user_data
+                    parent_comment = reply.parent
+                    parent_data = {
+                        'id': parent_comment.id,
+                        'author': {
+                            'id': parent_comment.author.id,
+                            'username': parent_comment.author.username,
+                            'avatar': parent_comment.author.avatar.url if parent_comment.author.avatar else None
+                        }
+                    }
+                    reply_data = CommentSerializer(reply, context=self.context).data
+                    reply_data['parent'] = parent_data
                     data.append(reply_data)
                 return data
         return None

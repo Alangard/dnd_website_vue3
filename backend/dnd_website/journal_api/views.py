@@ -401,7 +401,7 @@ class PostCommentsViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         self.serializer_class = CommentSerializer
 
-        post_id = kwargs['post_id']
+        post_id = request.data.get('post_id')
 
         try:
             post = Post.objects.all().get(id=post_id, is_draft = False, is_publish = True)
@@ -438,7 +438,7 @@ class PostCommentsViewSet(viewsets.ModelViewSet):
             except Comment.DoesNotExist:
                 return Response({"error": "Родительского комментария не существует"}, status=status.HTTP_400_BAD_REQUEST)
        
-        serializer = self.get_serializer(comment_obj)
+        serializer = self.get_serializer(comment_obj, context={'request': self.request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
@@ -457,10 +457,13 @@ class PostCommentsViewSet(viewsets.ModelViewSet):
             return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
 
         if request.user.is_staff or request.user.id == comment.author.id:
-            has_replies = comment.objects.filter(replies__id=comment_id).exists()
+            if not comment.status=='n':
+                return Response({"error": "Комментарий не может быть удалён, так как его статус 'normal'"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            has_replies = comment.replies.exists()
 
             if request.user.id == comment.author.id:
-                who_delete = request.user.username
+                who_delete = 'author'
             elif request.user.is_staff:
                 who_delete = 'staff'
 
@@ -468,10 +471,11 @@ class PostCommentsViewSet(viewsets.ModelViewSet):
                 comment.text = f'Comment was deleted by {who_delete}'
                 comment.status = 'd'
                 comment.save(update_fields=['text', 'status'])
+                return Response(data={'changed_fields': {'text': comment.text, 'status': comment.status}}, status=status.HTTP_200_OK)
             else:
                 comment.delete()
-
-            return Response(status=status.HTTP_204_NO_CONTENT)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            
         else:
             return Response({"error": "Пользователь не является создателем поста или не имеет достаточно прав"}, status=status.HTTP_403_FORBIDDEN)
 
@@ -489,13 +493,18 @@ class PostCommentsViewSet(viewsets.ModelViewSet):
         # Проверяем, авторизован ли пользователь
         if not request.user.is_authenticated:
             return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        if not 'text' in request.data:
+                return Response({"error": "Необходимо указать новый текст комментария"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        text = request.data.get('text')
 
         if request.user.id == comment.author.id:
-            serializer = self.get_serializer(comment, data=request.data, partial=True)
+            serializer = self.get_serializer(comment, data={'text': text}, partial=True)
 
             if serializer.is_valid(raise_exception=True):
                 serializer.save() 
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(data={'text': serializer.data['text'], 'updated_datetime': serializer.data['updated_datetime']}, status=status.HTTP_200_OK)
         else:
             return Response({"error": "Пользователь не является создателем поста или не имеет достаточно прав"}, status=status.HTTP_403_FORBIDDEN)
 

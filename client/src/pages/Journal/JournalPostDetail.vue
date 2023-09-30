@@ -105,7 +105,8 @@
             </v-card-actions>
         </v-card>
 
-        <Comments 
+        <Comments
+            ref="comments_container" 
             :post_id="post_id">
         </Comments>
     </div>

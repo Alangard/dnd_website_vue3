@@ -26,6 +26,7 @@
 <script setup>
 import {ref, defineAsyncComponent, onBeforeMount} from 'vue';
 import { useTheme } from 'vuetify/lib/framework.mjs';
+import routes from '@/router/router' 
 
 const Navbar = defineAsyncComponent(() => import('@/components/Navbar.vue'));
 

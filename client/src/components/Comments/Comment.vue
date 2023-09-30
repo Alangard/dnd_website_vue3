@@ -41,10 +41,11 @@
       <v-card-text class="text-subtitle-1 pt-2 pb-2">
         <div>
           <span class="user_link text-info clickable" v-if="comment?.parent" 
-            @click="routes.push({name: 'user_profile', params: { username: comment.parent.username}})">
-              {{`@${comment.parent.username}, `}}
+            @click="routes.push({name: 'user_profile', params: { username:comment?.parent?.author?.username}})">
+              {{`@${comment?.parent?.author?.username}, `}}
           </span>
-          <span>{{comment.text}}</span>
+          <span v-if="comment.status == 'n'">{{comment.text}}</span>
+          <span v-else class="text-info">*{{comment.text}}*</span>
         </div>   
       </v-card-text>
       <v-card-actions>
@@ -99,13 +100,13 @@
       </v-card-actions>
     </v-card>
 
-      <v-container class="d-flex flex-row align-center pa-0 mb-3"  v-if="commentIsEdit">
+      <v-container v-if="commentIsEdit" class="edit_comment_container d-flex flex-row align-center pa-0 mb-3"  >
         
         <v-icon class="clickable_relpy mx-2" medium @click="commentIsEdit = !commentIsEdit">mdi-cancel</v-icon>
 
         <v-textarea
           variant="solo"
-          label= "Comment"
+          :label="`Edit Reply for @${comment.author.username}`"
           clear-icon="mdi-close-circle"
           rows="2"
           hide-details
@@ -126,7 +127,7 @@
 
 
             <v-icon v-if="width < mobileWidthLimit" class="clickable_relpy" medium @click="mobileEmoticonDrawer = !mobileEmoticonDrawer">mdi-emoticon</v-icon>
-            <v-icon class="clickable_relpy" medium @click="updateCommentFunc()">mdi-send</v-icon>
+            <v-icon class="clickable_relpy" medium @click="updateComment()">mdi-send</v-icon>
           </template>
         </v-textarea>
       </v-container>
@@ -134,7 +135,7 @@
 
 
     <!-- Reply insert text -->
-    <v-container v-if="replyIsPressed == comment.id" class="d-flex flex-row align-center pa-0 mb-3">
+    <v-container v-if="replyIsPressed == comment.id" class="reply_comment_container d-flex flex-row align-center pa-0 mb-3">
       
         <v-icon class="clickable_relpy mx-2" medium @click="closeReply()">mdi-cancel</v-icon>
 
@@ -167,17 +168,17 @@
     </v-container>
 
     <!-- Show all replies -->
-    <v-expansion-panels v-if="comment?.replies?.length >= 3" class="mb-3">
+    <v-expansion-panels v-if="comment?.replies?.length >= numberOfVisibleReplies" class="mb-3">
       <v-expansion-panel elevation="0" class="pa-0">
         <v-expansion-panel-title expand-icon="mdi-plus" collapse-icon="mdi-minus">Other replies ({{ countOfReplies(comment)}})</v-expansion-panel-title>
-        <v-expansion-panel-text class="pt-2 pl-5">
+        <v-expansion-panel-text class="pt-2 pl-5 pr-0">
           <Comment v-for="reply in comment.replies" :key="reply.id" :comment="reply" :websocket="websocket"/>
         </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
     
     <!-- Replies objects -->
-    <div class="ml-5" v-if="comment?.replies?.length < 3">
+    <div class="ml-5" v-if="comment?.replies?.length < numberOfVisibleReplies ">
       <Comment v-for="reply in comment.replies" :key="reply.id" :comment="reply" :websocket="websocket"/>
     </div>
   </div>
@@ -205,7 +206,7 @@
         <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn variant="outlined" prepend-icon="mdi-cancel" @click="deleteCommentDialog = false" >Cancel</v-btn>
-            <v-btn variant="outlined" prepend-icon="mdi-delete-outline" color="error" @click="deleteCommentFunc()">Delete</v-btn>
+            <v-btn variant="outlined" prepend-icon="mdi-delete-outline" color="error" @click="deleteComment()">Delete</v-btn>
         </v-card-actions>
     </v-card>
   </v-dialog>
@@ -242,6 +243,7 @@ let commentEditText = ref(comment.value.text)
 let mobileEmoticonDrawer = ref(false)
 let mobileAdditionalActionsDrawer = ref(false)
 let deleteCommentDialog = ref(false)
+const numberOfVisibleReplies = 2
 
 
 onMounted(async() => {
@@ -295,9 +297,29 @@ const closeReply = () => {
   store.commit('comments/openReply', comment.value.id)
 }
 
-const createReply = () => {
-  console.log(`send:${newTextComment.value}`)
+const createReply = async() => {
+  const payload = {
+    text: replyTextComment.value,
+    parent: comment.value.id,
+    post_id: comment.value.post,
+  }
+  await store.dispatch('comments/createReplyComment', payload)
+  closeReply()
 };
+
+const deleteComment = () => {
+  store.dispatch('comments/deleteComment', comment.value.id)
+  deleteCommentDialog.value = false;
+}
+
+const updateComment = () => {
+  const payload = {
+    comment_id: comment.value.id,
+    new_comment_text: commentEditText.value,
+  }
+  store.dispatch('comments/partialUpdateComment', payload)
+  commentIsEdit.value = false
+}
 
 const countOfReplies = (comment) => {
   let count = 0;
@@ -313,10 +335,7 @@ const countOfReplies = (comment) => {
   return count;
 };
 
-const deleteCommentFunc = () => {
-  deleteComment(comment.value)
-  deleteCommentDialog.value = false;
-}
+
 
 const updateCommentFunc = () => {
   comment.value.text = commentEditText.value;
@@ -357,14 +376,14 @@ const deleteCommentWithReplies =(comment_data) => {
   store.dispatch('comments/deleteCommentWithReplies', {'socket': websocket.value, 'payload': payload})
 }
 
-const deleteComment =(comment_data) => {
-  const payload = {
-    id: comment_data.id,
-    post: comment_data.post,
-    author: comment_data.author
-  }
-  store.dispatch('comments/deleteComment', {'socket': websocket.value, 'payload': payload})
-}
+// const deleteComment =(comment_data) => {
+//   const payload = {
+//     id: comment_data.id,
+//     post: comment_data.post,
+//     author: comment_data.author
+//   }
+//   store.dispatch('comments/deleteComment', {'socket': websocket.value, 'payload': payload})
+// }
 
 const partialUpdateComment =(comment_data) => {
   const payload = {
@@ -410,8 +429,8 @@ const banComment =(comment_data) => {
   display: none;
 }
 
-.v-expansion-panel-text__wrapper{
-  padding: 0;
+::v-deep .v-expansion-panel-text__wrapper {
+  padding-right: 0px;
 }
 
 </style>
