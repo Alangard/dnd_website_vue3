@@ -12,6 +12,7 @@ class Account(AbstractUser):
     avatar = models.ImageField(upload_to='images/user_avatars/%Y/%m/%d/', blank=True)
     confirmation_code = models.CharField(max_length=6, null=True, blank=True)
     is_active = models.BooleanField(default=False)
+
     class Meta:
         db_table = "Account"
         verbose_name = "Account"
@@ -24,6 +25,18 @@ class Account(AbstractUser):
         from django.utils.text import slugify
         self.slug = slugify(self.username)
         super().save(*args, **kwargs)
+
+class Subscription(models.Model):
+    user = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='subscriptions')
+    subscribed_to = models.ManyToManyField(Account, related_name='subscribers', blank=True)
+
+    class Meta:
+        db_table = "Subscription"
+        verbose_name = "Subscription"
+        verbose_name_plural = "Subscription"
+
+    def __str__(self):
+        return f'{self.user}'
 
 class Post(models.Model):
     title = models.CharField(max_length=200, db_index=True)

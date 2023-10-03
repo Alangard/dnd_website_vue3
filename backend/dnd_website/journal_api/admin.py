@@ -25,8 +25,7 @@ class CustomAccountAdmin(UserAdmin):
             },
         ),
     ]
-
-
+    
 
 class PostReactionAdmin(admin.ModelAdmin):
     list_display = ['id', 'reaction_type', 'author', 'reacted_at', 'post', ]
@@ -70,6 +69,7 @@ class ReportReasonAdmin(admin.ModelAdmin):
 
 
 admin.site.register(models.Account, CustomAccountAdmin)
+admin.site.register(models.Subscription)
 admin.site.register(models.Post, PostAdmin)
 admin.site.register(models.Tag, TagAdmin)
 admin.site.register(models.Comment, CommentAdmin)

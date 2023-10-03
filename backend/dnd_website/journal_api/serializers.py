@@ -71,6 +71,24 @@ class ShortAccountSerializer(serializers.ModelSerializer):
         model = Account
         fields = ["id", "username", "avatar"]
 
+class SubscriptionListSerializer(serializers.ModelSerializer):
+    user = ShortAccountSerializer(read_only=True)
+    subscribed_to = ShortAccountSerializer(read_only=True, many=True)
+    subscribers = serializers.SerializerMethodField() 
+
+    class Meta:
+        model = Subscription
+        fields = ['id', 'user', 'subscribed_to', 'subscribers']
+        read_only_fields = ['user', 'subscribed_to', 'subscribers']
+
+    def get_subscribers(self, obj):
+        request_user = self.context['request'].user.id
+        subscriptions = Subscription.objects.filter(subscribed_to=request_user)
+        subscribers = [subscription.user for subscription in subscriptions]
+        serializer = ShortAccountSerializer(subscribers, many=True)
+        return serializer.data
+
+
 
 ## Comment Serializer #########################################################################
 

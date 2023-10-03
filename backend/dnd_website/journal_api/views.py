@@ -53,6 +53,8 @@ from django.utils.dateparse import parse_datetime
 
 from PIL import Image
 
+from rest_framework.decorators import action
+
 
 
 
@@ -70,6 +72,79 @@ class CommentsListPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 1000
+
+
+class SubscriptionViewSet(viewsets.ModelViewSet):
+    queryset = Subscription.objects.all()
+    
+    @action(detail=True, methods=['post'])
+    def change_subscription(self, request, pk=None):
+        self.serializer_class = SubscriptionListSerializer
+
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        subscribe_to_user_id = request.data.get('user_id')
+ 
+        try:
+            subscription = self.queryset.get(user=request.user)
+        except Subscription.DoesNotExist:
+            subscription = Subscription.objects.create(user=request.user)
+        
+        subscribe_to_user = Account.objects.get(pk=subscribe_to_user_id)
+        
+        if subscription.subscribed_to.filter(pk=subscribe_to_user_id).exists():
+            if self.queryset.filter(subscribed_to=subscribe_to_user_id).count() == 1:
+                instance = self.queryset.filter(user=request.user.id)
+                instance.delete()
+            else: subscription.subscribed_to.remove(subscribe_to_user)
+        else:
+            subscription.subscribed_to.add(subscribe_to_user)
+        
+        return Response(status=status.HTTP_204_NO_CONTENT)
+        
+        # subscribe_to_user_id = request.data.get('user_id')
+
+        # if not self.queryset.filter(user=request.user.id).exists():               
+        #     serializer = self.get_serializer(data={'user': request.user.id})
+        #     if serializer.is_valid(raise_exception=True):
+        #         subscription = serializer.save()
+
+        # if not self.queryset.filter(subscribed_to=subscribe_to_user_id).exists():
+        #         ## Добавляем в подписки
+        #         instance = self.queryset.filter(user=request.user.id)
+        #         subscribe_to_user = Account.objects.get(pk=subscribe_to_user_id)
+        #         instance.subscribed_to.add(subscribe_to_user)
+        #         return Response(status=status.HTTP_201_CREATED)
+        # else:
+        #     if self.queryset.filter(subscribed_to=subscribe_to_user_id).count() == 1:
+        #         instance = self.queryset.filter(user=request.user.id)
+        #         instance.delete()
+        #     else:
+        #         ## Убираем из подписок
+        #         instance = self.queryset.filter(user=request.user.id)
+        #         subscribe_to_user = Account.objects.get(pk=subscribe_to_user_id)
+        #         instance.subscribed_to.remove(subscribe_to_user)
+            
+        #     return Response(status=status.HTTP_204_NO_CONTENT)
+        
+
+        
+
+
+
+
+        
+    def list(self, request, *args, **kwargs):
+        self.serializer_class = SubscriptionListSerializer
+
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        instance = self.queryset.get(user=request.user.id)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().select_related('author').prefetch_related('tags', 'post_reactions', 'comments')
@@ -273,8 +348,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 serializer = self.get_serializer(page, many=True)
                 return self.get_paginated_response(serializer.data)
                 # return Response(status=status.HTTP_401_UNAUTHORIZED)
-        
-        
+           
 class PostReactionViewSet(viewsets.ModelViewSet):
     queryset = PostReaction.objects.all()
     filter_backends = [DjangoFilters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -578,7 +652,6 @@ class PostCommentsViewSet(viewsets.ModelViewSet):
             
         serializer = self.get_serializer(comment)
         return Response(serializer.data)
-  
 
 class CommentReactionViewSet(viewsets.ModelViewSet):
     queryset = CommentReaction.objects.all()
