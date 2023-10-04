@@ -10,6 +10,8 @@
 
 
 
+    <v-btn class="mb-2" @click="test(29)">29</v-btn>
+    <v-btn @click="test(28)">28</v-btn>
 
     <v-container class="d-flex flex-row justify-center">
         <FilterAside class="aside_filter desktop"
@@ -305,9 +307,13 @@ const pressReaction = (data) =>{
     )   
 }
 
+const test = async (id) => {
+    // await store.dispatch('accounts/getSubscriptions')
+    // await store.dispatch('accounts/changeSubscription', id)
+}
+
 onMounted(async () => {
     page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
-    
     websocket.onmessage = function(e){
         let data = JSON.parse(e.data)
         if(data.action == 'create_post'){new_posts_count.value += 1}

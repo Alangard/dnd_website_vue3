@@ -76,65 +76,46 @@ class CommentsListPagination(PageNumberPagination):
 
 class SubscriptionViewSet(viewsets.ModelViewSet):
     queryset = Subscription.objects.all()
-    
-    @action(detail=True, methods=['post'])
+
+    @action(detail=False, methods=['post'])  
     def change_subscription(self, request, pk=None):
-        self.serializer_class = SubscriptionListSerializer
 
-        if not request.user.is_authenticated:
-            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
-        
-        subscribe_to_user_id = request.data.get('user_id')
- 
-        try:
-            subscription = self.queryset.get(user=request.user)
-        except Subscription.DoesNotExist:
-            subscription = Subscription.objects.create(user=request.user)
-        
-        subscribe_to_user = Account.objects.get(pk=subscribe_to_user_id)
-        
-        if subscription.subscribed_to.filter(pk=subscribe_to_user_id).exists():
-            if self.queryset.filter(subscribed_to=subscribe_to_user_id).count() == 1:
-                instance = self.queryset.filter(user=request.user.id)
-                instance.delete()
-            else: subscription.subscribed_to.remove(subscribe_to_user)
-        else:
-            subscription.subscribed_to.add(subscribe_to_user)
-        
-        return Response(status=status.HTTP_204_NO_CONTENT)
-        
-        # subscribe_to_user_id = request.data.get('user_id')
+        if not request.user.is_authenticated: 
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED) 
 
-        # if not self.queryset.filter(user=request.user.id).exists():               
-        #     serializer = self.get_serializer(data={'user': request.user.id})
-        #     if serializer.is_valid(raise_exception=True):
-        #         subscription = serializer.save()
+        user_id = request.data.get('user_id')
+        user = request.user
+        subscription = Subscription.objects.filter(user=user).first()
+        
+        # Если экземпляра Subscription пользователя нет, создаем его
+        if not subscription:
+            subscription = Subscription(user=user)
+            subscription.save()
 
-        # if not self.queryset.filter(subscribed_to=subscribe_to_user_id).exists():
-        #         ## Добавляем в подписки
-        #         instance = self.queryset.filter(user=request.user.id)
-        #         subscribe_to_user = Account.objects.get(pk=subscribe_to_user_id)
-        #         instance.subscribed_to.add(subscribe_to_user)
-        #         return Response(status=status.HTTP_201_CREATED)
-        # else:
-        #     if self.queryset.filter(subscribed_to=subscribe_to_user_id).count() == 1:
-        #         instance = self.queryset.filter(user=request.user.id)
-        #         instance.delete()
-        #     else:
-        #         ## Убираем из подписок
-        #         instance = self.queryset.filter(user=request.user.id)
-        #         subscribe_to_user = Account.objects.get(pk=subscribe_to_user_id)
-        #         instance.subscribed_to.remove(subscribe_to_user)
+        try: 
+            user_to_subscribe = Account.objects.get(pk=user_id)
+            subscription_to = Subscription.objects.filter(user=user_to_subscribe).first()
             
-        #     return Response(status=status.HTTP_204_NO_CONTENT)
-        
+            # Если экземпляра Subscription цели-пользователя нет, создаем его
+            if not subscription_to:
+                subscription_to = Subscription(user=user_to_subscribe)
+                subscription_to.save() 
 
-        
+        except Account.DoesNotExist: 
+            return Response({"error": "Пользователя-цели подписки не существует"}, status=status.HTTP_404_NOT_FOUND)
 
+        # Если передан user_id, добавляем или удаляем пользователя из подписок
+        if user_id:      
+            user_to_subscribe = Account.objects.get(pk=user_id)
+            
+            # Если пользователь уже есть в подписках, удаляем его
+            if user_to_subscribe in subscription.subscribed_to.all():
+                subscription.subscribed_to.remove(user_to_subscribe)
+                return Response({'success': f'Вы успешно отписались от пользователя {user_to_subscribe.username}#{user_to_subscribe.id}'})
+            else:
+                subscription.subscribed_to.add(user_to_subscribe)
+                return Response({'success': f'Вы успешно подписались на пользователя {user_to_subscribe.username}#{user_to_subscribe.id}'})
 
-
-
-        
     def list(self, request, *args, **kwargs):
         self.serializer_class = SubscriptionListSerializer
 
@@ -758,10 +739,19 @@ def SendConfirmationCode(email):
     except ObjectDoesNotExist:
         return HttpResponseNotFound(json.dumps({'status': 'error', 'message': 'User with this email address was not found'}), content_type="application/json")
 
-class UserListView(APIView):
-    def get(self, request):
-        queryset = Account.objects.all()
-        serializer = ShortAccountSerializer(queryset, many=True)
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = Account.objects.all()
+    serializer_class = ShortAccountSerializer
+
+    def retrieve(self, request, *args, **kwargs):        
+        user_id = kwargs.get('pk')
+        
+        instance = self.queryset.get(pk=user_id)
+        serializer = self.serializer_class(instance)
+        return Response(serializer.data)
+        
+    def list(self, request, *args, **kwargs):        
+        serializer = self.serializer_class(self.queryset, many=True)
         return Response(serializer.data)
 
 class SendConfirmationCodeView(APIView):

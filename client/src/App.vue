@@ -26,11 +26,13 @@
 <script setup>
 import {ref, defineAsyncComponent, onBeforeMount} from 'vue';
 import { useTheme } from 'vuetify/lib/framework.mjs';
+import { useStore } from 'vuex';
 import routes from '@/router/router' 
 
 const Navbar = defineAsyncComponent(() => import('@/components/Navbar.vue'));
 
 let theme = useTheme();
+const store = useStore();
 
 let showAuthDialog = ref(false);
 let darkTheme = ref(false);
@@ -52,6 +54,8 @@ const LocalStorageThemeManager = () => {
 
 onBeforeMount(() => {
   LocalStorageThemeManager();
+  const user_data = store.getters['auth/getUserData']
+  store.dispatch('auth/getMyData', user_data?.id)
 })
 
 

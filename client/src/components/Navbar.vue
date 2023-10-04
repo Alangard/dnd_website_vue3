@@ -56,7 +56,7 @@
                     <v-list-item value="0" active-color="primary">
                         <template v-slot:prepend>
                             <v-avatar class="avatar mr-2" style="cursor:pointer" >
-                                <v-img v-if="currUserData?.avatar" :src="currUserData?.avatar" :alt="currUserData?.username"></v-img>
+                                <v-img v-if="currUserData?.avatar !== ''" :src="currUserData?.avatar" :alt="currUserData?.username"></v-img>
                                 <v-icon icon="mdi-account-circle" size='x-large' v-else></v-icon>
                             </v-avatar>
                         </template>

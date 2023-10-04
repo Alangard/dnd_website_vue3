@@ -92,12 +92,13 @@ export const auth = {
       catch(error){console.log(error)}
     },
 
-    async getUsersList({commit},){
+    async getMyData({commit}, user_id){
       try{
-        const response = await interceptorsInstance.get(BASE_URL + 'users/')
-        commit('setUsersListInStore', response.data)
+        const response = await interceptorsInstance.get(BASE_URL + `user/${user_id}/`)
+        console.log(response.data)
+        commit('setUserData', response.data)
         return response.data
-      }  
+      } 
       catch(error){console.log(error)}
     }
   },
@@ -112,14 +113,17 @@ export const auth = {
     },
     
     setAccessToken(state, access_token){
-      console.log(access_token)
       state.user.access = access_token
       const user = state?.user
       localStorage.setItem('user', JSON.stringify(user))
     },
 
-    setUsersListInStore(state, data){
-      state.usersList = data;
+    setUserData(state, user_data){
+      state.user.user_data = user_data
+      let user = JSON.parse(localStorage.getItem('user'))
+      user['user_data'] = user_data
+
+      localStorage.setItem('user', JSON.stringify(user))
     }
   },
   getters: {
@@ -154,9 +158,5 @@ export const auth = {
       }
       return null 
     },
-
-    getUsersList(state){
-      return state.usersList
-    }
   }
 };

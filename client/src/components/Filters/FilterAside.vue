@@ -219,7 +219,7 @@ const props = defineProps(['isOpenAside', 'type'])
 const emit = defineEmits(['setFilter', 'filterToolbarIsOpen'])
 
 const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
-const userList = computed(() => store.getters['auth/getUsersList'])
+const userList = computed(() => store.getters['accounts/getUsersList'])
 const tagList = computed(() => store.getters['journal/getTagsList'])
 
 const usernameList = computed(() => userList?.value?.map(user => user.username));
@@ -263,7 +263,7 @@ const format = (dates) => {
 }
 
 onBeforeMount(async () => {
-        await store.dispatch('auth/getUsersList')
+        await store.dispatch('accounts/getUsersList')
         await store.dispatch('journal/getTagsList')  
 })
 

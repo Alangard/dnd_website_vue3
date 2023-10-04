@@ -27,8 +27,8 @@ class Account(AbstractUser):
         super().save(*args, **kwargs)
 
 class Subscription(models.Model):
-    user = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='subscriptions')
-    subscribed_to = models.ManyToManyField(Account, related_name='subscribers', blank=True)
+    user = models.ForeignKey('Account', on_delete=models.CASCADE, related_name='subscriptions')
+    subscribed_to = models.ManyToManyField('Account', related_name='subscribers', blank=True)
 
     class Meta:
         db_table = "Subscription"

@@ -7,7 +7,7 @@ import store from '@/store';
 export default {
   items: async ({ query }) => {
 
-    let response = await store.dispatch('auth/getUsersList')
+    let response = await store.dispatch('accounts/getUsersList')
     return response.filter((item) => item.username && item.username.toLowerCase().startsWith(query.toLowerCase())).slice(0, 5).map((item) => item.username);
   },
 
