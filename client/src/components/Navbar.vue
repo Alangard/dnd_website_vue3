@@ -47,7 +47,7 @@
                         rounded="0" 
                         variant="text"  
                         v-bind="props" 
-                        v-if="loggedIn" >
+                        v-if="loggedIn == true" >
                     </v-btn>
                 </template>
 

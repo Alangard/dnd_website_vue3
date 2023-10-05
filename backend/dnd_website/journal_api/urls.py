@@ -9,6 +9,7 @@ router = routers.DefaultRouter()
 router.register(r'auth/user', UserViewSet, basename='users')
 router.register(r'subs', SubscriptionViewSet, basename='subscription')
 router.register(r'post', PostViewSet, basename='post')
+router.register(r'post_feed', PostFeedViewSet, basename='post_feed')
 router.register(r'post_reactions', PostReactionViewSet, basename='post_reactions')
 router.register(r'post_comments', PostCommentsViewSet, basename='post_comments')
 router.register(r'comment_reactions', CommentReactionViewSet, basename='comment_reactions')
@@ -19,11 +20,11 @@ urlpatterns = [
     path('', include(router.urls)),
 
     # path('auth/users/', UserListView.as_view(), name='user_list'),
-    # path('auth/user/register/', UserRegisterView.as_view(), name='user_register'),
-    # path('auth/user/activation/', UserActivateView.as_view(), name='user_activate'),
-    # path('auth/user/reset_password/', ResetPassword.as_view(), name='reset_password'),
-    # path('auth/user/reset_password_confirm/', ResetPasswordConfirm.as_view(), name='reset_password_confrim'),
-    # path('auth/user/send_confirmation_code/', SendConfirmationCodeView.as_view(), name='send_confirmation_code'),
+    path('auth/user/register/', UserRegisterView.as_view(), name='user_register'),
+    path('auth/user/activation/', UserActivateView.as_view(), name='user_activate'),
+    path('auth/user/reset_password/', ResetPassword.as_view(), name='reset_password'),
+    path('auth/user/reset_password_confirm/', ResetPasswordConfirm.as_view(), name='reset_password_confrim'),
+    path('auth/user/send_confirmation_code/', SendConfirmationCodeView.as_view(), name='send_confirmation_code'),
 
     path('auth/jwt/create/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/jwt/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

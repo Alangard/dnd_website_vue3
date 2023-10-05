@@ -126,7 +126,6 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().select_related('author').prefetch_related('tags', 'post_reactions', 'comments')
 
@@ -316,20 +315,69 @@ class PostViewSet(viewsets.ModelViewSet):
                     instance = instance.filter(Q(title__icontains=params[param]) | Q(description__icontains=params[param]))
 
             return instance
-
         instance = self.queryset.filter(is_publish=True, is_draft=False)
         instance = myfilters(instance)
 
         page = self.paginate_queryset(instance)
         if page is not None: 
-            if request.user.is_authenticated: 
-                serializer = self.get_serializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
-            else:
-                serializer = self.get_serializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
-                # return Response(status=status.HTTP_401_UNAUTHORIZED)
-           
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+            # return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+class PostFeedViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all().select_related('author').prefetch_related('tags', 'post_reactions', 'comments')
+
+    def list(self, request, *args, **kwargs):
+        self.serializer_class = PostListReadSerializer
+        self.ordering = ['-created_datetime']
+        self.pagination_class = PostListPagination
+
+        def myfilters(queryset):
+            instance = queryset
+            params = request.query_params
+
+            for param in params:
+
+                if param == 'start_date' and params[param] != None:
+                    start_date_obj = datetime.strptime(params[param], '%d/%m/%Y')
+                    instance = instance.filter(created_datetime__gte=start_date_obj)
+
+                if param == 'end_date' and params[param] != None:
+                    end_date_obj = datetime.strptime(params[param], '%d/%m/%Y')
+                    instance = instance.filter(created_datetime__lte = end_date_obj)
+
+                if param == 'tags' and params[param] != None:
+                    tags_list = params[param].split(',')
+                    for tag in tags_list:
+                        instance = instance.filter(tags__name=tag)
+
+                if param == 'username' and params[param] != None:
+                    username_list = params[param].split(',')
+                    for username in username_list:
+                        instance = instance.filter(author__username__exact=username)
+
+                if param == 'ordering' and params[param] != None:
+                    instance = instance.order_by(params[param])
+
+                if param == 'search' and params[param] != None:
+                    instance = instance.filter(Q(title__icontains=params[param]) | Q(description__icontains=params[param]))
+            return instance
+        
+                # Проверяем, авторизован ли пользователь
+        
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+    
+        subscriptions = Subscription.objects.filter(user=request.user).values_list('subscribed_to', flat=True)
+
+        instance = self.queryset.filter(is_publish=True, is_draft=False, author__in=subscriptions)
+        instance = myfilters(instance)
+
+        page = self.paginate_queryset(instance)
+        if page is not None: 
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
 class PostReactionViewSet(viewsets.ModelViewSet):
     queryset = PostReaction.objects.all()
     filter_backends = [DjangoFilters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]

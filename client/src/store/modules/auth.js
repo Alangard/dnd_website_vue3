@@ -119,6 +119,7 @@ export const auth = {
     },
 
     setUserData(state, user_data){
+      user_data['avatar'] = axios.defaults.baseURL.split('/api/v1/')[0] + user_data['avatar'] 
       state.user.user_data = user_data
       let user = JSON.parse(localStorage.getItem('user'))
       user['user_data'] = user_data

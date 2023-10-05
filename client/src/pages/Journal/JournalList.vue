@@ -44,126 +44,132 @@
 
             <div class="d-flex flex-column align-center h-auto" ref="scrollComponent">
                 <v-card class="main-container elevation-8 w-100" v-for="post in postsList" :key="post">
-                            <div class="user_data d-flex flex-row align-center justify-start mb-1" style="width:max-content">
+                    <div class="user_data d-flex flex-row align-center justify-space-between mb-1 w-100" >
+                        <div class="d-flex flex-row align-center justify-start">
+                            <v-avatar class="clickable transformable avatar" size="x-small"
+                                @click="routes.push({name: 'user_profile', params: { username: post.author.username }})">
+                                <v-img v-if="post.author.avatar"
+                                    :src="post.author.avatar"
+                                    :alt="post.author.username">
+                                </v-img>
+                                <v-icon icon="mdi-account-circle" v-else></v-icon>
+                            </v-avatar>
 
-                                <v-avatar class="clickable transformable avatar" size="x-small"
-                                    @click="routes.push({name: 'user_profile', params: { username: post.author.username }})">
-                                    <v-img v-if="post.author.avatar"
-                                        :src="post.author.avatar"
-                                        :alt="post.author.username">
-                                    </v-img>
-                                    <v-icon icon="mdi-account-circle" v-else></v-icon>
-                                </v-avatar>
+                            <span class="username clickable transformable px-1 text-caption text-capitalize font-weight-regular"
+                                @click="routes.push({name: 'user_profile', params: { username: post.author.username }})">
+                                {{post.author.username}}
+                            </span> 
 
-                                <span class="username clickable transformable px-1 text-caption text-capitalize font-weight-regular"
-                                    @click="routes.push({name: 'user_profile', params: { username: post.author.username }})">
-                                    {{post.author.username}}
-                                </span> 
+                            <span class="pr-1">•</span>
+                            <span class="post_date clickable text-caption font-weight-regular">
+                                Posted {{DateTimeFormat(post.created_datetime)}}
+                            </span>
+                        </div>
 
-                                <span class="pr-1">•</span>
-                                <span class="post_date clickable text-caption font-weight-regular">
-                                    Posted {{DateTimeFormat(post.created_datetime)}}
-                                </span>
-                            </div>
+                        <v-tooltip location="bottom" v-if="post.author.id != userData.id && width >= mobileWidthLimit">
+                            <template v-slot:activator="{ props }">
+                                <v-btn icon v-bind="props" variant="text" density="compact" @click="changeSubscribeState">
+                                    <v-icon>{{ isSubscribe ? 'mdi-bell-check-outline':'mdi-bell-ring-outline' }}</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>{{isSubscribe ? 'Unsubscribe': 'Subscribe'}}</span>
+                        </v-tooltip>
+                        
+                    </div>
 
-                            <div class="title clickable font-weight-bold text-justify text-subtitle-1 mb-2"
-                                @click="routes.push({name: 'journal_detail', params: { post_id: post.id }})">
-                                {{post.title}}
-                            </div>
+                    <div class="title clickable font-weight-bold text-justify text-subtitle-1 mb-2"
+                        @click="routes.push({name: 'journal_detail', params: { post_id: post.id }})">
+                        {{post.title}}
+                    </div>
 
-                            <v-img class='thumbnail clickable mw-100 rounded mb-2'
-                                @click="routes.push({name: 'journal_detail', params: { post_id: post.id }})"
-                                v-if="post.thumbnail"
-                                :src="post.thumbnail"
-                                alt="post_img"
-                                aspect-ratio="16/9"
-                                cover>
-                            </v-img>
-                                                
-                            <div class="description clickable text-justify text-subtitle-1 mb-2 "
-                                @click="routes.push({name: 'journal_detail', params: { post_id: post.id }})">
-                                {{post.description}}
-                            </div>
+                    <v-img class='thumbnail clickable mw-100 rounded mb-2'
+                        @click="routes.push({name: 'journal_detail', params: { post_id: post.id }})"
+                        v-if="post.thumbnail"
+                        :src="post.thumbnail"
+                        alt="post_img"
+                        aspect-ratio="16/9"
+                        cover>
+                    </v-img>
+                                        
+                    <div class="description clickable text-justify text-subtitle-1 mb-2 "
+                        @click="routes.push({name: 'journal_detail', params: { post_id: post.id }})">
+                        {{post.description}}
+                    </div>
 
-                            <div class="tags_container d-flex f-row flex-wrap mb-2" v-if="post.tags.length">
-                                <v-chip
-                                    class="tag_element clickable transformable rounded mr-2 mb-2" size="small"
-                                    v-for="tag in post.tags"
-                                    @click="handleFilterChange([`tags=${tag.slug}`])">
-                                    #{{ tag.name }}
-                                </v-chip>
-                            </div>
+                    <div class="tags_container d-flex f-row flex-wrap mb-2" v-if="post.tags.length">
+                        <v-chip
+                            class="tag_element clickable transformable rounded mr-2 mb-2" size="small"
+                            v-for="tag in post.tags"
+                            @click="handleFilterChange([`tags=${tag.slug}`])">
+                            #{{ tag.name }}
+                        </v-chip>
+                    </div>
 
-                            <v-divider></v-divider>
+                    <v-divider></v-divider>
 
+                    <div class="d-flex flex-row justify-space-between pt-2 w-100">
 
-
-                            <div class="d-flex flex-row justify-space-between pt-2 w-100">
-
-                                <div class="reactions_container">
-                    
-                                    <div class="d-flex flex-row align-center">
-                                        <v-btn
-                                            size="24"
-                                            variant="text"
-                                            class="like mx-0" 
-                                            :id="`post_${post?.id}_like_btn`"
-                                            :disabled="!loggedIn" 
-                                            @click="pressReaction({'post_id':post?.id, 'reaction_type': 'like', 'user_reaction': post?.user_reaction})">
-                                                <v-icon 
-                                                    size="24" 
-                                                    class="like"  
-                                                    :class="{ 'text-info': post.user_reaction.reaction_type == 'like'}">
-                                                    mdi-arrow-up-bold-circle-outline
-                                                </v-icon>
-                                        </v-btn>
-
-                                        <span class="mx-3" :class="{ 'text-info': post?.user_reaction.reacted}">{{ post?.post_reactions.total_reactions }}</span>
-
-                                        <v-btn
-                                            size="24"
-                                            variant="text"
-                                            class="dislike mx-0"
-                                            :id="`post_${post?.id}_dislike_btn`"
-                                            :disabled="!loggedIn"
-                                            @click="pressReaction({'post_id':post?.id, 'reaction_type': 'dislike', 'user_reaction': post?.user_reaction})">
-                                                <v-icon 
-                                                    size="24" 
-                                                    class="dislike" 
-                                                    :class="{ 'text-info': post?.user_reaction.reaction_type == 'dislike' }">
-                                                    mdi-arrow-down-bold-circle-outline
-                                                </v-icon>
-                                        </v-btn>
-                                    </div>
-                                
-                                    <v-progress-linear
-                                        class="mt-1"
-                                        :model-value="ratingPercentage(post.post_reactions)"
-                                        color="green"
-                                        bg-color="red"
-                                        bg-opacity="1"
-                                    ></v-progress-linear>
-                                </div>
-
-                                <div class="d-flex flex-row align-center">
-
-                                        <v-btn class="btn clickable transformable mr-2 px-0" @click="share">
-                                            <v-icon size='large' icon="mdi-share-variant-outline"></v-icon>         
-                                        </v-btn>
+                        <div class="reactions_container">
             
-                                        <v-btn class='btn clickable transformable' 
-                                            rounded="lg" 
-                                            :class="{'text-info': post.commented}"
-                                            @click="routes.push({name: 'journal_detail', params: { id: post.id }})">
-                                                <v-icon class="pr-2" icon="mdi-comment-text-outline"></v-icon>
-                                            {{post.num_comments}}
-                                        </v-btn>
+                            <div class="d-flex flex-row align-center">
+                                <v-btn
+                                    size="24"
+                                    variant="text"
+                                    class="like mx-0" 
+                                    :id="`post_${post?.id}_like_btn`"
+                                    :disabled="!loggedIn" 
+                                    @click="pressReaction({'post_id':post?.id, 'reaction_type': 'like', 'user_reaction': post?.user_reaction})">
+                                        <v-icon 
+                                            size="24" 
+                                            class="like"  
+                                            :class="{ 'text-info': post.user_reaction.reaction_type == 'like'}">
+                                            mdi-arrow-up-bold-circle-outline
+                                        </v-icon>
+                                </v-btn>
 
-                                </div>
+                                <span class="mx-3" :class="{ 'text-info': post?.user_reaction.reacted}">{{ post?.post_reactions.total_reactions }}</span>
+
+                                <v-btn
+                                    size="24"
+                                    variant="text"
+                                    class="dislike mx-0"
+                                    :id="`post_${post?.id}_dislike_btn`"
+                                    :disabled="!loggedIn"
+                                    @click="pressReaction({'post_id':post?.id, 'reaction_type': 'dislike', 'user_reaction': post?.user_reaction})">
+                                        <v-icon 
+                                            size="24" 
+                                            class="dislike" 
+                                            :class="{ 'text-info': post?.user_reaction.reaction_type == 'dislike' }">
+                                            mdi-arrow-down-bold-circle-outline
+                                        </v-icon>
+                                </v-btn>
                             </div>
+                        
+                            <v-progress-linear
+                                class="mt-1"
+                                :model-value="ratingPercentage(post.post_reactions)"
+                                color="green"
+                                bg-color="red"
+                                bg-opacity="1"
+                            ></v-progress-linear>
+                        </div>
 
+                        <div class="d-flex flex-row align-center">
 
-                    
+                                <v-btn class="btn clickable transformable mr-2 px-0" @click="share">
+                                    <v-icon size='large' icon="mdi-share-variant-outline"></v-icon>         
+                                </v-btn>
+    
+                                <v-btn class='btn clickable transformable' 
+                                    rounded="lg" 
+                                    :class="{'text-info': post.commented}"
+                                    @click="routes.push({name: 'journal_detail', params: { id: post.id }})">
+                                        <v-icon class="pr-2" icon="mdi-comment-text-outline"></v-icon>
+                                    {{post.num_comments}}
+                                </v-btn>
+
+                        </div>
+                    </div>
                 </v-card >
             </div>
 
@@ -210,6 +216,12 @@ const FilterAside = defineAsyncComponent(() => import('@/components/Filters/Filt
 const store = useStore();
 const { width } = useDisplay();
 
+const isSubscribe = ref(false);
+const changeSubscribeState =() =>{
+    isSubscribe.value = !isSubscribe.value
+    console.log(isSubscribe.value)
+}
+
 const current_page = ref(1)
 const page_count = ref(1)
 const page_size = 15
@@ -227,6 +239,7 @@ let filterAsideState = ref(false);
 const postsList = computed(() => {return store.getters['journal/getPosts']});
 const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 const loggedIn = computed(() => {return store.getters['auth/loginState']})
+const userData = computed(() => {return store.getters['auth/getUserData']})
 
 const handlePageChange = async(newPage) => {
     current_page.value = newPage
@@ -314,6 +327,13 @@ const test = async (id) => {
 
 onMounted(async () => {
     page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
+    const subscriptions = await store.dispatch('accounts/getSubscriptions')
+    // const searchValue = 'Jane';
+
+    //     const foundDict = array.find(dict => dict.name === searchValue);
+
+    //     console.log(foundDict);
+    
     websocket.onmessage = function(e){
         let data = JSON.parse(e.data)
         if(data.action == 'create_post'){new_posts_count.value += 1}

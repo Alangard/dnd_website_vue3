@@ -4,6 +4,8 @@ from django.contrib.auth.password_validation import validate_password
 from django.shortcuts import get_object_or_404
 from django.contrib.sites.shortcuts import get_current_site
 
+from rest_framework.serializers import HyperlinkedModelSerializer
+
 from .models import *
 
 from django.db.models import Count, Q, Sum
@@ -67,6 +69,7 @@ class ResetPasswordConfirmSerializer(serializers.ModelSerializer):
         fields = ['confirmation_code', 'new_password']
         
 class ShortAccountSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Account
         fields = ["id", "username", "avatar"]
