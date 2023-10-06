@@ -2,27 +2,41 @@
     <div class="main_wrapper">
 
         <v-card class="post_detail_wrapper">
-            <div class="my-2 mx-4 d-flex flex-row justify-start ">
-                <div class="author_container mr-2 d-flex flex-row align-center clickable" 
-                    @click="routes.push({name: 'user_profile', params: { username: postDetail?.author?.username }})">
-                    <v-avatar class="avatar mr-1">
-                        <v-img v-if="postDetail?.author?.avatar != null"
-                            :src="postDetail?.author?.avatar"
-                            :alt="postDetail?.author?.username"
-                            cover>
-                        </v-img>
-                        <v-icon v-if="postDetail?.author?.avatar == null" icon="mdi-account-circle" size="40"></v-icon>
-                    </v-avatar> 
-                    
-                    <span class="username px-1 text-capitalize font-weight-bold text-body-1">
-                        {{postDetail?.author?.username}}
-                    </span> 
+            
+            <div class="user_data my-2 mx-4 d-flex flex-row align-center justify-space-between">
+                <div class="d-flex flex-row align-center justify-start">
+                    <div class="author_container mr-2 d-flex flex-row align-center clickable" 
+                        @click="routes.push({name: 'user_profile', params: { username: postDetail?.author?.username }})">
+                        <v-avatar class="avatar mr-1">
+                            <v-img v-if="postDetail?.author?.avatar != null"
+                                :src="postDetail?.author?.avatar"
+                                :alt="postDetail?.author?.username"
+                                cover>
+                            </v-img>
+                            <v-icon v-if="postDetail?.author?.avatar == null" icon="mdi-account-circle" size="40"></v-icon>
+                        </v-avatar> 
+                        
+                        <span class="username px-1 text-capitalize font-weight-bold text-body-1">
+                            {{postDetail?.author?.username}}
+                        </span> 
+                    </div>
+
+                    <span class="post_date d-flex flex-row align-center font-weight-regular font-weight-regular text-body-1">
+                        Posted {{DateTimeFormat(postDetail?.created_datetime)}}
+                    </span>
+                
                 </div>
 
-                <span class="post_date d-flex flex-row align-center font-weight-regular font-weight-regular text-body-1">
-                    Posted {{DateTimeFormat(postDetail?.created_datetime)}}
-                </span>
+                <v-tooltip location="bottom" v-if="postDetail?.author?.id != userData?.id">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" variant="text" density="compact" @click="changeSubscribeState(postDetail?.author?.id)">
+                            <v-icon>{{ isSubscribedTo(postDetail?.author?.id) != -1 ? 'mdi-bell-check-outline':'mdi-bell-ring-outline' }}</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>{{isSubscribedTo(postDetail?.author?.id) != -1 ? 'You are subscribed': 'You are unsubscribed'}}</span>
+                </v-tooltip>
             </div>
+            
 
             <v-img
                 class="bg-white"
@@ -141,12 +155,20 @@ const Comments = defineAsyncComponent(() => import('@/components/Comments/Commen
 let store = useStore();
 let editor = ref()
 
-const postDetail = computed(() => store.getters['journal/getPostDetail'])
-const loggedIn = computed(() => {return store.getters['auth/loginState']})
 const post_id = ref(routes.currentRoute.value.params.post_id)
+const postDetail = computed(() => store.getters['journal/getPostDetail'])
+
+
+const loggedIn = computed(() => {return store.getters['auth/loginState']})
+const subscriptions = computed(() => {return store.getters['accounts/getSubscriptions']})
+const userData = computed(() => {return store.getters['auth/getUserData']})
+
+const changeSubscribeState =(user_id) =>{store.dispatch('accounts/changeSubscription', user_id)}
+const isSubscribedTo = (user_id) => {return subscriptions?.value?.subscribed_to.findIndex(user => user.id === user_id)};
 
 onBeforeMount(async () => {
     await store.dispatch('journal/getPostDetail', {'post_id': post_id.value, 'editable': false})
+    await store.dispatch('accounts/getSubscriptions', userData.value.id)
 
     editor.value = new Editor({
         content: postDetail.value.body,

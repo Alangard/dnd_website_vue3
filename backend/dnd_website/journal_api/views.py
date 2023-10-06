@@ -111,19 +111,22 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
             # Если пользователь уже есть в подписках, удаляем его
             if user_to_subscribe in subscription.subscribed_to.all():
                 subscription.subscribed_to.remove(user_to_subscribe)
-                return Response({'success': f'Вы успешно отписались от пользователя {user_to_subscribe.username}#{user_to_subscribe.id}'})
+                return Response({'success': f'Вы успешно отписались от пользователя {user_to_subscribe.username}#{user_to_subscribe.id}', 'data':{}})
             else:
                 subscription.subscribed_to.add(user_to_subscribe)
-                return Response({'success': f'Вы успешно подписались на пользователя {user_to_subscribe.username}#{user_to_subscribe.id}'})
+                return Response({'success': f'Вы успешно подписались на пользователя {user_to_subscribe.username}#{user_to_subscribe.id}', 'data': ShortAccountSerializer(user_to_subscribe).data})
 
-    def list(self, request, *args, **kwargs):
-        self.serializer_class = SubscriptionListSerializer
+    def retrieve(self, request, *args, **kwargs):
+        user_id = int(kwargs.get('pk'))
+        self.serializer_class = MySubscriptionListSerializer
 
-        if not request.user.is_authenticated:
-            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
-        
-        instance = self.queryset.get(user=request.user.id)
-        serializer = self.get_serializer(instance)
+        instance = self.queryset.get(user=user_id)
+        if request.user.id == user_id:
+            serializer = self.get_serializer(instance)
+        else:
+            context = super().get_serializer_context()
+            context['user_id'] = self.kwargs['pk'] 
+            serializer = AnotherSubscriptionListSerializer(instance=instance, context=context)
         return Response(serializer.data)
 
 class PostViewSet(viewsets.ModelViewSet):

@@ -8,11 +8,6 @@
 </FilterAside>
 
 
-
-
-    <v-btn class="mb-2" @click="test(29)">29</v-btn>
-    <v-btn @click="test(28)">28</v-btn>
-
     <v-container class="d-flex flex-row justify-center">
         <FilterAside class="aside_filter desktop"
             v-if='width >= mobileWidthLimit'
@@ -25,7 +20,8 @@
         <div class="d-flex flex-column" :style=" width >= mobileWidthLimit ? 'width: 750px;' : 'max-width: 750px; min-width: 300px'">
             <Filters 
                 @filterToolbarIsOpen="filterAsideState =! filterAsideState"
-                @orderChange="(value) => {handleOrderChange(value)}">
+                @orderChange="(value) => {handleOrderChange(value)}"
+                @clickContentType="(contentType) => {changeContentType(contentType)}">
             </Filters>
         
             <v-row class='mb-4' no-gutters>
@@ -68,11 +64,11 @@
 
                         <v-tooltip location="bottom" v-if="post.author.id != userData.id && width >= mobileWidthLimit">
                             <template v-slot:activator="{ props }">
-                                <v-btn icon v-bind="props" variant="text" density="compact" @click="changeSubscribeState">
-                                    <v-icon>{{ isSubscribe ? 'mdi-bell-check-outline':'mdi-bell-ring-outline' }}</v-icon>
+                                <v-btn icon v-bind="props" variant="text" density="compact" @click="changeSubscribeState(post.author.id)">
+                                    <v-icon>{{ isSubscribedTo(post.author.id) != -1 ? 'mdi-bell-check-outline':'mdi-bell-ring-outline' }}</v-icon>
                                 </v-btn>
                             </template>
-                            <span>{{isSubscribe ? 'Unsubscribe': 'Subscribe'}}</span>
+                            <span>{{isSubscribedTo(post.author.id) != -1 ? 'You are subscribed': 'You are unsubscribed'}}</span>
                         </v-tooltip>
                         
                     </div>
@@ -216,12 +212,6 @@ const FilterAside = defineAsyncComponent(() => import('@/components/Filters/Filt
 const store = useStore();
 const { width } = useDisplay();
 
-const isSubscribe = ref(false);
-const changeSubscribeState =() =>{
-    isSubscribe.value = !isSubscribe.value
-    console.log(isSubscribe.value)
-}
-
 const current_page = ref(1)
 const page_count = ref(1)
 const page_size = 15
@@ -240,6 +230,20 @@ const postsList = computed(() => {return store.getters['journal/getPosts']});
 const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 const loggedIn = computed(() => {return store.getters['auth/loginState']})
 const userData = computed(() => {return store.getters['auth/getUserData']})
+const subscriptions = computed(() => {return store.getters['accounts/getSubscriptions']})
+
+const changeSubscribeState =(user_id) =>{store.dispatch('accounts/changeSubscription', user_id)}
+const isSubscribedTo = (user_id) => {return subscriptions?.value?.subscribed_to.findIndex(user => user.id === user_id)};
+
+const changeContentType = async(contentType) => {
+    if(contentType == 'Feed'){
+        await store.dispatch('journal/getPostFeedList')}
+    else if(contentType == 'All posts'){
+        page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
+    }
+
+}
+
 
 const handlePageChange = async(newPage) => {
     current_page.value = newPage
@@ -320,19 +324,10 @@ const pressReaction = (data) =>{
     )   
 }
 
-const test = async (id) => {
-    // await store.dispatch('accounts/getSubscriptions')
-    // await store.dispatch('accounts/changeSubscription', id)
-}
 
-onMounted(async () => {
+onBeforeMount(async () => {
     page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
-    const subscriptions = await store.dispatch('accounts/getSubscriptions')
-    // const searchValue = 'Jane';
-
-    //     const foundDict = array.find(dict => dict.name === searchValue);
-
-    //     console.log(foundDict);
+    await store.dispatch('accounts/getSubscriptions', userData.value.id)
     
     websocket.onmessage = function(e){
         let data = JSON.parse(e.data)

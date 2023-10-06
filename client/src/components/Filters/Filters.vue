@@ -2,7 +2,9 @@
 
 <v-card class="filters-container  elevation-8" >
 
-                <div class="order_selector" id="order_selector">
+
+        <div class="d-flex flex-row align-center justify-content-start">
+                <div class="order_selector" id="order_selector" style="width: 150px;">
                         <v-select
                                 active="true"
                                 variant="underlined"
@@ -17,9 +19,25 @@
                         ></v-select>
                 </div>
 
-                <v-sheet class='d-flex flex-row align-center w-100 justify-end pb-2' v-if='width < mobileWidthLimit'>
-                        <v-btn class='filter_btn' size="large" variant="plain" icon="mdi-tune" @click.stop="openFilterAside"></v-btn>
-                </v-sheet>  
+                <v-slide-group class="pa-4" v-model="contentType" selected-class="bg-info">
+
+                        <v-slide-group-item 
+                                v-for="variant in contentTypeVariants" :key="variant" 
+                                v-slot="{ isSelected, toggle, selectedClass }">
+
+                                        <v-btn :class="['ma-2', selectedClass]" 
+                                                :color="isSelected ? 'text-info' : undefined"
+                                                @click="() => {toggle(); $emit('clickContentType', variant);}">
+                                                {{ variant }}
+                                        </v-btn>
+                        </v-slide-group-item>
+                </v-slide-group>
+
+        </div>
+
+        <v-sheet class='d-flex flex-row align-center w-100 justify-end pb-2' v-if='width < mobileWidthLimit'>
+                <v-btn class='filter_btn' size="large" variant="plain" icon="mdi-tune" @click.stop="openFilterAside"></v-btn>
+        </v-sheet>  
 </v-card>     
 
 
@@ -32,7 +50,7 @@ import {useDisplay} from 'vuetify'
 
 const { width } = useDisplay();
 const store = useStore()
-const emit = defineEmits(['filterToolbarIsOpen', 'orderChange'])
+const emit = defineEmits(['filterToolbarIsOpen', 'orderChange', 'clickContentType'])
 
 const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 
@@ -45,6 +63,9 @@ const order_variants = ref([
         // {title: 'Asc comments', value: 'ordering=num_comments'},
         // {title: 'Desc comments', value: 'ordering=-num_comments'},
 ])
+
+const contentType = ref(0)
+const contentTypeVariants =ref(['All posts', 'Feed'])
 
 const onOrderChange = async () => {emit('orderChange', curr_order_variant.value)}
 const openFilterAside =() => {emit('filterToolbarIsOpen');}
@@ -65,10 +86,6 @@ const displayPostInListStyle =() => {store.commit('changePostListStyle', 'list')
         width: inherit;
         border-radius: 5px;
         caret-color: transparent;
-
-        .order_selector{
-                width: 300px;
-        }
 }
 
 

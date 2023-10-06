@@ -3,8 +3,6 @@
 import axios from 'axios';
 import interceptorsInstance, {authHeader} from '@/api/main'
 
-
-// const user = JSON.parse(localStorage.getItem('user'));
 const BASE_URL = axios.defaults.baseURL;
 
 const initialState = { haveInitialPosts: false, PostsList: [], TagsList: [], postDetail: {}};
@@ -154,6 +152,16 @@ export const journal = {
       catch(error){console.log(error)}
     },
 
+    async getPostFeedList({commit}, {paginate_url, request_type}){
+      try{
+        const response = await interceptorsInstance.get(BASE_URL + `post_feed/${paginate_url}`, { headers: authHeader() })
+        if(request_type == 'initial'){commit('setPostListInStore', response.data)}
+        else if(request_type == 'load_more'){commit('addPostInStore', response.data)}
+        return response.data
+      }
+      catch(error){console.log(error)}
+    },
+
     async getTagsList({commit}){
       try{
         const response = await interceptorsInstance.get(BASE_URL + `tag/`)
@@ -163,30 +171,6 @@ export const journal = {
       catch(error){console.log(error)}
     },
 
-    // get_posts({ commit }, url) {
-    //   return JournalService.get_posts(url).then(
-    //     posts_data => {
-    //       commit('gettingPostSuccess', posts_data.data);
-    //       return Promise.resolve(posts_data.data);
-    //     },
-    //     error => {
-    //       commit('gettingPostFailure');
-    //       return Promise.reject(error);
-    //     }
-    //   );
-    // },
-
-    // getReactions({ commit }, data){
-    //   return JournalService.get_reactions(data.post_id).then(
-    //     reactions_data => {
-    //       commit('gettingReactionsSuccess', reactions_data.data);
-    //       return Promise.resolve(reactions_data.data);
-    //     },
-    //     error => {
-    //       return Promise.reject(error);
-    //     }
-    //   );
-    // },
 
     async set_reaction({ commit, dispatch}, data){
       //Если пользователь оставлял реакцию

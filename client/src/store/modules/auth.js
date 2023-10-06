@@ -95,7 +95,6 @@ export const auth = {
     async getMyData({commit}, user_id){
       try{
         const response = await interceptorsInstance.get(BASE_URL + `user/${user_id}/`)
-        console.log(response.data)
         commit('setUserData', response.data)
         return response.data
       } 
