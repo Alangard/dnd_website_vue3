@@ -127,75 +127,77 @@
                         @keydown.enter.stop="startSearch">
                 </v-text-field>
 
-                <v-card class="my-2 px-2">
-                        <div class="filters_postdate_block my-3 mb-1">
-                                <span>Filter by post date</span>
+                <v-card class="my-2 px-2 d-flex flex-column justify-space-between" style="height: 450px;">
+                        <div class="d-flex flex-column justify-start">
+                                <div class="filters_postdate_block my-3 mb-1">
+                                        <span>Filter by post date</span>
 
-                                <VueDatePicker 
-                                        v-model="output_filters_data.filter__post_date_result" 
-                                        :format="format"
-                                        placeholder="Input date range" 
-                                        :max-date="new Date()" 
-                                        :enable-time-picker="false"
-                                        :clearable="true"
-                                        :dark="theme.global.name.value == 'dark'? true : false" 
-                                        range 
-                                />
+                                        <VueDatePicker 
+                                                v-model="output_filters_data.filter__post_date_result" 
+                                                :format="format"
+                                                placeholder="Input date range" 
+                                                :max-date="new Date()" 
+                                                :enable-time-picker="false"
+                                                :clearable="true"
+                                                :dark="theme.global.name.value == 'dark'? true : false" 
+                                                range 
+                                        />
+                                </div>
+
+                                <div class="filters_author_block my-5 mb-1">
+                                        <span>Filter by author</span>
+                                        <v-combobox
+                                                v-model="output_filters_data.filter__post_author_result"
+                                                :items="usernameList"
+                                                v-model:search="userSerch"
+                                                :hide-no-data="false"
+                                                variant="solo"
+                                                density="compact"
+                                                clearable
+                                                hide-selected
+                                                multiple
+                                                chips
+                                                closable-chips
+                                                persistent-hint>
+
+                                                <template v-slot:no-data>
+                                                        <v-list-item>
+                                                        <v-list-item-title style="white-space: normal; overflow: hidden;">
+                                                        No results matching "<strong>{{ userSerch }}</strong>". Press <kbd>enter</kbd> to create a new one
+                                                        </v-list-item-title>
+                                                        </v-list-item>
+                                                </template>
+                                        </v-combobox>
+                                        
+                                </div>
+
+                                <div class="filters_tags_block my-3 mb-1">
+                                        <span>Filter by tags</span>
+                                        <v-combobox
+                                                v-model="output_filters_data.filter__post_tags_result"
+                                                :items="tagsSlugList"
+                                                v-model:search="tagSerch"
+                                                :hide-no-data="false"
+                                                variant="solo"
+                                                density="compact"
+                                                clearable
+                                                hide-selected
+                                                multiple
+                                                chips
+                                                closable-chips
+                                                persistent-hint>
+
+                                                <template v-slot:no-data>
+                                                        <v-list-item>
+                                                        <v-list-item-title style="white-space: normal; overflow: hidden;">
+                                                        No results matching "<strong>{{ tagSerch }}</strong>". Press <kbd>enter</kbd> to create a new one
+                                                        </v-list-item-title>
+                                                        </v-list-item>
+                                                </template>
+                                        </v-combobox>
+
+                                </div> 
                         </div>
-
-                        <div class="filters_author_block my-5 mb-1">
-                                <span>Filter by author</span>
-                                <v-combobox
-                                        v-model="output_filters_data.filter__post_author_result"
-                                        :items="usernameList"
-                                        v-model:search="userSerch"
-                                        :hide-no-data="false"
-                                        variant="solo"
-                                        density="compact"
-                                        clearable
-                                        hide-selected
-                                        multiple
-                                        chips
-                                        closable-chips
-                                        persistent-hint>
-
-                                        <template v-slot:no-data>
-                                                <v-list-item>
-                                                <v-list-item-title style="white-space: normal; overflow: hidden;">
-                                                No results matching "<strong>{{ userSerch }}</strong>". Press <kbd>enter</kbd> to create a new one
-                                                </v-list-item-title>
-                                                </v-list-item>
-                                        </template>
-                                </v-combobox>
-                                
-                        </div>
-
-                        <div class="filters_tags_block my-3 mb-1">
-                                <span>Filter by tags</span>
-                                <v-combobox
-                                        v-model="output_filters_data.filter__post_tags_result"
-                                        :items="tagsSlugList"
-                                        v-model:search="tagSerch"
-                                        :hide-no-data="false"
-                                        variant="solo"
-                                        density="compact"
-                                        clearable
-                                        hide-selected
-                                        multiple
-                                        chips
-                                        closable-chips
-                                        persistent-hint>
-
-                                        <template v-slot:no-data>
-                                                <v-list-item>
-                                                <v-list-item-title style="white-space: normal; overflow: hidden;">
-                                                No results matching "<strong>{{ tagSerch }}</strong>". Press <kbd>enter</kbd> to create a new one
-                                                </v-list-item-title>
-                                                </v-list-item>
-                                        </template>
-                                </v-combobox>
-
-                        </div> 
                         
                         <v-card-actions class="d-flex flex-column px-0">
                                 <v-btn class="apply_form mb-2 mx-0" @click.stop="applyFilters" color="text-info" block variant="elevated" size="large" density="default" >Apply filter</v-btn>
@@ -288,9 +290,11 @@ watch(() => output_filters_data.value, (new_obj) => {
 },{deep: true}
 )
 
-watch(() => routes.currentRoute.value?.params?.filter_params?.slice(1), async (new_obj) => {
+watch(() => routes.currentRoute.value?.params?.filter_params, async (new_obj) => {
         const current_filter_params = new_obj
-        const filter_group = current_filter_params?.split('&')
+        const filter_group = current_filter_params[0] == '?' 
+                ? current_filter_params.slice(1).split('&') 
+                : current_filter_params.split('?')[1].split('&')
         filter_group?.forEach(filter_param => {
                 // Разделяем ключ и значение фильтра
                 const [key, value] = filter_param.split('=');

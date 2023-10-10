@@ -98,7 +98,6 @@ async def consumer_rules_checker(self, request_id, token, payload):
         return {'user': user, 'post': post, 'parent_comment': parent_comment, 'comment': comment}
 
 
-
 class UserNotFound(Exception):
     pass
 
@@ -266,28 +265,11 @@ class PostConsumer(GenericAsyncAPIConsumer):
             case 'create':
 
                 if data.get('is_publish') == True and (data.get('is_draft') == False or data.get('is_draft') is None):
-                    print(data.get('is_publish')==True)
                     return {
                         'status': '200',
                         'status_message': "Post has been created",
                         'action': 'create_post'
                     }
-            
-            # case 'delete':
-            #     return {
-            #         'status': '200',
-            #         'status_message': "Post has been deleted ",
-            #         'data': data,
-            #         'action': 'delete_post'
-            #     }
-                    
-            # case 'update':
-            #     return {
-            #         'status': '200',
-            #         'status_message': "Post was updated",
-            #         'data': data,
-            #         'action': 'update_post'
-            #     }
             
         return {
                 'status': '200',

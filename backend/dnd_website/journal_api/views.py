@@ -68,6 +68,11 @@ class PostReactionPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 1000
 
+class PostFeedPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+
 class CommentsListPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
@@ -333,7 +338,7 @@ class PostFeedViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         self.serializer_class = PostListReadSerializer
         self.ordering = ['-created_datetime']
-        self.pagination_class = PostListPagination
+        self.pagination_class = PostFeedPagination
 
         def myfilters(queryset):
             instance = queryset
@@ -367,7 +372,7 @@ class PostFeedViewSet(viewsets.ModelViewSet):
             return instance
         
                 # Проверяем, авторизован ли пользователь
-        
+
         if not request.user.is_authenticated:
             return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
     

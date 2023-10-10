@@ -226,6 +226,7 @@ const url = `ws://${axios.defaults.baseURL.split('http://')[1]}ws/post_socket-se
 const websocket = new WebSocket(url)
 
 let filterAsideState = ref(false);
+let contentType = ref('All posts')
 const postsList = computed(() => {return store.getters['journal/getPosts']});
 const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 const loggedIn = computed(() => {return store.getters['auth/loginState']})
@@ -235,22 +236,34 @@ const subscriptions = computed(() => {return store.getters['accounts/getSubscrip
 const changeSubscribeState =(user_id) =>{store.dispatch('accounts/changeSubscription', user_id)}
 const isSubscribedTo = (user_id) => {return subscriptions?.value?.subscribed_to.findIndex(user => user.id === user_id)};
 
-const changeContentType = async(contentType) => {
-    if(contentType == 'Feed'){
-        await store.dispatch('journal/getPostFeedList')}
-    else if(contentType == 'All posts'){
-        page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
+const changeContentType = async(type) => {
+    contentType.value = type
+    if(type == 'Feed'){
+        routes.push({name: 'journal_filters', params: { filter_params: `feed/${page_url.value}`}})
+        page_count.value = Math.ceil((await store.dispatch('journal/getPostFeedList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
+        page_url.value = `feed/` + page_url.value
+    }
+    else if(type == 'All posts'){
+        routes.push({name: 'journal_filters', params: { filter_params: `?page=1&page_size=${page_size}` }})
+        page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': `?page=1&page_size=${page_size}`, 'request_type': 'initial'})).count / page_size)
+        page_url.value = `?page=1&page_size=${page_size}`
     }
 
 }
 
-
 const handlePageChange = async(newPage) => {
     current_page.value = newPage
     page_url.value = `?page=${newPage}&page_size=${page_size}` + `&${filters.value}`
-    routes.push({name: 'journal_filters', params: { filter_params: `${page_url.value}` }})
-
-    await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'initial'})
+    
+    if(contentType.value == 'Feed'){
+        routes.push({name: 'journal_filters', params: { filter_params: `feed/${page_url.value}` }})
+        await store.dispatch('journal/getPostFeedList', {'paginate_url': page_url.value, 'request_type': 'initial'})
+        page_url.value = `feed/` + page_url.value
+    }
+    else if(contentType.value == 'All posts'){
+        routes.push({name: 'journal_filters', params: { filter_params: `${page_url.value}` }})
+        await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'initial'})
+    }
     window.scrollTo({top: 0,behavior: "smooth"});
 }
 
@@ -259,7 +272,7 @@ const handleOrderChange = async(order_param) => {
     const new_order_str = order_param.split('=')[1]
     const order_without_direction =  new_order_str[0] == '-' ? new_order_str.slice(1) : new_order_str
     const index_in_orderings = orderings.value.indexOf(order_without_direction)
-    const page_url_params_list = page_url.value.slice(1).split('&')
+    const page_url_params_list = page_url.value[0] == '?' ? page_url.value.slice(1).split('&') : page_url.value.split('?')[1].split('&')
     const index_in_url = page_url_params_list.indexOf(order_without_direction)
 
     if(index_in_orderings != -1){
@@ -272,9 +285,14 @@ const handleOrderChange = async(order_param) => {
     }
 
     page_url.value = '?' + page_url_params_list.join('&')
-    page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
-    routes.replace({name: 'journal_filters', params: { filter_params: page_url.value }})
-
+    if(contentType.value == 'Feed'){
+        page_count.value = Math.ceil((await store.dispatch('journal/getPostFeedList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
+        routes.replace({name: 'journal_filters', params: { filter_params: `feed/?${page_url_params_list.join('&')}` }})
+    }
+    else if(contentType.value == 'All posts'){
+        page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
+        routes.replace({name: 'journal_filters', params: { filter_params: page_url.value }})
+    }
 
 }
 
@@ -288,16 +306,28 @@ const handleFilterChange = async(filter_params) =>{
         page_url.value = `?page=1&page_size=${page_size}`
         current_page.value = 1
         filters.value = []
-    }  
-    page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
-    routes.replace({name: 'journal_filters', params: { filter_params: page_url.value }}) 
+    } 
+    if(contentType.value == 'Feed'){
+        page_count.value = Math.ceil((await store.dispatch('journal/getPostFeedList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
+        routes.replace({name: 'journal_filters', params: { filter_params: `feed/${page_url.value}` }})
+    }
+    else if(contentType.value == 'All posts'){
+        page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
+        routes.replace({name: 'journal_filters', params: { filter_params: page_url.value }})
+    } 
     window.scrollTo({top: 0,behavior: "smooth"}); 
 }
 
 const LoadNewPost = async() =>{
     try{
-        await store.dispatch('journal/getPostList', {'paginate_url': `?page=1&page_size=${new_posts_count.value}`, 'request_type': 'load_more'})  
-        new_posts_count.value = 0
+        if(contentType.value=='Feed'){
+            await store.dispatch('journal/getPostFeedList', {'paginate_url': `feed/?page=1&page_size=${new_posts_count.value}`, 'request_type': 'load_more'})  
+            new_posts_count.value = 0
+        }
+        else if(contentType.value == 'All posts'){
+            await store.dispatch('journal/getPostList', {'paginate_url': `?page=1&page_size=${new_posts_count.value}`, 'request_type': 'load_more'})  
+            new_posts_count.value = 0
+        }
     }
     catch(error){console.log(error)}
  
