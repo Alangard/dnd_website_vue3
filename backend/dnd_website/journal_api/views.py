@@ -41,7 +41,6 @@ from asgiref.sync import sync_to_async
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-
 # //////////////////////////////////////////////////////////////////////
 
 from rest_framework import viewsets, status
@@ -52,6 +51,8 @@ from django.utils.text import slugify
 from django.utils.dateparse import parse_datetime
 
 from PIL import Image
+
+from .tasks import postponed_publish
 
 from rest_framework.decorators import action
 
@@ -181,6 +182,8 @@ class PostViewSet(viewsets.ModelViewSet):
 
             if data.get('publish_datetime') != None and data.get('is_draft') == False: 
                 print('make celery task')
+                postponed_publish.apply_async(args=[data], eta=data.get('publish_datetime'))
+
             post = post_serializer.save()  
 
             # Создаем и добавляем новые тэги к посту
@@ -189,7 +192,7 @@ class PostViewSet(viewsets.ModelViewSet):
                     for tag in data['tags']:
                         tag, created = Tag.objects.get_or_create(name=tag, slug=slugify(tag))
                         post.tags.add(tag)
-        
+            
             return Response(post_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response({"error": "Сериализация не пройдена"}, status=status.HTTP_400_BAD_REQUEST)

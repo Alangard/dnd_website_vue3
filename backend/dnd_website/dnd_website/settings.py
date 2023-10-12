@@ -39,20 +39,39 @@ SECRET_KEY = "django-insecure-3+n@28ce9p$%*k^=z#5s0%j43vmn0wjvrb6uz2&^2saqvtfz@h
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# Django Debug Toolbar
+INTERNAL_IPS = ["127.0.0.1",]
+
 ALLOWED_HOSTS = []
 
 FRONTEND_AUTHORITY = "http://localhost:8080"
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080",
-    "http://127.0.0.1:8000",
-]
-
+CORS_ALLOWED_ORIGINS = ["http://localhost:8080","http://127.0.0.1:8000",]
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-# Application definition
+CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'  # URL-адрес RabbitMQ
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'  # URL-адрес Redis
 
+#gmail_send/settings.py
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'testdndwebsite@gmail.com'
+EMAIL_HOST_PASSWORD = 'qpnjaussafsckmnk' #past the key or password app here
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'test'
+
+# Internationalization
+# https://docs.djangoproject.com/en/4.1/topics/i18n/
+
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "UTC"
+USE_I18N = True
+USE_TZ = True
+
+
+# Application definition
 INSTALLED_APPS = [
     "daphne",
 
@@ -138,14 +157,6 @@ SIMPLE_JWT = {
 #     'SERIALIZERS': {},
 # }
 
-#gmail_send/settings.py
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'testdndwebsite@gmail.com'
-EMAIL_HOST_PASSWORD = 'qpnjaussafsckmnk' #past the key or password app here
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = 'test'
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -244,30 +255,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/4.1/topics/i18n/
-
-LANGUAGE_CODE = "en-us"
-
-TIME_ZONE = "UTC"
-
-USE_I18N = True
-
-USE_TZ = True
-
-
-
-
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-# Django Debug Toolbar
-INTERNAL_IPS = [
-    "127.0.0.1",
-]
 
 
 #TinyMCE settings
