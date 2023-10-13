@@ -50,8 +50,14 @@ CORS_ALLOWED_ORIGINS = ["http://localhost:8080","http://127.0.0.1:8000",]
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'  # URL-адрес RabbitMQ
+
+# Celery Configuration Options
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+# CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'  # URL-адрес RabbitMQ
+CELERY_BROKER_URL = 'amqp://localhost'
 CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'  # URL-адрес Redis
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=True
 
 #gmail_send/settings.py
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

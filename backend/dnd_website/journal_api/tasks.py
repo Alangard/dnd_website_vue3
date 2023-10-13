@@ -4,21 +4,22 @@ import time
 from celery import Celery
 from django.conf import settings
 from .serializers import *
+from .models import *
 from django.utils.text import slugify
-from dnd_website.celery import app
+
+from celery import shared_task
 
 
-# # Создание экземпляра Celery
-# app = Celery('postponed_publish', broker=settings.BROKER_URL)
-# app = Celery('tasks', broker=broker_url, backend=redis_url)
 
-@app.task
-def postponed_publish(post_data):
-    # Ваш код для выполнения функции test2 с аргументом post_data
-    print(f"Executing test2 with post_data: {post_data}")
+@shared_task
+def postponed_publish(id):
+    queryset = Post.objects.all().select_related('author').prefetch_related('tags', 'post_reactions', 'comments').get(pk=id)
+    data = {'publish_datetime': None, 'is_publish': True}
 
-    time.sleep(3)
-    print("test2 completed.")
+    post_serializer = PostPartialUpdateSerializer(queryset, data=data, partial=True)
+    if post_serializer.is_valid(raise_exception=True):
+        post = post_serializer.save()  
+
 
 
     # change is_publish to True

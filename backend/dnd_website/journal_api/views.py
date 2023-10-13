@@ -180,10 +180,6 @@ class PostViewSet(viewsets.ModelViewSet):
         post_serializer = self.get_serializer(data=data)
         if post_serializer.is_valid(raise_exception=True):
 
-            if data.get('publish_datetime') != None and data.get('is_draft') == False: 
-                print('make celery task')
-                postponed_publish.apply_async(args=[data], eta=data.get('publish_datetime'))
-
             post = post_serializer.save()  
 
             # Создаем и добавляем новые тэги к посту
@@ -192,8 +188,14 @@ class PostViewSet(viewsets.ModelViewSet):
                     for tag in data['tags']:
                         tag, created = Tag.objects.get_or_create(name=tag, slug=slugify(tag))
                         post.tags.add(tag)
+
+            post_created_data = post_serializer.data
+            print(post_created_data['id'])
+
+            if data['publish_datetime'] != None and data['is_draft'] == False:
+                postponed_publish.apply_async(args=[post_created_data['id']], kwargs={}, eta=data['publish_datetime'])
             
-            return Response(post_serializer.data, status=status.HTTP_201_CREATED)
+            return Response(post_created_data, status=status.HTTP_201_CREATED)
         else:
             return Response({"error": "Сериализация не пройдена"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -253,19 +255,16 @@ class PostViewSet(viewsets.ModelViewSet):
         if request.user.id == instance.author.id:
             post_serializer = self.get_serializer(instance, data=data, partial=True)
             if post_serializer.is_valid(raise_exception=True):
-
-                if data.get('publish_datetime') != None and data.get('is_draft') == False: 
-                    print('make celery task')
                 post = post_serializer.save()  
                 
-            # Создаем и добавляем новые тэги к посту
-            if data.get('tags'):
-                if data.get('tags') != []:
-                    for tag in data['tags']:
-                        tag, created = Tag.objects.get_or_create(name=tag, slug=slugify(tag))
-                        post.tags.add(tag)
-                else:
-                    post.tags.clear()
+                # Создаем и добавляем новые тэги к посту
+                if data.get('tags'):
+                    if data.get('tags') != []:
+                        for tag in data['tags']:
+                            tag, created = Tag.objects.get_or_create(name=tag, slug=slugify(tag))
+                            post.tags.add(tag)
+                    else:
+                        post.tags.clear()
 
             return Response(post_serializer.data, status=status.HTTP_200_OK)
         else:

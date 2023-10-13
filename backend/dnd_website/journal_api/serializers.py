@@ -347,7 +347,7 @@ class PostCreateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Post
-        fields = ['author', 'title', 'description', 'thumbnail', 'body', 'tags', 'is_publish', 'is_draft', 'publish_datetime', 'allow_comments']
+        fields = ['id', 'author', 'title', 'description', 'thumbnail', 'body', 'tags', 'is_publish', 'is_draft', 'publish_datetime', 'allow_comments']
 
 
 class ReportReasonSerializer(serializers.ModelSerializer):
