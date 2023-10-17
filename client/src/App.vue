@@ -24,9 +24,10 @@
 </template>
 
 <script setup>
-import {ref, defineAsyncComponent, onBeforeMount} from 'vue';
+import {ref, defineAsyncComponent, onBeforeMount, computed, onBeforeUnmount} from 'vue';
 import { useTheme } from 'vuetify/lib/framework.mjs';
 import { useStore } from 'vuex';
+import axios from 'axios';
 import routes from '@/router/router' 
 
 const Navbar = defineAsyncComponent(() => import('@/components/Navbar.vue'));
@@ -36,9 +37,12 @@ const store = useStore();
 
 let showAuthDialog = ref(false);
 let darkTheme = ref(false);
-
-
 const main_menu_drawer = ref(false);
+
+const token = computed(() => {return store.getters['auth/getAccessToken']})
+const url = `ws://${axios.defaults.baseURL.split('http://')[1]}ws/notification_socket-server/?token=${token.value}`
+const websocket = new WebSocket(url)
+
 
 const LocalStorageThemeManager = () => {
     if(localStorage.getItem('theme')){
@@ -56,6 +60,15 @@ onBeforeMount(() => {
   LocalStorageThemeManager();
   const user_data = store.getters['auth/getUserData']
   store.dispatch('auth/getMyData', user_data?.id)
+  
+  websocket.onmessage = function(e){
+        let data = JSON.parse(e.data)
+        console.log(data)
+  }
+})
+
+onBeforeUnmount(() => {
+    websocket.close()
 })
 
 

@@ -8,6 +8,10 @@ from .models import *
 from django.utils.text import slugify
 
 from celery import shared_task
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+
+channel_layer = get_channel_layer()
 
 
 
@@ -20,6 +24,12 @@ def postponed_publish(id):
     if post_serializer.is_valid(raise_exception=True):
         post = post_serializer.save()  
 
+    async_to_sync(channel_layer.group_send)('post', {'type': 'send_new_post'})
 
 
-    # change is_publish to True
+@shared_task
+def like_post(user_data, post_reaction_id):
+    post_reaction_data = PostReaction.objects.get(pk = post_reaction_id)
+
+    async_to_sync(channel_layer.group_send)(f'{user_data.username}#{user_data.id}', {'type': 'send_notification', 'post_reaction_data': post_reaction_data})
+    

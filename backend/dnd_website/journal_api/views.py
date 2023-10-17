@@ -52,9 +52,16 @@ from django.utils.dateparse import parse_datetime
 
 from PIL import Image
 
-from .tasks import postponed_publish
+from .tasks import postponed_publish, like_post
 
 from rest_framework.decorators import action
+
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+
+channel_layer = get_channel_layer()
 
 
 
@@ -79,6 +86,27 @@ class CommentsListPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 1000
 
+
+
+# Срабатывает при появлении сигнала после сохранении экземпляра поста (для действий в админ-панели и API)
+@receiver(post_save, sender=Post)
+def send_post_data(sender, instance, **kwargs):
+    # Отправка данных через WebSocket
+    if(instance.is_publish == True and instance.is_draft == False):
+        async_to_sync(channel_layer.group_send)("post", {"type": "send_new_post"})
+    elif(instance.publish_datetime != None and instance.is_draft == False):
+        postponed_publish.apply_async(args=[instance.id], kwargs={}, eta=instance.publish_datetime)
+
+
+# Срабатывает при появлении сигнала после сохранении экземпляра (для действий в админ-панели и API)
+@receiver(post_save, sender=PostReaction)
+def send_like_data(sender, instance, **kwargs):
+    # Отправка данных через WebSocket
+    post_id = instance.post
+    post = Post.objects.get(pk = post_id)
+    author_obj = post.author
+
+    # like_post.apply_async(args=[instance.id], kwargs={}) под вопросом
 
 class SubscriptionViewSet(viewsets.ModelViewSet):
     queryset = Subscription.objects.all()
@@ -190,10 +218,6 @@ class PostViewSet(viewsets.ModelViewSet):
                         post.tags.add(tag)
 
             post_created_data = post_serializer.data
-            print(post_created_data['id'])
-
-            if data['publish_datetime'] != None and data['is_draft'] == False:
-                postponed_publish.apply_async(args=[post_created_data['id']], kwargs={}, eta=data['publish_datetime'])
             
             return Response(post_created_data, status=status.HTTP_201_CREATED)
         else:

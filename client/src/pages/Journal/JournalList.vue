@@ -199,7 +199,7 @@
 </template>
 
 <script setup>
-import { getCurrentInstance, defineAsyncComponent, onMounted, onUnmounted, ref, defineEmits, computed, onBeforeMount, toRaw, watch} from 'vue';
+import { getCurrentInstance, defineAsyncComponent, onMounted, onBeforeUnmount, ref, defineEmits, computed, onBeforeMount, toRaw, watch} from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
 import { useTheme, useDisplay } from 'vuetify/lib/framework.mjs';
@@ -365,7 +365,7 @@ onBeforeMount(async () => {
     }
 })
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
     websocket.close()
 })
 

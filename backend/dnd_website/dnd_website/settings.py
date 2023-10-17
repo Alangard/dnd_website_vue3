@@ -59,6 +59,17 @@ CELERY_BROKER_URL = 'amqp://localhost'
 CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'  # URL-адрес Redis
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=True
 
+# Websocket and async
+ASGI_APPLICATION = "dnd_website.asgi.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("localhost", 6379)],
+        },
+    },
+}
+
 #gmail_send/settings.py
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -214,13 +225,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "dnd_website.wsgi.application"
-ASGI_APPLICATION = "dnd_website.asgi.application"
-
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
-    }
-}
 
 
 # Database
