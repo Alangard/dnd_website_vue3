@@ -185,10 +185,11 @@ class TagDetailSerializer(serializers.ModelSerializer):
 # Post reactions serializers ###################################################
 
 class PostReactionSerializer(serializers.ModelSerializer):
+    author = ShortAccountSerializer(read_only=True)
 
     class Meta:
         model = PostReaction
-        fields = ['id','reaction_type', 'author', 'reacted_at', 'post', ]
+        fields = ['id','reaction_type', 'author', 'reacted_at', 'post']
 
 class PostReactionsListSerializer(serializers.ModelSerializer):
     author = ShortAccountSerializer(read_only=True)

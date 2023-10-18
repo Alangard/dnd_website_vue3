@@ -62,7 +62,7 @@
                             </span>
                         </div>
 
-                        <v-tooltip location="bottom" v-if="post.author.id != userData.id && width >= mobileWidthLimit">
+                        <v-tooltip location="bottom" v-if="post.author.id != userData?.id && userData && width >= mobileWidthLimit">
                             <template v-slot:activator="{ props }">
                                 <v-btn icon v-bind="props" variant="text" density="compact" @click="changeSubscribeState(post.author.id)">
                                     <v-icon>{{ isSubscribedTo(post.author.id) != -1 ? 'mdi-bell-check-outline':'mdi-bell-ring-outline' }}</v-icon>
@@ -230,8 +230,8 @@ let contentType = ref('All posts')
 const postsList = computed(() => {return store.getters['journal/getPosts']});
 const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 const loggedIn = computed(() => {return store.getters['auth/loginState']})
-const userData = computed(() => {return store.getters['auth/getUserData']})
-const subscriptions = computed(() => {return store.getters['accounts/getSubscriptions']})
+const userData = ref(null)
+const subscriptions = ref(null)
 
 const changeSubscribeState =(user_id) =>{store.dispatch('accounts/changeSubscription', user_id)}
 const isSubscribedTo = (user_id) => {return subscriptions?.value?.subscribed_to.findIndex(user => user.id === user_id)};
@@ -356,13 +356,19 @@ const pressReaction = (data) =>{
 
 
 onBeforeMount(async () => {
+    if(store.getters['auth/loginState'] == true){
+        userData.value = store.getters['auth/getUserData']
+        subscriptions.value = store.getters['accounts/getSubscriptions']
+        await store.dispatch('accounts/getSubscriptions', userData?.value?.id)
+    }
+
     page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
-    await store.dispatch('accounts/getSubscriptions', userData.value.id)
-    
+
     websocket.onmessage = function(e){
         let data = JSON.parse(e.data)
         if(data.action == 'create_post'){new_posts_count.value += 1}
     }
+    
 })
 
 onBeforeUnmount(() => {

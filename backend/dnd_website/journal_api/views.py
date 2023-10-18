@@ -102,11 +102,13 @@ def send_post_data(sender, instance, **kwargs):
 @receiver(post_save, sender=PostReaction)
 def send_like_data(sender, instance, **kwargs):
     # Отправка данных через WebSocket
-    post_id = instance.post
-    post = Post.objects.get(pk = post_id)
-    author_obj = post.author
+    like_author = instance.author
+    post_author = instance.post.author
 
-    # like_post.apply_async(args=[instance.id], kwargs={}) под вопросом
+    if like_author.id != post_author.id:
+        like_post.apply_async(args=[post_author.id , post_author.username, instance.id], kwargs={})
+
+
 
 class SubscriptionViewSet(viewsets.ModelViewSet):
     queryset = Subscription.objects.all()

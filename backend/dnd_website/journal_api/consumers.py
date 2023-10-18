@@ -456,7 +456,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         token = self.scope["query_string"].decode().replace("token=", "")
         user = await get_user_obj(token)
 
-        self.group_name = f'{user.username}#{user.id}'
+        self.group_name = f'{user.username}_{user.id}'
 
         # Присоединить клиента к группе
         await self.channel_layer.group_add(self.group_name,self.channel_name)
@@ -471,7 +471,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         data = {
             'status': '200',
             'status_message': "Notification",
-            'data': event.post_reaction_data,
+            'data': event['post_reaction_data'],
             'action': 'like_comment'
         }
 

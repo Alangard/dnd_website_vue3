@@ -28,8 +28,8 @@ def postponed_publish(id):
 
 
 @shared_task
-def like_post(user_data, post_reaction_id):
-    post_reaction_data = PostReaction.objects.get(pk = post_reaction_id)
-
-    async_to_sync(channel_layer.group_send)(f'{user_data.username}#{user_data.id}', {'type': 'send_notification', 'post_reaction_data': post_reaction_data})
+def like_post(user_id, username, post_reaction_id):
+    post_reaction_obj = PostReaction.objects.get(pk = post_reaction_id)
+    serializer = PostReactionSerializer(post_reaction_obj)
+    async_to_sync(channel_layer.group_send)(f'{username}_{user_id}', {'type': 'send_notification', 'post_reaction_data': serializer.data})
     

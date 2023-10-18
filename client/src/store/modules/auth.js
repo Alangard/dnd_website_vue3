@@ -153,7 +153,7 @@ export const auth = {
     },
 
     getUserData(state){
-      if(state.user && state.user.user_data){
+      if(state?.user && state?.user?.user_data){
         return state.user.user_data
       }
       return null 
