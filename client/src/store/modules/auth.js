@@ -77,6 +77,7 @@ export const auth = {
         const user_data = JSON.parse(localStorage.getItem('user')).user_data
 
         const response = await interceptorsInstance.post(BASE_URL + 'jwt/refresh/', {refresh: refresh})
+        commit('setUser', {'user_data': user_data, 'access': response.data.access, 'refresh': refresh})
 
         localStorage.setItem('user', JSON.stringify({'user_data': user_data, 'access': response.data.access, 'refresh': refresh}))
         return response.data;

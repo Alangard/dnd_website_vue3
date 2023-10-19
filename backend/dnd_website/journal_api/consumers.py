@@ -471,8 +471,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         data = {
             'status': '200',
             'status_message': "Notification",
-            'data': event['post_reaction_data'],
-            'action': 'like_comment'
+            'data': event['data'],
         }
 
         await self.send(json.dumps(data))

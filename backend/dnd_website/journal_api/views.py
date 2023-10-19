@@ -51,8 +51,7 @@ from django.utils.text import slugify
 from django.utils.dateparse import parse_datetime
 
 from PIL import Image
-
-from .tasks import postponed_publish, like_post
+from .tasks import postponed_publish, like_post, leave_comment, leave_reply_comment, like_comment
 
 from rest_framework.decorators import action
 
@@ -88,26 +87,55 @@ class CommentsListPagination(PageNumberPagination):
 
 
 
-# Срабатывает при появлении сигнала после сохранении экземпляра поста (для действий в админ-панели и API)
+# Срабатывает при появлении сигнала после создании экземпляра поста (аргумент created == True) (для действий в админ-панели и API)
 @receiver(post_save, sender=Post)
-def send_post_data(sender, instance, **kwargs):
+def send_post_data(sender, instance, created, **kwargs):
     # Отправка данных через WebSocket
-    if(instance.is_publish == True and instance.is_draft == False):
-        async_to_sync(channel_layer.group_send)("post", {"type": "send_new_post"})
-    elif(instance.publish_datetime != None and instance.is_draft == False):
-        postponed_publish.apply_async(args=[instance.id], kwargs={}, eta=instance.publish_datetime)
+    if created:
+        if(instance.is_publish == True and instance.is_draft == False):
+            async_to_sync(channel_layer.group_send)("post", {"type": "send_new_post"})
+        elif(instance.publish_datetime != None and instance.is_draft == False):
+            postponed_publish.apply_async(args=[instance.id], kwargs={}, eta=instance.publish_datetime)
 
 
-# Срабатывает при появлении сигнала после сохранении экземпляра (для действий в админ-панели и API)
 @receiver(post_save, sender=PostReaction)
-def send_like_data(sender, instance, **kwargs):
+def leave_like_data(sender, instance, created, **kwargs):
     # Отправка данных через WebSocket
-    like_author = instance.author
-    post_author = instance.post.author
+    if created:
+        like_author = instance.author
+        post_author = instance.post.author
 
-    if like_author.id != post_author.id:
-        like_post.apply_async(args=[post_author.id , post_author.username, instance.id], kwargs={})
+        if like_author.id != post_author.id:
+            like_post.apply_async(args=[post_author.id , post_author.username, instance.id], kwargs={})
 
+@receiver(post_save, sender=Comment)
+def leave_comment_data(sender, instance, created, **kwargs):
+    # Отправка данных через WebSocket
+    if created:
+        comment_author = instance.author
+        post_author = instance.post.author
+
+        if comment_author.id != post_author.id:
+            leave_comment.apply_async(args=[post_author.id , post_author.username, instance.id], kwargs={})
+
+@receiver(post_save, sender=Comment)
+def leave_reply_comment_data(sender, instance, created, **kwargs):
+    # Отправка данных через WebSocket
+    if created:
+        if instance.parent:
+            if instance.parent.author.id != instance.author.id:
+                leave_reply_comment.apply_async(args=[instance.parent.author.id , instance.parent.author.username, instance.id], kwargs={})
+
+
+@receiver(post_save, sender=CommentReaction)
+def like_comment_data(sender, instance, created, **kwargs):
+    # Отправка данных через WebSocket
+    if created:
+        comment_author = instance.comment.author
+        reaction_author = instance.author
+
+        if comment_author.id != reaction_author.id:
+            like_comment.apply_async(args=[comment_author.id , comment_author.username, instance.id], kwargs={})
 
 
 class SubscriptionViewSet(viewsets.ModelViewSet):

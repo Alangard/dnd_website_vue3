@@ -116,9 +116,8 @@ class ParentCommentSerializer(serializers.ModelSerializer):
 
     class Meta:  
         model = Comment  
-        fields = ['id', 'author']
+        fields = ['id', 'author', 'text', 'created_datetime']
       
-
 class CommentSerializer(serializers.ModelSerializer):
     author = ShortAccountSerializer(read_only=True)
     parent = ParentCommentSerializer(read_only=True)  
@@ -129,7 +128,7 @@ class CommentSerializer(serializers.ModelSerializer):
   
     class Meta:  
         model = Comment  
-        fields = ['id', 'status', 'post', 'parent', 'author', 'text', 'created_datetime', 'updated_datetime', 'user_reaction', 'replies', 'comment_reactions']
+        fields = ['id', 'status', 'post', 'parent', 'author', 'text', 'created_datetime', 'updated_datetime', 'user_reaction', 'replies',  'comment_reactions']
 
 
     def get_user_reaction(self, obj):
@@ -169,6 +168,14 @@ class CommentSerializer(serializers.ModelSerializer):
         num_dislikes = comment_reactions.filter(reaction_type='dislike').count()
         total_reactions = num_likes + num_dislikes
         return {'num_likes': num_likes, 'num_dislikes': num_dislikes, 'total_reactions': total_reactions}
+
+class NotificationCommentSerializer(serializers.ModelSerializer):
+    author = ShortAccountSerializer(read_only=True)
+    parent = ParentCommentSerializer(read_only=True)  
+  
+    class Meta:  
+        model = Comment  
+        fields = ['id', 'parent', 'author', 'text', 'created_datetime']
 
 ## Tags serializers ################################################################
 

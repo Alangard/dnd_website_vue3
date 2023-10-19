@@ -40,6 +40,10 @@ let darkTheme = ref(false);
 const main_menu_drawer = ref(false);
 
 
+const websocket = ref(null);
+
+
+
 
 
 const LocalStorageThemeManager = () => {
@@ -54,28 +58,39 @@ const LocalStorageThemeManager = () => {
 }
 
 
-onBeforeMount(() => {
+onBeforeMount(async() => {
   LocalStorageThemeManager();
   if(store.getters['auth/loginState'] == true){
-    const user_data = store.getters['auth/getUserData']
-    store.dispatch('auth/getMyData', user_data?.id)
+  
+    let url = `ws://${axios.defaults.baseURL.split('http://')[1]}ws/notification_socket-server/?token=`
 
-    const token = store.getters['auth/getAccessToken']
-    const url = `ws://${axios.defaults.baseURL.split('http://')[1]}ws/notification_socket-server/?token=${token.value}`
-    const websocket = new WebSocket(url)
+    const verify_response = await store.dispatch('auth/verifyToken')
+    if(verify_response?.data?.code  == "token_not_valid"){
+      const token = store.getters['auth/getAccessToken']
+      url += token
+    }
+    else{
+      const refresh_response = await store.dispatch('auth/refreshToken')
+      url += refresh_response.access
+    }
+
+    websocket.value = new WebSocket(url)
+
+
+
+    
+
+  
 
     websocket.onmessage = function(e){
         let data = JSON.parse(e.data)
         console.log(data)
     }
   }
-
-  
-
 })
 
 onBeforeUnmount(() => {
-    websocket.close()
+  if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {websocket.value.close();}
 })
 
 

@@ -372,7 +372,7 @@ onBeforeMount(async () => {
 })
 
 onBeforeUnmount(() => {
-    websocket.close()
+    if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {websocket.value.close();}
 })
 
 
