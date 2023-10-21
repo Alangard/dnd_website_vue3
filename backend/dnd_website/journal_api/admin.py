@@ -25,6 +25,9 @@ class CustomAccountAdmin(UserAdmin):
             },
         ),
     ]
+
+class NotificationAdmin(admin.ModelAdmin):
+    model = models.Notification
     
 
 class PostReactionAdmin(admin.ModelAdmin):
@@ -69,7 +72,9 @@ class ReportReasonAdmin(admin.ModelAdmin):
 
 
 admin.site.register(models.Account, CustomAccountAdmin)
+admin.site.register(models.Notification, NotificationAdmin)
 admin.site.register(models.Subscription)
+# admin.site.register(models.SubscriptionRelationship)
 admin.site.register(models.Post, PostAdmin)
 admin.site.register(models.Tag, TagAdmin)
 admin.site.register(models.Comment, CommentAdmin)

@@ -28,37 +28,6 @@ def postponed_publish(id):
 
 
 @shared_task
-def like_post(post_author_id, post_author_username, post_reaction_id):
-    post_reaction_obj = PostReaction.objects.get(pk=post_reaction_id)
-    serializer = PostReactionSerializer(post_reaction_obj)
-    data = serializer.data
-    data['action'] = 'like_post'
+def notifications(post_author_id, post_author_username, data):
     async_to_sync(channel_layer.group_send)(f'{post_author_username}_{post_author_id}', {'type': 'send_notification', 'data': data})
     
-
-
-@shared_task
-def leave_comment(post_author_id, post_author_username, comment_id):
-    comment_obj = Comment.objects.get(pk=comment_id)
-    serializer = NotificationCommentSerializer(comment_obj)
-    data = serializer.data
-    data['action'] = 'leave_comment'
-    async_to_sync(channel_layer.group_send)(f'{post_author_username}_{post_author_id}', {'type': 'send_notification', 'data': data})
-
-
-@shared_task
-def leave_reply_comment(parent_user_id, parent_username, reply_comment_id):
-    reply_comment_obj = Comment.objects.get(pk=reply_comment_id)
-    serializer = NotificationCommentSerializer(reply_comment_obj)
-    data = serializer.data
-    data['action'] = 'leave_reply_comment'
-    async_to_sync(channel_layer.group_send)(f'{parent_username}_{parent_user_id}', {'type': 'send_notification', 'data': data})
-
-
-@shared_task
-def like_comment(comment_author_id, comment_author_username, comment_reaction_id):
-    comment_reaction_obj = CommentReaction.objects.get(pk=comment_reaction_id)
-    serializer = CommentReactionSerializer(comment_reaction_obj)
-    data = serializer.data
-    data['action'] = 'like_comment'
-    async_to_sync(channel_layer.group_send)(f'{comment_author_username}_{comment_author_id}', {'type': 'send_notification', 'data': data})

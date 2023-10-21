@@ -74,6 +74,12 @@ class ShortAccountSerializer(serializers.ModelSerializer):
         model = Account
         fields = ["id", "username", "avatar"]
 
+class NotificationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Notification
+        fields = "__all__"
+
 class MySubscriptionListSerializer(serializers.ModelSerializer):
     user = ShortAccountSerializer(read_only=True)
     subscribed_to = ShortAccountSerializer(read_only=True, many=True)
@@ -89,8 +95,7 @@ class MySubscriptionListSerializer(serializers.ModelSerializer):
         subscriptions = Subscription.objects.filter(subscribed_to=request_user)
         subscribers = [subscription.user for subscription in subscriptions]
         serializer = ShortAccountSerializer(subscribers, many=True)
-        return serializer.data
-    
+        return serializer.data 
 
 class AnotherSubscriptionListSerializer(serializers.ModelSerializer):
     user = ShortAccountSerializer(read_only=True)

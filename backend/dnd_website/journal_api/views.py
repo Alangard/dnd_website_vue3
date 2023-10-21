@@ -51,7 +51,7 @@ from django.utils.text import slugify
 from django.utils.dateparse import parse_datetime
 
 from PIL import Image
-from .tasks import postponed_publish, like_post, leave_comment, leave_reply_comment, like_comment
+from .tasks import postponed_publish, notifications
 
 from rest_framework.decorators import action
 
@@ -87,6 +87,163 @@ class CommentsListPagination(PageNumberPagination):
 
 
 
+@receiver(post_save, sender=PostReaction)
+def leave_post__reaction(sender, instance, created, **kwargs):
+    if created:
+        post_author = instance.post.author
+        post_reaction__author = instance.author
+
+        if post_author.id != post_reaction__author.id:
+
+            notification_data = {
+                'notification_type': 'post_reaction',
+                'receiver': post_author.id,
+                'post_reaction': instance.id,
+            }
+
+            notification_serializer = NotificationSerializer(data=notification_data)
+            if notification_serializer.is_valid(raise_exception=True):
+                notification_serializer.save()
+
+                receiver_obj = Account.objects.get(pk=post_author.id)
+                post_reaction__obj = PostReaction.objects.get(pk=instance.id)
+                post_id = instance.post.id
+                post_title = instance.post.title
+
+                post_reaction__serializer_data = PostReactionSerializer(post_reaction__obj).data
+                post_reaction__serializer_data['post'] = {'id': post_id, 'title': post_title}
+
+                data = {
+                    'receiver': ShortAccountSerializer(receiver_obj).data,
+                    'notification_type': 'post_reaction',
+                    'data': post_reaction__serializer_data
+                }
+
+                notifications.apply_async(args=[post_author.id , post_author.username, data], kwargs={})
+
+
+
+@receiver(post_save, sender=Comment)
+def leave_comment(sender, instance, created, **kwargs):
+    if created:
+        post_author = instance.post.author
+        comment_auhtor = instance.author
+        
+        if instance.parent:
+            parent = instance.parent.author
+            if parent.id != comment_auhtor.id:
+                notification_data = {
+                    'notification_type': 'comment_reply',
+                    'receiver': parent.id,
+                    'comment': instance.id,
+                }
+                notification_serializer = NotificationSerializer(data=notification_data)
+                if notification_serializer.is_valid(raise_exception=True):
+                    notification_serializer.save()
+
+                    receiver_obj = Account.objects.get(pk=parent.id)
+                    comment__obj = Comment.objects.get(pk=instance.id)
+                    comment__serializer_data = NotificationCommentSerializer(comment__obj).data
+
+                    data = {
+                        'receiver': ShortAccountSerializer(receiver_obj).data,
+                        'notification_type': 'comment_reply',
+                        'data': comment__serializer_data
+                    }
+
+                    notifications.apply_async(args=[parent.id ,parent.username, data], kwargs={})
+        else:
+            if post_author.id != comment_auhtor.id:
+                notification_data = {
+                    'notification_type': 'post_comment',
+                    'receiver': post_author.id,
+                    'comment': instance.id,
+                }
+                notification_serializer = NotificationSerializer(data=notification_data)
+                if notification_serializer.is_valid(raise_exception=True):
+                    notification_serializer.save()
+
+                    receiver_obj = Account.objects.get(pk=post_author.id)
+                    comment__obj = Comment.objects.get(pk=instance.id)
+
+                    comment__serializer_data = NotificationCommentSerializer(comment__obj).data
+                    del comment__serializer_data['parent']
+
+                    data = {
+                        'receiver': ShortAccountSerializer(receiver_obj).data,
+                        'notification_type': 'post_comment',
+                        'data': comment__serializer_data
+                    }
+
+                    notifications.apply_async(args=[post_author.id , post_author.username, data], kwargs={})             
+
+@receiver(post_save, sender=CommentReaction)
+def leave_comment__reaction(sender, instance, created, **kwargs):
+    if created:
+        comment_author = instance.comment.author
+        comment_reaction__author = instance.author
+
+        if comment_author.id != comment_reaction__author.id:
+
+            notification_data = {
+                'notification_type': 'comment_reaction',
+                'receiver': comment_author.id,
+                'comment_reaction': instance.id,
+            }
+
+            notification_serializer = NotificationSerializer(data=notification_data)
+            if notification_serializer.is_valid(raise_exception=True):
+                notification_serializer.save()
+
+                receiver_obj = Account.objects.get(pk=comment_author.id)
+                comment_reaction__author_obj = Account.objects.get(pk=comment_reaction__author.id)
+                comment_reaction__obj = CommentReaction.objects.get(pk=instance.id)
+
+                comment_reaction__serializer_data = CommentReactionSerializer(comment_reaction__obj).data
+                comment_reaction__serializer_data['comment'] = {'id': instance.comment.id, 'text': instance.comment.text}
+                comment_reaction__serializer_data['author'] = ShortAccountSerializer(comment_reaction__author_obj).data
+
+                data = {
+                    'receiver': ShortAccountSerializer(receiver_obj).data,
+                    'notification_type': 'comment_reaction',
+                    'data': comment_reaction__serializer_data
+                }
+
+                notifications.apply_async(args=[comment_author.id , comment_author.username, data], kwargs={})
+
+# @receiver(m2m_changed, sender=Subscription.subscribed_to.through)
+# def subscription_added(sender, instance, action, reverse, model, pk_set, **kwargs):
+#     if action == 'pre_add':
+#         subscribed_to_user = model.objects.get(pk=pk_set[-1])
+
+#         notification_data = {
+#             'notification_type': 'subscribe',
+#             'receiver': instance.user.id,
+#             'subscriber': subscribed_to_user.id,
+#         }
+
+#         notification_serializer = NotificationSerializer(data=notification_data)
+#         if notification_serializer.is_valid(raise_exception=True):
+#             notification_serializer.save()
+
+#             receiver_obj = Account.objects.get(pk=instance.user.id)
+#             subscriber__serializer_data = ShortAccountSerializer(subscribed_to_user).data
+
+
+#             data = {
+#                 'receiver': ShortAccountSerializer(receiver_obj).data,
+#                 'notification_type': 'post_reaction',
+#                 'data': {'subscriber': subscriber__serializer_data, 'subscribe_at'}
+#             }
+
+#             notifications.apply_async(args=[instance.user.id , instance.user.username, data], kwargs={})
+
+
+
+#Сделать отмену задачи при отмене отложенной публикации поста
+# Исправить на фронтенде кнопку подписки
+
+
 # Срабатывает при появлении сигнала после создании экземпляра поста (аргумент created == True) (для действий в админ-панели и API)
 @receiver(post_save, sender=Post)
 def send_post_data(sender, instance, created, **kwargs):
@@ -96,46 +253,6 @@ def send_post_data(sender, instance, created, **kwargs):
             async_to_sync(channel_layer.group_send)("post", {"type": "send_new_post"})
         elif(instance.publish_datetime != None and instance.is_draft == False):
             postponed_publish.apply_async(args=[instance.id], kwargs={}, eta=instance.publish_datetime)
-
-
-@receiver(post_save, sender=PostReaction)
-def leave_like_data(sender, instance, created, **kwargs):
-    # Отправка данных через WebSocket
-    if created:
-        like_author = instance.author
-        post_author = instance.post.author
-
-        if like_author.id != post_author.id:
-            like_post.apply_async(args=[post_author.id , post_author.username, instance.id], kwargs={})
-
-@receiver(post_save, sender=Comment)
-def leave_comment_data(sender, instance, created, **kwargs):
-    # Отправка данных через WebSocket
-    if created:
-        comment_author = instance.author
-        post_author = instance.post.author
-
-        if comment_author.id != post_author.id:
-            leave_comment.apply_async(args=[post_author.id , post_author.username, instance.id], kwargs={})
-
-@receiver(post_save, sender=Comment)
-def leave_reply_comment_data(sender, instance, created, **kwargs):
-    # Отправка данных через WebSocket
-    if created:
-        if instance.parent:
-            if instance.parent.author.id != instance.author.id:
-                leave_reply_comment.apply_async(args=[instance.parent.author.id , instance.parent.author.username, instance.id], kwargs={})
-
-
-@receiver(post_save, sender=CommentReaction)
-def like_comment_data(sender, instance, created, **kwargs):
-    # Отправка данных через WebSocket
-    if created:
-        comment_author = instance.comment.author
-        reaction_author = instance.author
-
-        if comment_author.id != reaction_author.id:
-            like_comment.apply_async(args=[comment_author.id , comment_author.username, instance.id], kwargs={})
 
 
 class SubscriptionViewSet(viewsets.ModelViewSet):
@@ -455,7 +572,7 @@ class PostReactionViewSet(viewsets.ModelViewSet):
 
         post_id = request.data.get('post_id')
         try:
-            Post.objects.all().get(id=post_id)
+            post_obj = Post.objects.all().get(id=post_id)
         except Post.DoesNotExist:
             return Response({"error": "Пост не существует"}, status=status.HTTP_404_NOT_FOUND)
         
@@ -473,7 +590,9 @@ class PostReactionViewSet(viewsets.ModelViewSet):
             
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                post_reaction_data = serializer.data
+
+                return Response(post_reaction_data, status=status.HTTP_201_CREATED)
             else:
                 return Response({"error": "Сериализация не пройдена"}, status=status.HTTP_400_BAD_REQUEST)
         else:
