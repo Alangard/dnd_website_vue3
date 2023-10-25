@@ -1,30 +1,34 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 from django.db.models.signals import *
 from tinymce.models import HTMLField
-
 
 class Account(AbstractUser):
     email = models.EmailField(unique=True)
     slug = models.SlugField(max_length=150, db_index=True, blank=True, null=True)
     avatar = models.ImageField(upload_to='images/user_avatars/%Y/%m/%d/', blank=True)
     confirmation_code = models.CharField(max_length=6, null=True, blank=True)
-    is_active = models.BooleanField(default=False)
+    # is_active = models.BooleanField(default=True)
+    # is_superuser = models.BooleanField(default=True)
+    # is_staff = models.BooleanField(default=True)
 
     class Meta:
         db_table = "Account"
         verbose_name = "Account"
         verbose_name_plural = "Account"
 
-    def __str__(self):
-        return f'{self.username}'
-    
     def save(self, *args, **kwargs):
         from django.utils.text import slugify
         self.slug = slugify(self.username)
         super().save(*args, **kwargs)
+
+    
+
+    def __str__(self):
+        return f'{self.id} - {self.username}'
 
 
 class Notification(models.Model):
@@ -56,39 +60,18 @@ class Notification(models.Model):
      
 
 class Subscription(models.Model):
-    user = models.ForeignKey('Account', on_delete=models.CASCADE, related_name='subscriptions')
-    subscribed_to = models.ManyToManyField('Account', related_name='subscribers', blank=True)
-
+    subscription_reciever = models.ForeignKey('Account', on_delete=models.CASCADE, related_name='account_subscription_reciever')
+    subscriber = models.ForeignKey('Account', on_delete=models.CASCADE, related_name='account_subscriber')
+    subscription_datetime = models.DateTimeField(auto_now_add=True)
+    
     class Meta:
         db_table = "Subscription"
         verbose_name = "Subscription"
         verbose_name_plural = "Subscription"
-
-    def __str__(self):
-        return f'Subscription_id {self.id} - {self.user}'
-
-# class Subscription(models.Model):
-#     user = models.ForeignKey('Account', on_delete=models.CASCADE, related_name='subscriptions')
-#     subscribed_to = models.ManyToManyField('Account', through='SubscriptionRelation', related_name='subscribers', blank=True)
     
-#     class Meta:
-#         db_table = "Subscription"
-#         verbose_name = "Subscription"
-#         verbose_name_plural = "Subscription"
-    
-#     def __str__(self):
-#         return f'Subscription_id {self.id} - {self.user}'
+    def __str__(self):  
+        return f'Subscription_reciever @{self.subscription_reciever.username} - subscriber @{self.subscriber.username}'
         
-
-# class SubscriptionRelation(models.Model):
-#     subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE)
-#     subscriber = models.ForeignKey('Account', on_delete=models.CASCADE)
-#     date_created = models.DateTimeField(default=timezone.now)
-    
-#     class Meta:
-#         db_table = "Subscription_Date"
-#         verbose_name = "Subscription Date"
-#         verbose_name_plural = "Subscription Dates"
 
 class Post(models.Model):
     title = models.CharField(max_length=200, db_index=True)

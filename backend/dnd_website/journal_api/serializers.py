@@ -80,38 +80,11 @@ class NotificationSerializer(serializers.ModelSerializer):
         model = Notification
         fields = "__all__"
 
-class MySubscriptionListSerializer(serializers.ModelSerializer):
-    user = ShortAccountSerializer(read_only=True)
-    subscribed_to = ShortAccountSerializer(read_only=True, many=True)
-    subscribers = serializers.SerializerMethodField() 
-
+class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
-        fields = ['id', 'user', 'subscribed_to', 'subscribers']
-        read_only_fields = ['user', 'subscribed_to', 'subscribers']
+        fields = "__all__"
 
-    def get_subscribers(self, obj):
-        request_user = self.context['request'].user.id
-        subscriptions = Subscription.objects.filter(subscribed_to=request_user)
-        subscribers = [subscription.user for subscription in subscriptions]
-        serializer = ShortAccountSerializer(subscribers, many=True)
-        return serializer.data 
-
-class AnotherSubscriptionListSerializer(serializers.ModelSerializer):
-    user = ShortAccountSerializer(read_only=True)
-    subscribers = serializers.SerializerMethodField() 
-
-    class Meta:
-        model = Subscription
-        fields = ['id', 'user', 'subscribers']
-        read_only_fields = ['user', 'subscribers']
-
-    def get_subscribers(self, obj):
-        user_id = self.context['user_id']
-        subscriptions = Subscription.objects.filter(subscribed_to=user_id)
-        subscribers = [subscription.user for subscription in subscriptions]
-        serializer = ShortAccountSerializer(subscribers, many=True)
-        return serializer.data
 
 
 ## Comment Serializer #########################################################################

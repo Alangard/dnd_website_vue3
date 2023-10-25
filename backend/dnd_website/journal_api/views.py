@@ -121,8 +121,6 @@ def leave_post__reaction(sender, instance, created, **kwargs):
 
                 notifications.apply_async(args=[post_author.id , post_author.username, data], kwargs={})
 
-
-
 @receiver(post_save, sender=Comment)
 def leave_comment(sender, instance, created, **kwargs):
     if created:
@@ -211,38 +209,16 @@ def leave_comment__reaction(sender, instance, created, **kwargs):
 
                 notifications.apply_async(args=[comment_author.id , comment_author.username, data], kwargs={})
 
-# @receiver(m2m_changed, sender=Subscription.subscribed_to.through)
-# def subscription_added(sender, instance, action, reverse, model, pk_set, **kwargs):
-#     if action == 'pre_add':
-#         subscribed_to_user = model.objects.get(pk=pk_set[-1])
+@receiver(post_save, sender=Subscription)
+def subscribe(sender, instance, created, **kwargs):
+    if created:
+        notification_data = {
+            'notification_type': 'subscribe',
+            'receiver': ShortAccountSerializer(instance.subscription_reciever).data,
+            'subscriber': ShortAccountSerializer(instance.subscriber).data
+        }
 
-#         notification_data = {
-#             'notification_type': 'subscribe',
-#             'receiver': instance.user.id,
-#             'subscriber': subscribed_to_user.id,
-#         }
-
-#         notification_serializer = NotificationSerializer(data=notification_data)
-#         if notification_serializer.is_valid(raise_exception=True):
-#             notification_serializer.save()
-
-#             receiver_obj = Account.objects.get(pk=instance.user.id)
-#             subscriber__serializer_data = ShortAccountSerializer(subscribed_to_user).data
-
-
-#             data = {
-#                 'receiver': ShortAccountSerializer(receiver_obj).data,
-#                 'notification_type': 'post_reaction',
-#                 'data': {'subscriber': subscriber__serializer_data, 'subscribe_at'}
-#             }
-
-#             notifications.apply_async(args=[instance.user.id , instance.user.username, data], kwargs={})
-
-
-
-#Сделать отмену задачи при отмене отложенной публикации поста
-# Исправить на фронтенде кнопку подписки
-
+        notifications.apply_async(args=[instance.subscription_reciever.id , instance.subscription_reciever.username, notification_data], kwargs={})
 
 # Срабатывает при появлении сигнала после создании экземпляра поста (аргумент created == True) (для действий в админ-панели и API)
 @receiver(post_save, sender=Post)
@@ -257,6 +233,7 @@ def send_post_data(sender, instance, created, **kwargs):
 
 class SubscriptionViewSet(viewsets.ModelViewSet):
     queryset = Subscription.objects.all()
+    serializer_class = SubscriptionSerializer
 
     @action(detail=False, methods=['post'])  
     def change_subscription(self, request, pk=None):
@@ -266,49 +243,46 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
 
         user_id = request.data.get('user_id')
         user = request.user
-        subscription = Subscription.objects.filter(user=user).first()
-        
-        # Если экземпляра Subscription пользователя нет, создаем его
-        if not subscription:
-            subscription = Subscription(user=user)
-            subscription.save()
 
         try: 
             user_to_subscribe = Account.objects.get(pk=user_id)
-            subscription_to = Subscription.objects.filter(user=user_to_subscribe).first()
-            
-            # Если экземпляра Subscription цели-пользователя нет, создаем его
-            if not subscription_to:
-                subscription_to = Subscription(user=user_to_subscribe)
-                subscription_to.save() 
-
         except Account.DoesNotExist: 
             return Response({"error": "Пользователя-цели подписки не существует"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Если передан user_id, добавляем или удаляем пользователя из подписок
-        if user_id:      
-            user_to_subscribe = Account.objects.get(pk=user_id)
-            
-            # Если пользователь уже есть в подписках, удаляем его
-            if user_to_subscribe in subscription.subscribed_to.all():
-                subscription.subscribed_to.remove(user_to_subscribe)
-                return Response({'success': f'Вы успешно отписались от пользователя {user_to_subscribe.username}#{user_to_subscribe.id}', 'data':{}})
-            else:
-                subscription.subscribed_to.add(user_to_subscribe)
-                return Response({'success': f'Вы успешно подписались на пользователя {user_to_subscribe.username}#{user_to_subscribe.id}', 'data': ShortAccountSerializer(user_to_subscribe).data})
+        subscription, created = Subscription.objects.get_or_create(subscription_reciever=user_to_subscribe, subscriber=user)
+        
+        if created:
+            return Response({'success': f'Вы успешно подписались на пользователя {user_to_subscribe.username}#{user_to_subscribe.id}', 'data': ShortAccountSerializer(user_to_subscribe).data}) 
+        else:
+            subscription.delete()
+            return Response({'success': f'Вы успешно отписались от пользователя {user_to_subscribe.username}#{user_to_subscribe.id}', 'data':{}})
 
     def retrieve(self, request, *args, **kwargs):
-        user_id = int(kwargs.get('pk'))
-        self.serializer_class = MySubscriptionListSerializer
+        user_id = int(kwargs.get('pk')) 
+        user = Account.objects.get(id=user_id)
+        subscribers = self.queryset.filter(subscription_reciever=user)
+        subscribed_to = self.queryset.filter(subscriber=user)
 
-        instance = self.queryset.get(user=user_id)
-        if request.user.id == user_id:
-            serializer = self.get_serializer(instance)
-        else:
-            context = super().get_serializer_context()
-            context['user_id'] = self.kwargs['pk'] 
-            serializer = AnotherSubscriptionListSerializer(instance=instance, context=context)
-        return Response(serializer.data)
+        subscribers_list = []
+        subscribed_to_list = []
+
+        user_serializer = ShortAccountSerializer(user)
+        for element in subscribers:
+            data = ShortAccountSerializer(element.subscriber).data
+            data['subscription_datetime'] = element.subscription_datetime
+            subscribers_list.append(data)
+
+        for element in subscribed_to:
+            data = ShortAccountSerializer(element.subscription_reciever).data
+            data['subscription_datetime'] = element.subscription_datetime
+            subscribed_to_list.append(data)
+
+        response_data = {
+            'user': user_serializer.data,
+            'subscribers': subscribers_list,
+            'subscribed_to': subscribed_to_list,
+        }
+        return Response(response_data)
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().select_related('author').prefetch_related('tags', 'post_reactions', 'comments')
@@ -548,14 +522,15 @@ class PostFeedViewSet(viewsets.ModelViewSet):
 
         if not request.user.is_authenticated:
             return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
-    
-        subscriptions = Subscription.objects.filter(user=request.user).values_list('subscribed_to', flat=True)
+        
+        subscriptions = Subscription.objects.filter(subscriber=request.user)
+        subscribers = subscriptions.values_list('subscription_reciever', flat=True)
 
-        instance = self.queryset.filter(is_publish=True, is_draft=False, author__in=subscriptions)
+        instance = self.queryset.filter(is_publish=True, is_draft=False, author__in=subscribers)
         instance = myfilters(instance)
 
         page = self.paginate_queryset(instance)
-        if page is not None: 
+        if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 

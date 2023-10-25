@@ -248,6 +248,7 @@ DATABASES = {
 AUTH_USER_MODEL = 'journal_api.Account'
 AUTH_PROFILE_MODULE = 'journal_api.Account'
 
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",

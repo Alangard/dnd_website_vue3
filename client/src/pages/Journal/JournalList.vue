@@ -24,8 +24,8 @@
                 @clickContentType="(contentType) => {changeContentType(contentType)}">
             </Filters>
         
-            <v-row class='mb-4' no-gutters>
-                <v-col :cols="width < mobileWidthLimit ? '12' : '8'" v-if="new_posts_count > 0">
+            <div class='mb-4'>
+                <v-col class="pa-0" :cols="width < mobileWidthLimit ? '12' : '8'" v-if="new_posts_count > 0">
                     <v-sheet class="mr-2">
                         <v-btn class="load_new_posts w-100" rounded="sm" @click="LoadNewPost()">
                             <span class="text-info">+{{new_posts_count}} &nbsp;</span><span> new posts</span> 
@@ -33,10 +33,10 @@
                     </v-sheet>
                 </v-col>
 
-                <v-col :cols="new_posts_count > 0 ? '4' : '12'" v-if="width >= mobileWidthLimit">
+                <v-col class="pa-0" :cols="new_posts_count > 0 ? '4' : '12'" v-if="width >= mobileWidthLimit">
                     <v-btn class="create_post_btn w-100" rounded="sm" prepend-icon="mdi-plus-thick" @click="routes.push({name: 'journal_create'})">Create post</v-btn>
                 </v-col>
-            </v-row>            
+            </div>            
 
             <div class="d-flex flex-column align-center h-auto" ref="scrollComponent">
                 <v-card class="main-container elevation-8 w-100" v-for="post in postsList" :key="post">
@@ -68,7 +68,7 @@
                                     <v-icon>{{ isSubscribedTo(post.author.id) != -1 ? 'mdi-bell-check-outline':'mdi-bell-ring-outline' }}</v-icon>
                                 </v-btn>
                             </template>
-                            <span>{{isSubscribedTo(post.author.id) != -1 ? 'You are subscribed': 'You are unsubscribed'}}</span>
+                            <span>{{isSubscribedTo(post.author.id) != -1 ? 'You are subscribed': 'You are not subscribed'}}</span>
                         </v-tooltip>
                         
                     </div>
@@ -234,7 +234,7 @@ const userData = ref(null)
 const subscriptions = ref(null)
 
 const changeSubscribeState =(user_id) =>{store.dispatch('accounts/changeSubscription', user_id)}
-const isSubscribedTo = (user_id) => {return subscriptions?.value?.subscribed_to.findIndex(user => user.id === user_id)};
+const isSubscribedTo = (user_id) => {return subscriptions?.value?.subscribed_to.findIndex(user => user.id == user_id)};
 
 const changeContentType = async(type) => {
     contentType.value = type
@@ -358,8 +358,9 @@ const pressReaction = (data) =>{
 onBeforeMount(async () => {
     if(store.getters['auth/loginState'] == true){
         userData.value = store.getters['auth/getUserData']
-        subscriptions.value = store.getters['accounts/getSubscriptions']
         await store.dispatch('accounts/getSubscriptions', userData?.value?.id)
+        subscriptions.value = store.getters['accounts/getSubscriptions']
+        
     }
 
     page_count.value = Math.ceil((await store.dispatch('journal/getPostList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)

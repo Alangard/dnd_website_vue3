@@ -6,6 +6,7 @@ from django.db import models as models_dict
 from django.forms import TextInput, Textarea
 from .forms import MultiLineCharField
 
+
 class CustomAccountAdmin(UserAdmin):
     search_fields = ('username',)
     readonly_fields = ['slug']
@@ -28,7 +29,6 @@ class CustomAccountAdmin(UserAdmin):
 
 class NotificationAdmin(admin.ModelAdmin):
     model = models.Notification
-    
 
 class PostReactionAdmin(admin.ModelAdmin):
     list_display = ['id', 'reaction_type', 'author', 'reacted_at', 'post', ]
@@ -74,7 +74,6 @@ class ReportReasonAdmin(admin.ModelAdmin):
 admin.site.register(models.Account, CustomAccountAdmin)
 admin.site.register(models.Notification, NotificationAdmin)
 admin.site.register(models.Subscription)
-# admin.site.register(models.SubscriptionRelationship)
 admin.site.register(models.Post, PostAdmin)
 admin.site.register(models.Tag, TagAdmin)
 admin.site.register(models.Comment, CommentAdmin)
