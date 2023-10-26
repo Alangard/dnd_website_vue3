@@ -97,8 +97,8 @@ const store = useStore();
 const props = defineProps(['post_id'])
 const { width } = useDisplay();
 
-const url = `ws://${axios.defaults.baseURL.split('http://')[1]}ws/comment_socket-server/`
-const websocket = new WebSocket(url)
+// const url = `ws://${axios.defaults.baseURL.split('http://')[1]}ws/comment_socket-server/`
+// const websocket = new WebSocket(url)
 
 const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 const loggedIn = computed(() => {return store.getters['auth/loginState']})

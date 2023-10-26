@@ -177,6 +177,7 @@ def leave_comment(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=CommentReaction)
 def leave_comment__reaction(sender, instance, created, **kwargs):
+    print('yes')
     if created:
         comment_author = instance.comment.author
         comment_reaction__author = instance.author
@@ -249,13 +250,16 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
         except Account.DoesNotExist: 
             return Response({"error": "Пользователя-цели подписки не существует"}, status=status.HTTP_404_NOT_FOUND)
 
-        subscription, created = Subscription.objects.get_or_create(subscription_reciever=user_to_subscribe, subscriber=user)
-        
-        if created:
-            return Response({'success': f'Вы успешно подписались на пользователя {user_to_subscribe.username}#{user_to_subscribe.id}', 'data': ShortAccountSerializer(user_to_subscribe).data}) 
-        else:
+        try:
+            subscription = Subscription.objects.get(subscription_reciever=user_to_subscribe, subscriber=user)
             subscription.delete()
             return Response({'success': f'Вы успешно отписались от пользователя {user_to_subscribe.username}#{user_to_subscribe.id}', 'data':{}})
+        except Subscription.DoesNotExist:
+            subscription = Subscription(subscription_reciever=user_to_subscribe, subscriber=user)
+            subscription.save()
+            return Response({'success': f'Вы успешно подписались на пользователя {user_to_subscribe.username}#{user_to_subscribe.id}', 'data': ShortAccountSerializer(user_to_subscribe).data}) 
+        
+            
 
     def retrieve(self, request, *args, **kwargs):
         user_id = int(kwargs.get('pk')) 
@@ -546,32 +550,25 @@ class PostReactionViewSet(viewsets.ModelViewSet):
             return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
 
         post_id = request.data.get('post_id')
+        user_id = request.user.id
         try:
             post_obj = Post.objects.all().get(id=post_id)
         except Post.DoesNotExist:
             return Response({"error": "Пост не существует"}, status=status.HTTP_404_NOT_FOUND)
-        
+  
+        instance = self.queryset.filter(post=post_obj, author=Account.objects.get(id=user_id))
 
-        instance = self.queryset.filter(post=post_id, author__id=request.user.id).first()
-        if instance is None:
-    
-            data = {
-                'reaction_type': request.data.get('reaction_type'),
-                'post': post_id,
-                'author': request.user.id,
-            }
-            
+        if not instance.exists(): 
+            data={'reaction_type': request.data.get('reaction_type'), 'post': post_id}
             serializer = self.serializer_class(data=data)
-            
             if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                post_reaction_data = serializer.data
-
-                return Response(post_reaction_data, status=status.HTTP_201_CREATED)
+                serializer.save(author=self.request.user)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
                 return Response({"error": "Сериализация не пройдена"}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({"error": "Реакция к посту уже имеется"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Реакция уже существует"}, status=status.HTTP_400_BAD_REQUEST)
+            
 
     def destroy(self, request, *args, **kwargs):
 
@@ -680,27 +677,30 @@ class PostCommentsViewSet(viewsets.ModelViewSet):
         parent_id = request.data.get('parent')
 
         if parent_id is None:
-            comment_obj = Comment.objects.create(
-                status = 'n',
-                post = post,
-                author=request.user,
-                text = comment_text
-            )
+            data = {
+                'status': 'n',
+                'post': post_id,
+                'text': comment_text,
+            }
         else:
-            try:
-                parent_comment = self.queryset.get(pk=parent_id)
-                comment_obj = Comment.objects.create(
-                    status = 'n',
-                    post = post,
-                    parent=parent_comment,
-                    author=request.user,
-                    text = comment_text
-                )
-            except Comment.DoesNotExist:
+            parent_comment = self.queryset.filter(pk=parent_id)
+            if not parent_comment.exists():
                 return Response({"error": "Родительского комментария не существует"}, status=status.HTTP_400_BAD_REQUEST)
-       
-        serializer = self.get_serializer(comment_obj, context={'request': self.request})
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                data = {
+                    'status': 'n',
+                    'post': post_id,
+                    'parent': parent_id,
+                    'text': comment_text,
+                }
+                     
+        serializer = self.get_serializer(data=data, context={'request': self.request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save(author=self.request.user)  
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response({"error": "Сериализация не пройдена"}, status=status.HTTP_400_BAD_REQUEST)
+
 
     def destroy(self, request, *args, **kwargs):
         self.serializer_class = CommentSerializer

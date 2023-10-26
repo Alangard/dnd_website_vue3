@@ -474,6 +474,8 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             'data': event['data'],
         }
 
+        print('send')
+
         await self.send(json.dumps(data))
 
 

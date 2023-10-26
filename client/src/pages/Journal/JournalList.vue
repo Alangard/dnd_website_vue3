@@ -343,6 +343,8 @@ const ratingPercentage = (post_reactions_obj) => {
 
 const pressReaction = (data) =>{
 
+    console.log(data)
+
     store.dispatch('journal/set_reaction', 
         {
             'post_id': data.post_id,
