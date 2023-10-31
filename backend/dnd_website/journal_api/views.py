@@ -80,6 +80,16 @@ class PostFeedPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 1000
 
+class NotificationPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+
+class SubscriptionsPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+
 class CommentsListPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
@@ -98,12 +108,13 @@ def leave_post__reaction(sender, instance, created, **kwargs):
             notification_data = {
                 'notification_type': 'post_reaction',
                 'receiver': post_author.id,
+                'post': instance.post.id,
                 'post_reaction': instance.id,
             }
 
-            notification_serializer = NotificationSerializer(data=notification_data)
+            notification_serializer = NotificationSerializer(data=notification_data, )
             if notification_serializer.is_valid(raise_exception=True):
-                notification_serializer.save()
+                notification_serializer.save(receiver=post_author)
 
                 receiver_obj = Account.objects.get(pk=post_author.id)
                 post_reaction__obj = PostReaction.objects.get(pk=instance.id)
@@ -133,6 +144,7 @@ def leave_comment(sender, instance, created, **kwargs):
                 notification_data = {
                     'notification_type': 'comment_reply',
                     'receiver': parent.id,
+                    'post': instance.post.id,
                     'comment': instance.id,
                 }
                 notification_serializer = NotificationSerializer(data=notification_data)
@@ -155,6 +167,7 @@ def leave_comment(sender, instance, created, **kwargs):
                 notification_data = {
                     'notification_type': 'post_comment',
                     'receiver': post_author.id,
+                    'post': instance.post.id,
                     'comment': instance.id,
                 }
                 notification_serializer = NotificationSerializer(data=notification_data)
@@ -177,7 +190,6 @@ def leave_comment(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=CommentReaction)
 def leave_comment__reaction(sender, instance, created, **kwargs):
-    print('yes')
     if created:
         comment_author = instance.comment.author
         comment_reaction__author = instance.author
@@ -187,6 +199,7 @@ def leave_comment__reaction(sender, instance, created, **kwargs):
             notification_data = {
                 'notification_type': 'comment_reaction',
                 'receiver': comment_author.id,
+                'comment': instance.comment.id,
                 'comment_reaction': instance.id,
             }
 
@@ -213,13 +226,28 @@ def leave_comment__reaction(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Subscription)
 def subscribe(sender, instance, created, **kwargs):
     if created:
-        notification_data = {
-            'notification_type': 'subscribe',
-            'receiver': ShortAccountSerializer(instance.subscription_reciever).data,
-            'subscriber': ShortAccountSerializer(instance.subscriber).data
-        }
+        subscriber_receiver = instance.subscription_reciever
+        subscriber = instance.subscriber
 
-        notifications.apply_async(args=[instance.subscription_reciever.id , instance.subscription_reciever.username, notification_data], kwargs={})
+        if subscriber_receiver.id != subscriber.id:
+
+            notification_data = {
+                'notification_type': 'subscribe',
+                'receiver': subscriber_receiver.id,
+                'subscription': instance.id,
+            }
+
+            notification_serializer = NotificationSerializer(data=notification_data)
+            if notification_serializer.is_valid(raise_exception=True):
+                notification_serializer.save()
+
+            data = {
+                'notification_type': 'subscribe',
+                'receiver': ShortAccountSerializer(instance.subscription_reciever).data,
+                'subscriber': ShortAccountSerializer(instance.subscriber).data
+            }
+
+            notifications.apply_async(args=[subscriber_receiver.id , subscriber_receiver.username, data], kwargs={})
 
 # Срабатывает при появлении сигнала после создании экземпляра поста (аргумент created == True) (для действий в админ-панели и API)
 @receiver(post_save, sender=Post)
@@ -234,7 +262,6 @@ def send_post_data(sender, instance, created, **kwargs):
 
 class SubscriptionViewSet(viewsets.ModelViewSet):
     queryset = Subscription.objects.all()
-    serializer_class = SubscriptionSerializer
 
     @action(detail=False, methods=['post'])  
     def change_subscription(self, request, pk=None):
@@ -259,8 +286,6 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
             subscription.save()
             return Response({'success': f'Вы успешно подписались на пользователя {user_to_subscribe.username}#{user_to_subscribe.id}', 'data': ShortAccountSerializer(user_to_subscribe).data}) 
         
-            
-
     def retrieve(self, request, *args, **kwargs):
         user_id = int(kwargs.get('pk')) 
         user = Account.objects.get(id=user_id)
@@ -287,6 +312,44 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
             'subscribed_to': subscribed_to_list,
         }
         return Response(response_data)
+
+    def list(self, request, *args, **kwargs):
+        self.serializer_class = SubscriptionSerializer
+        self.ordering = ['-subscription_datetime']
+        self.pagination_class = SubscriptionsPagination
+
+        # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Проверяем, состоит ли пользователь в группе работников
+        if not request.user.is_staff == True:
+             return Response({"error": "Недостаточно прав"}, status=status.HTTP_403_FORBIDDEN)
+        
+        page = self.paginate_queryset(self.queryset)
+
+        if page is not None: 
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+class NotificationsViewSet(viewsets.ModelViewSet):
+    queryset = Notification.objects.all().select_related('post', 'comment', 'post_reaction', 'comment_reaction', 'subscription')
+    
+    def list(self, request, *args, **kwargs):
+        self.serializer_class = NotificationSerializer
+        self.ordering = ['-created_datetime']
+        self.pagination_class = NotificationPagination
+
+         # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        instance = self.queryset.filter(receiver__id=request.user.id)
+        page = self.paginate_queryset(instance)
+
+        if page is not None: 
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().select_related('author').prefetch_related('tags', 'post_reactions', 'comments')

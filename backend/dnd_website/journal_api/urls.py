@@ -8,6 +8,7 @@ router = routers.DefaultRouter()
 
 router.register(r'auth/user', UserViewSet, basename='users')
 router.register(r'subs', SubscriptionViewSet, basename='subscription')
+router.register(r'notifications', NotificationsViewSet, basename='notifications')
 router.register(r'post', PostViewSet, basename='post')
 router.register(r'post_feed', PostFeedViewSet, basename='post_feed')
 router.register(r'post_reactions', PostReactionViewSet, basename='post_reactions')

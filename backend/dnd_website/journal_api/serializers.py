@@ -81,9 +81,90 @@ class NotificationSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class SubscriptionSerializer(serializers.ModelSerializer):
+    subscription_reciever = ShortAccountSerializer(read_only=True)
+    subscriber = ShortAccountSerializer(read_only=True)
+
     class Meta:
         model = Subscription
         fields = "__all__"
+
+class NotificationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Notification
+        fields = "__all__"
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        match instance.notification_type:
+            case "post_reaction":
+                post_author = instance.post.author
+                post_id = instance.post.id
+                post_title = instance.post.title
+
+                receiver_obj = Account.objects.get(pk=post_author.id)
+                post_reaction__obj = PostReaction.objects.get(pk=instance.post_reaction.id)
+
+                post_reaction__serializer_data = PostReactionSerializer(post_reaction__obj).data
+                post_reaction__serializer_data['post'] = {'id': post_id, 'title': post_title}
+
+                data = {
+                    'notification_type': 'post_reaction',
+                    'data': post_reaction__serializer_data
+                }
+                return data
+            
+            case "post_comment":
+                comment = instance.comment
+                comment__obj = Comment.objects.get(pk=comment.id)
+                comment__serializer_data = NotificationCommentSerializer(comment__obj).data
+
+                del comment__serializer_data['parent']
+
+                data = {
+                    'notification_type': 'post_comment',
+                    'data': comment__serializer_data
+                }
+                return data
+            
+            case "comment_reply":
+                comment = instance.comment
+                comment__obj = Comment.objects.get(pk=comment.id)
+                comment__serializer_data = NotificationCommentSerializer(comment__obj).data
+
+                data = {
+                    'notification_type': 'comment_reply',
+                    'data': comment__serializer_data
+                }
+                return data
+            
+            case "comment_reaction":
+                comment_reaction = instance.comment_reaction
+                comment_reaction__author = instance.comment_reaction.author
+                comment_reaction__obj = CommentReaction.objects.get(pk=comment_reaction.id)
+                comment_reaction__author_obj = Account.objects.get(pk=comment_reaction__author.id)
+
+                comment_reaction__serializer_data = CommentReactionSerializer(comment_reaction__obj).data
+                comment_reaction__serializer_data['comment'] = {'id': instance.comment.id, 'text': instance.comment.text}
+                comment_reaction__serializer_data['author'] = ShortAccountSerializer(comment_reaction__author_obj).data
+          
+                data = {
+                    'notification_type': 'comment_reaction',
+                    'data': comment_reaction__serializer_data
+                }
+                return data
+            
+            case "subscribe":
+                subscription = instance.subscription
+                
+                data = SubscriptionSerializer(subscription).data
+                data['notification_type'] = 'subscribe'
+                del data["subscription_reciever"]
+
+                return data
+            
+        # return data
 
 
 

@@ -41,6 +41,17 @@ export const accounts = {
       }  
       catch(error){console.log(error)}
     },
+
+    // async getNotificationsList({commit},{paginate_url, request_type}){
+    //   try{
+    //     const response = await interceptorsInstance.get(BASE_URL + `post/${paginate_url}`, { headers: authHeader() })
+    //     if(request_type == 'initial'){commit('setPostListInStore', response.data)}
+    //     else if(request_type == 'load_more'){commit('addPostInStore', response.data)}
+    //     return response.data
+    //   }
+    //   catch(error){console.log(error)}
+    // }
+
   },
   mutations: {
     setSubscriptionsInStore(state, data){

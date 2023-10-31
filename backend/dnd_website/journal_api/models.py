@@ -77,8 +77,8 @@ class Notification(models.Model):
     comment = models.ForeignKey('Comment', on_delete=models.CASCADE, null=True, blank=True, related_name='comment_notifications')
     post_reaction = models.ForeignKey('PostReaction', on_delete=models.CASCADE, null=True, blank=True, related_name='post_reaction_notifications')
     comment_reaction = models.ForeignKey('CommentReaction', on_delete=models.CASCADE, null=True, blank=True, related_name='comment_reaction_notifications')
-    subscriber = models.ForeignKey('Account', on_delete=models.CASCADE, null=True, blank=True, related_name='subscriber_notifications')
-        
+    subscription = models.ForeignKey('Subscription', on_delete=models.CASCADE, null=True, blank=True, related_name='subscription_notifications')
+
     class Meta:
         db_table = "Notification"
         verbose_name = "Notification"
