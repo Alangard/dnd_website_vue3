@@ -344,7 +344,7 @@ class NotificationsViewSet(viewsets.ModelViewSet):
         if not request.user.is_authenticated:
             return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        instance = self.queryset.filter(receiver__id=request.user.id)
+        instance = self.queryset.filter(receiver__id=request.user.id, seen=False)
         page = self.paginate_queryset(instance)
 
         if page is not None: 

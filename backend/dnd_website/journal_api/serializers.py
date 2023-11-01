@@ -111,19 +111,25 @@ class NotificationSerializer(serializers.ModelSerializer):
 
                 data = {
                     'notification_type': 'post_reaction',
+                    'seen': instance.seen,
                     'data': post_reaction__serializer_data
                 }
                 return data
             
             case "post_comment":
                 comment = instance.comment
+                post_id = instance.post.id
+                post_title = instance.post.title
+
                 comment__obj = Comment.objects.get(pk=comment.id)
                 comment__serializer_data = NotificationCommentSerializer(comment__obj).data
+                comment__serializer_data['post'] = {'id': post_id, 'title': post_title}
 
                 del comment__serializer_data['parent']
 
                 data = {
                     'notification_type': 'post_comment',
+                    'seen': instance.seen,
                     'data': comment__serializer_data
                 }
                 return data
@@ -135,6 +141,7 @@ class NotificationSerializer(serializers.ModelSerializer):
 
                 data = {
                     'notification_type': 'comment_reply',
+                    'seen': instance.seen,
                     'data': comment__serializer_data
                 }
                 return data
@@ -148,19 +155,27 @@ class NotificationSerializer(serializers.ModelSerializer):
                 comment_reaction__serializer_data = CommentReactionSerializer(comment_reaction__obj).data
                 comment_reaction__serializer_data['comment'] = {'id': instance.comment.id, 'text': instance.comment.text}
                 comment_reaction__serializer_data['author'] = ShortAccountSerializer(comment_reaction__author_obj).data
+                comment_reaction__serializer_data['created_datetime'] = comment_reaction__serializer_data.pop('reacted_at')
           
                 data = {
                     'notification_type': 'comment_reaction',
+                    'seen': instance.seen,
                     'data': comment_reaction__serializer_data
                 }
                 return data
             
             case "subscribe":
                 subscription = instance.subscription
-                
-                data = SubscriptionSerializer(subscription).data
-                data['notification_type'] = 'subscribe'
-                del data["subscription_reciever"]
+                subscription_data = SubscriptionSerializer(subscription).data
+                subscription_data['created_datetime'] = subscription_data.pop('subscription_datetime')
+                subscription_data['author'] = subscription_data.pop('subscriber')
+                del subscription_data["subscription_reciever"]
+
+                data= {
+                    "notification_type": 'subscribe',
+                    "seen": instance.seen,
+                    "data" : subscription_data
+                }
 
                 return data
             

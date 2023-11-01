@@ -1,22 +1,14 @@
 <template>
     <v-container fluid class="pb-12">
-        <v-app-bar class="d-flex flex-row justify-space-between" 
-            v-if="routes.currentRoute.value.meta.navbar_style == 'default'" style="width: 100vw;">
+        <v-app-bar class="d-flex flex-row justify-space-between" v-if="routes.currentRoute.value.meta.navbar_style == 'default'" style="width: 100vw;">
 
-            <v-app-bar-nav-icon 
-                variant="text" 
-                @click.stop="openMenuDrawer">
-            </v-app-bar-nav-icon>
+            <v-app-bar-nav-icon variant="text" @click.stop="openMenuDrawer"></v-app-bar-nav-icon>
 
             <v-toolbar-title>{{currentRouteName }}</v-toolbar-title>
 
             <v-spacer></v-spacer>
 
-             <v-btn stacked class="text-none pa-0 mr-3" width="auto" min-width="40">
-                <v-badge content="2" color="error">
-                    <v-icon>mdi-bell-outline</v-icon>
-                </v-badge>
-            </v-btn>
+            <Notifications></Notifications>
  
             <v-btn stacked class="theme_btn pa-0 mr-2"  
                 width="auto" 
@@ -56,7 +48,7 @@
                     <v-list-item value="0" active-color="primary">
                         <template v-slot:prepend>
                             <v-avatar class="avatar mr-2" style="cursor:pointer" >
-                                <v-img v-if="currUserData?.avatar !== ''" :src="currUserData?.avatar" :alt="currUserData?.username"></v-img>
+                                <v-img v-if="currUserData?.avatar !== null" :src="currUserData?.avatar" :alt="currUserData?.username"></v-img>
                                 <v-icon icon="mdi-account-circle" size='x-large' v-else></v-icon>
                             </v-avatar>
                         </template>
@@ -119,6 +111,7 @@ import {ref, computed,  defineEmits, defineProps} from 'vue';
 import { useStore } from 'vuex';
 import { useTheme } from 'vuetify/lib/framework.mjs';
 import routes from '@/router/router';
+import Notifications from '@/components/Notifications/Notifications.vue'
 
 let theme = useTheme();
 const store = useStore();

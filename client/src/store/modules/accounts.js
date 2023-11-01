@@ -5,8 +5,8 @@ const user = JSON.parse(localStorage.getItem('user'));
 const BASE_URL = axios.defaults.baseURL
 
 const initialState = user
-  ? { status: { loggedIn: true }, user, usersList: null, subscriptions: null}
-  : { status: { loggedIn: false }, user: null, usersList: null, subscriptions:null};
+  ? { status: { loggedIn: true }, user, usersList: null, subscriptions: null, notifications: null}
+  : { status: { loggedIn: false }, user: null, usersList: null, subscriptions:null, notifications: null};
 
 export const accounts = {
   namespaced: true,
@@ -42,15 +42,15 @@ export const accounts = {
       catch(error){console.log(error)}
     },
 
-    // async getNotificationsList({commit},{paginate_url, request_type}){
-    //   try{
-    //     const response = await interceptorsInstance.get(BASE_URL + `post/${paginate_url}`, { headers: authHeader() })
-    //     if(request_type == 'initial'){commit('setPostListInStore', response.data)}
-    //     else if(request_type == 'load_more'){commit('addPostInStore', response.data)}
-    //     return response.data
-    //   }
-    //   catch(error){console.log(error)}
-    // }
+    async getNotificationsList({commit},{paginate_url, request_type}){
+      try{
+        const response = await interceptorsInstance.get(BASE_URL + `notifications/${paginate_url}`, { headers: authHeader() })
+        if(request_type == 'initial'){commit('setNotificationsListInStore', response.data)}
+        else if(request_type == 'load_more'){commit('addNotificationsInStore', response.data)}
+        return response.data
+      }
+      catch(error){console.log(error)}
+    }
 
   },
   mutations: {
@@ -70,6 +70,14 @@ export const accounts = {
     setUsersListInStore(state, data){
       state.usersList = data;
     },
+
+    setNotificationsListInStore(state, data){
+      state.notifications = data;
+    },
+
+    addNotificationsInStore(state, data){
+      state.notifications.unshift(data)
+    },
   },
   getters: {
     getUsersList(state){
@@ -78,6 +86,10 @@ export const accounts = {
 
     getSubscriptions(state){
       return state.subscriptions
+    },
+
+    getNotificationsList(state){
+      return state.notifications.results
     }
   }
 }
