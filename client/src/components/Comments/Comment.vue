@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-card class="mb-3" width="100%" v-if="!commentIsEdit">
+    <v-card class="mb-3" width="100%" v-if="!commentIsEdit" :id="`comment_card_${comment.id}`">
       <div class="title pb-0 pr-1 pl-3">
         <div class="d-flex flex-row justify-space-between align-center">
           <div class="avatar_username_container d-flex flex-row">
@@ -247,7 +247,7 @@ const numberOfVisibleReplies = 2
 
 
 onMounted(async() => {
-
+  store.commit('comments/setMountedCommentFlag')
   // (await store.dispatch('comments/getCommentsList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
 
 })

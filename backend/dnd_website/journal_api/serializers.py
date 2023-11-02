@@ -153,7 +153,7 @@ class NotificationSerializer(serializers.ModelSerializer):
                 comment_reaction__author_obj = Account.objects.get(pk=comment_reaction__author.id)
 
                 comment_reaction__serializer_data = CommentReactionSerializer(comment_reaction__obj).data
-                comment_reaction__serializer_data['comment'] = {'id': instance.comment.id, 'text': instance.comment.text}
+                comment_reaction__serializer_data['comment'] = {'id': instance.comment.id, 'text': instance.comment.text, 'post': instance.post.id}
                 comment_reaction__serializer_data['author'] = ShortAccountSerializer(comment_reaction__author_obj).data
                 comment_reaction__serializer_data['created_datetime'] = comment_reaction__serializer_data.pop('reacted_at')
           

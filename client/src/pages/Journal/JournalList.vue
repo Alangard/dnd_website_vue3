@@ -236,6 +236,7 @@ const subscriptions = ref(null)
 const changeSubscribeState =(user_id) =>{store.dispatch('accounts/changeSubscription', user_id)}
 const isSubscribedTo = (user_id) => {return subscriptions?.value?.subscribed_to.findIndex(user => user.id == user_id)};
 
+
 const changeContentType = async(type) => {
     contentType.value = type
     if(type == 'Feed'){
@@ -355,7 +356,6 @@ const pressReaction = (data) =>{
         }
     )   
 }
-
 
 onBeforeMount(async () => {
     if(store.getters['auth/loginState'] == true){

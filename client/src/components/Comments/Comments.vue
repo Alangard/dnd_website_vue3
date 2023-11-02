@@ -84,7 +84,7 @@
 
 
 <script setup>
-import { ref, onUnmounted, onBeforeMount, computed, defineProps } from 'vue';
+import { ref, onUnmounted, onBeforeMount, computed, defineProps, onMounted, onUpdated, watch, toRaw } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
 import routes from '@/router/router'
@@ -103,10 +103,12 @@ const { width } = useDisplay();
 const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 const loggedIn = computed(() => {return store.getters['auth/loginState']})
 const comments = computed(() => {return store.getters['comments/getComments']})
+const scrollToCommentData = computed(() => {return store.getters['comments/getscrollToCommentData']})
+
 
 const current_page = ref(1)
 const page_count = ref(1)
-const page_size = 10
+const page_size = 6
 let page_url = ref(`?post_id=${props.post_id}&page=1&page_size=${page_size}`)
 let filters = ref([])
 let orderings = ref('')
@@ -140,14 +142,44 @@ const saveNewComment = async() => {
   newTextComment.value = ''
 };
 
+const test = async()=>{
+    page_count.value = Math.ceil((await store.dispatch('comments/findCommentOnPageById', {'comment_id': scrollToCommentData.value['comment_id'], 'page_size': page_size})).count / page_size)
+    store.commit('comments/setScrollToCommentState', false)
+    current_page.value = comments.value['curr_page']
+
+    const commentElement = document.getElementById(`comment_card_${scrollToCommentData.value['comment_id']}`)
+    if (commentElement) {
+      const offsetTop = commentElement.offsetTop
+      const windowHeight = document.body.clientHeight
+      const offset = offsetTop - windowHeight / 2
+      
+      window.scrollTo({ top: offset, behavior: 'smooth' })
+      commentElement.classList.toggle("elevation-24")
+      setTimeout(()=> commentElement.classList.toggle("elevation-24"), 2500);
+    }
+    
+}
+
+// Следим за переходом к комментарию из уведомления
+watch(scrollToCommentData, async(newValue, oldValue) => {
+  const flag_state = toRaw(newValue['flag'])
+  if(flag_state == true){
+    test()
+  }
+
+},{ deep: true })
 
 onBeforeMount(async() => {
-  page_count.value = Math.ceil((await store.dispatch('comments/getCommentsList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
+  //Проверяем флаг, если true - это означает, что был совершён переход на страницу с уведомлений
+  if(!scrollToCommentData.value['flag']){
+    page_count.value = Math.ceil((await store.dispatch('comments/getCommentsList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count / page_size)
+  }
+  else{
+    test()
+  }
 })
 
-onUnmounted(() => {
-  websocket.close()
-})
+
 
 
 

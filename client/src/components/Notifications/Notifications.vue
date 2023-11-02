@@ -45,11 +45,17 @@
                     </div>
                     <div class="notification_text d-flex flex-column align-start">
                         <div class="text">
-                            <span class="username text-info clickable" @click="console.log('username')">@{{ notification?.data?.author?.username }}</span>
+                            <span class="username text-info clickable"
+                                @click="routes.push({name: 'user_profile', params: { username:  notification?.data?.author?.username }})">
+                                @{{ notification?.data?.author?.username }}
+                            </span>
                             
                             <span v-if="notification.notification_type == 'post_comment'">
                                 <span> left a comment on your post </span>
-                                <span class="post_data text-info clickable" @click="console.log('post')">#{{notification?.data?.post?.id}} - {{notification.data?.post?.title}}</span>
+                                <span class="post_data text-info clickable" 
+                                    @click="routes.push({name: 'journal_detail', params: { post_id:  notification?.data?.post?.id }})">
+                                    #{{notification?.data?.post?.id}} - {{notification.data?.post?.title}}
+                                </span>
                             </span>
                             
                             <span v-else-if="notification.notification_type == 'comment_reply'">
@@ -65,7 +71,8 @@
                                     <span :style="notification?.data?.reaction_type == 'like' ? 'color: green;' : 'color: red;'">{{ notification?.data?.reaction_type }}</span> 
                                     to your comment
                                 </span>
-                                <span class="comment_data text-info font-italic clickable" @click="console.log('comment')">
+                                <span class="comment_data text-info font-italic clickable" 
+                                    @click="goToComment(notification?.data?.comment?.id, notification?.data?.comment?.post)">
                                     {{notification?.data?.comment?.text.length > 100 ? notification?.data?.comment?.text.slice(0, 100) + '...' : notification?.data?.comment?.text}}
                                 </span>
                             </span>
@@ -95,6 +102,7 @@ import { ref, computed, onBeforeMount, onBeforeUnmount } from 'vue'
 import { useStore } from 'vuex';
 import axios from 'axios';
 import {DateTimeFormat} from '@/helpers'
+import routes from '@/router/router' 
 
 const store = useStore();
 const websocket = ref(null);
@@ -154,6 +162,13 @@ onBeforeMount(async () => {
 onBeforeUnmount(() => {
     if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {websocket.value.close();}
 })
+
+const goToComment = (comment_id, post_id) => {
+    store.commit('comments/setScrollToCommentState', true)
+    store.commit('comments/setScrollToCommentId', comment_id)
+    routes.push({name: 'journal_detail', params: { post_id:  post_id }})
+}
+
 </script>
 
 <style lang="scss" scoped>

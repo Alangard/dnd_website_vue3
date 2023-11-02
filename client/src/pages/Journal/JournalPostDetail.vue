@@ -128,7 +128,7 @@
 </template>
 
 <script setup>
-import { ref, defineAsyncComponent, onBeforeMount, onBeforeUnmount, computed} from 'vue';
+import { ref, defineAsyncComponent, onBeforeMount, onBeforeUnmount, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import {useEditor, EditorContent, Editor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -157,7 +157,6 @@ let editor = ref()
 
 const post_id = ref(routes.currentRoute.value.params.post_id)
 const postDetail = computed(() => store.getters['journal/getPostDetail'])
-
 
 const loggedIn = computed(() => {return store.getters['auth/loginState']})
 const subscriptions = computed(() => {return store.getters['accounts/getSubscriptions']})

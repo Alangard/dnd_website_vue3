@@ -80,6 +80,7 @@ class Notification(models.Model):
     subscription = models.ForeignKey('Subscription', on_delete=models.CASCADE, null=True, blank=True, related_name='subscription_notifications')
 
     class Meta:
+        ordering = ['-created_datetime']
         db_table = "Notification"
         verbose_name = "Notification"
         verbose_name_plural = "Notification"

@@ -3,7 +3,7 @@ import interceptorsInstance, {authHeader} from '@/api/main'
 
 
 const BASE_URL = axios.defaults.baseURL;
-const initialState = { Comments: [], replyIsPressed: ''}
+const initialState = { Comments: [], replyIsPressed: '', mounted_comments_count: 0, scrollToCommentData: {'flag': false, 'comment_id': null}}
 
 export const comments = {
   namespaced: true,
@@ -168,6 +168,15 @@ export const comments = {
       const response = await interceptorsInstance.patch(BASE_URL + `post_comments/${comment_id}/`, {'text': comment_data.new_comment_text}, { headers: authHeader()})
       commit('updateCommentInStore', {'response': response.data, 'comment_id': comment_id})
       return response.data
+    },
+
+    async findCommentOnPageById({commit}, {comment_id, page_size}) {
+      try{
+        const response = await interceptorsInstance.get(BASE_URL + `post_comments/find_comment_page/?comment_id=${comment_id}&page_size=${page_size}`, { headers: authHeader()})
+        commit('setCommentsInStore', response.data)
+        return response.data
+      }
+      catch(error){console.log(error)}
     }
   },
 
@@ -326,17 +335,43 @@ export const comments = {
           state.replyIsPressed = comment_id
         }
         
+    },
+
+    setMountedCommentFlag(state){
+      state.mounted_comments_count += 1
+    },
+
+    setScrollToCommentState(state, flag){
+      state.scrollToCommentData['flag'] = flag
+    },
+
+    setScrollToCommentId(state, comment_id){
+      state.scrollToCommentData['comment_id'] = comment_id
     }
   },
 
   getters: {
     getComments(state){
-        return state.Comments.results
+      return state.Comments.results
     },
   
     getReplyIsPressed(state){
-        return state.replyIsPressed
+      return state.replyIsPressed
+    },
+
+    getCommentsCount(state){
+      return state.Comments.results.num_comments
+    },
+
+    getMountedCommentsCount(state){
+      return state.mounted_comments_count
+    },
+
+    getscrollToCommentData(state){
+      return state.scrollToCommentData
     }
+
+
   }
 
 }

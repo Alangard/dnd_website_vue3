@@ -60,6 +60,8 @@ from channels.layers import get_channel_layer
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 
+import math
+
 channel_layer = get_channel_layer()
 
 
@@ -200,6 +202,7 @@ def leave_comment__reaction(sender, instance, created, **kwargs):
                 'notification_type': 'comment_reaction',
                 'receiver': comment_author.id,
                 'comment': instance.comment.id,
+                'post': instance.comment.post.id,
                 'comment_reaction': instance.id,
             }
 
@@ -764,7 +767,6 @@ class PostCommentsViewSet(viewsets.ModelViewSet):
         else:
             return Response({"error": "Сериализация не пройдена"}, status=status.HTTP_400_BAD_REQUEST)
 
-
     def destroy(self, request, *args, **kwargs):
         self.serializer_class = CommentSerializer
 
@@ -839,7 +841,6 @@ class PostCommentsViewSet(viewsets.ModelViewSet):
 
         post_id = self.request.query_params.get('post_id')
         
-
         try:
             post = Post.objects.all().get(id=post_id, is_draft = False, is_publish = True)
         except Post.DoesNotExist:
@@ -902,7 +903,48 @@ class PostCommentsViewSet(viewsets.ModelViewSet):
             
         serializer = self.get_serializer(comment)
         return Response(serializer.data)
+ 
+    @action(detail=False, methods=['get'])  
+    def find_comment_page(self, request, pk=None):
+        self.serializer_class = CommentSerializer
+        self.ordering = ['-created_datetime']
+        self.pagination_class = CommentsListPagination
 
+        comment_id = int(self.request.query_params.get('comment_id'))
+        page_size = int(self.request.query_params.get('page_size'))
+        comment_obj = self.queryset.get(pk=comment_id)
+        post_id = comment_obj.post.id
+
+        post = Post.objects.all().get(id=post_id, is_draft = False, is_publish = True)
+        instance = self.queryset.filter(parent=None, post=post_id).select_related('author').prefetch_related('comment_reactions')
+
+        if comment_obj.parent == None:
+            comments_list = list(self.queryset.order_by('-created_datetime'))
+            comment_index = comments_list.index(comment_obj)
+            page_number = (comment_index // page_size) + 1 if comment_index > page_size else math.ceil(comment_index / page_size)
+            
+        paginator = self.pagination_class()
+
+        self.request.query_params._mutable = True
+        self.request.query_params['page'] = page_number
+        self.request.query_params._mutable = False
+
+        page = paginator.paginate_queryset(instance, self.request)
+        
+        if page is not None:
+            serializer = self.get_serializer(page, many=True, context={'request': self.request})
+            data = {
+                'allow_comments': post.allow_comments,
+                'num_comments': Comment.objects.filter(post=post_id).count(),
+                'curr_page': page_number,
+                'comments': serializer.data, 
+            }
+            return paginator.get_paginated_response(data)
+        
+          
+
+
+        
 class CommentReactionViewSet(viewsets.ModelViewSet):
     queryset = CommentReaction.objects.all()
     filter_backends = [DjangoFilters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
