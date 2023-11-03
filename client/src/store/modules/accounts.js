@@ -78,6 +78,11 @@ export const accounts = {
     addNotificationsInStore(state, data){
       state.notifications.unshift(data)
     },
+
+    addNotifiactionInStore(state, data){
+      state.notifications.results.unshift(data)
+      state.notifications.count += 1
+    }
   },
   getters: {
     getUsersList(state){

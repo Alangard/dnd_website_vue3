@@ -118,21 +118,7 @@ def leave_post__reaction(sender, instance, created, **kwargs):
             if notification_serializer.is_valid(raise_exception=True):
                 notification_serializer.save(receiver=post_author)
 
-                receiver_obj = Account.objects.get(pk=post_author.id)
-                post_reaction__obj = PostReaction.objects.get(pk=instance.id)
-                post_id = instance.post.id
-                post_title = instance.post.title
-
-                post_reaction__serializer_data = PostReactionSerializer(post_reaction__obj).data
-                post_reaction__serializer_data['post'] = {'id': post_id, 'title': post_title}
-
-                data = {
-                    'receiver': ShortAccountSerializer(receiver_obj).data,
-                    'notification_type': 'post_reaction',
-                    'data': post_reaction__serializer_data
-                }
-
-                notifications.apply_async(args=[post_author.id , post_author.username, data], kwargs={})
+                notifications.apply_async(args=[post_author.id , post_author.username, notification_serializer.data], kwargs={})
 
 @receiver(post_save, sender=Comment)
 def leave_comment(sender, instance, created, **kwargs):
@@ -153,17 +139,7 @@ def leave_comment(sender, instance, created, **kwargs):
                 if notification_serializer.is_valid(raise_exception=True):
                     notification_serializer.save()
 
-                    receiver_obj = Account.objects.get(pk=parent.id)
-                    comment__obj = Comment.objects.get(pk=instance.id)
-                    comment__serializer_data = NotificationCommentSerializer(comment__obj).data
-
-                    data = {
-                        'receiver': ShortAccountSerializer(receiver_obj).data,
-                        'notification_type': 'comment_reply',
-                        'data': comment__serializer_data
-                    }
-
-                    notifications.apply_async(args=[parent.id ,parent.username, data], kwargs={})
+                    notifications.apply_async(args=[parent.id ,parent.username, notification_serializer.data], kwargs={})
         else:
             if post_author.id != comment_auhtor.id:
                 notification_data = {
@@ -176,19 +152,7 @@ def leave_comment(sender, instance, created, **kwargs):
                 if notification_serializer.is_valid(raise_exception=True):
                     notification_serializer.save()
 
-                    receiver_obj = Account.objects.get(pk=post_author.id)
-                    comment__obj = Comment.objects.get(pk=instance.id)
-
-                    comment__serializer_data = NotificationCommentSerializer(comment__obj).data
-                    del comment__serializer_data['parent']
-
-                    data = {
-                        'receiver': ShortAccountSerializer(receiver_obj).data,
-                        'notification_type': 'post_comment',
-                        'data': comment__serializer_data
-                    }
-
-                    notifications.apply_async(args=[post_author.id , post_author.username, data], kwargs={})             
+                    notifications.apply_async(args=[post_author.id , post_author.username, notification_serializer.data], kwargs={})             
 
 @receiver(post_save, sender=CommentReaction)
 def leave_comment__reaction(sender, instance, created, **kwargs):
@@ -209,22 +173,8 @@ def leave_comment__reaction(sender, instance, created, **kwargs):
             notification_serializer = NotificationSerializer(data=notification_data)
             if notification_serializer.is_valid(raise_exception=True):
                 notification_serializer.save()
-
-                receiver_obj = Account.objects.get(pk=comment_author.id)
-                comment_reaction__author_obj = Account.objects.get(pk=comment_reaction__author.id)
-                comment_reaction__obj = CommentReaction.objects.get(pk=instance.id)
-
-                comment_reaction__serializer_data = CommentReactionSerializer(comment_reaction__obj).data
-                comment_reaction__serializer_data['comment'] = {'id': instance.comment.id, 'text': instance.comment.text}
-                comment_reaction__serializer_data['author'] = ShortAccountSerializer(comment_reaction__author_obj).data
-
-                data = {
-                    'receiver': ShortAccountSerializer(receiver_obj).data,
-                    'notification_type': 'comment_reaction',
-                    'data': comment_reaction__serializer_data
-                }
-
-                notifications.apply_async(args=[comment_author.id , comment_author.username, data], kwargs={})
+                
+                notifications.apply_async(args=[comment_author.id , comment_author.username, notification_serializer.data], kwargs={})
 
 @receiver(post_save, sender=Subscription)
 def subscribe(sender, instance, created, **kwargs):
@@ -243,14 +193,8 @@ def subscribe(sender, instance, created, **kwargs):
             notification_serializer = NotificationSerializer(data=notification_data)
             if notification_serializer.is_valid(raise_exception=True):
                 notification_serializer.save()
-
-            data = {
-                'notification_type': 'subscribe',
-                'receiver': ShortAccountSerializer(instance.subscription_reciever).data,
-                'subscriber': ShortAccountSerializer(instance.subscriber).data
-            }
-
-            notifications.apply_async(args=[subscriber_receiver.id , subscriber_receiver.username, data], kwargs={})
+            
+            notifications.apply_async(args=[subscriber_receiver.id , subscriber_receiver.username, notification_serializer.data], kwargs={})
 
 # Срабатывает при появлении сигнала после создании экземпляра поста (аргумент created == True) (для действий в админ-панели и API)
 @receiver(post_save, sender=Post)
@@ -917,12 +861,15 @@ class PostCommentsViewSet(viewsets.ModelViewSet):
 
         post = Post.objects.all().get(id=post_id, is_draft = False, is_publish = True)
         instance = self.queryset.filter(parent=None, post=post_id).select_related('author').prefetch_related('comment_reactions')
+        comments_list = list(self.queryset.order_by('-created_datetime'))
 
         if comment_obj.parent == None:
-            comments_list = list(self.queryset.order_by('-created_datetime'))
-            comment_index = comments_list.index(comment_obj)
-            page_number = (comment_index // page_size) + 1 if comment_index > page_size else math.ceil(comment_index / page_size)
-            
+            comment_index = comments_list.index(comment_obj)   
+        else:
+            comment_index = comments_list.index(self.queryset.get(pk=comment_obj.parent.id)) 
+        
+        page_number = (comment_index // page_size) + 1 if comment_index > page_size else math.ceil(comment_index / page_size)
+
         paginator = self.pagination_class()
 
         self.request.query_params._mutable = True

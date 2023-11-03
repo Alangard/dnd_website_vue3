@@ -29,5 +29,6 @@ def postponed_publish(id):
 
 @shared_task
 def notifications(post_author_id, post_author_username, data):
+    print(post_author_id, post_author_username, data)
     async_to_sync(channel_layer.group_send)(f'{post_author_username}_{post_author_id}', {'type': 'send_notification', 'data': data})
     

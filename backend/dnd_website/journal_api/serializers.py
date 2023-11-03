@@ -99,15 +99,13 @@ class NotificationSerializer(serializers.ModelSerializer):
 
         match instance.notification_type:
             case "post_reaction":
-                post_author = instance.post.author
                 post_id = instance.post.id
                 post_title = instance.post.title
 
-                receiver_obj = Account.objects.get(pk=post_author.id)
                 post_reaction__obj = PostReaction.objects.get(pk=instance.post_reaction.id)
-
                 post_reaction__serializer_data = PostReactionSerializer(post_reaction__obj).data
                 post_reaction__serializer_data['post'] = {'id': post_id, 'title': post_title}
+                post_reaction__serializer_data['created_datetime'] = post_reaction__serializer_data.pop('reacted_at')
 
                 data = {
                     'notification_type': 'post_reaction',
@@ -179,7 +177,6 @@ class NotificationSerializer(serializers.ModelSerializer):
 
                 return data
             
-        # return data
 
 
 
@@ -249,7 +246,7 @@ class NotificationCommentSerializer(serializers.ModelSerializer):
   
     class Meta:  
         model = Comment  
-        fields = ['id', 'parent', 'author', 'text', 'created_datetime']
+        fields = ['id', 'parent', 'author', 'text', 'post', 'created_datetime']
 
 ## Tags serializers ################################################################
 

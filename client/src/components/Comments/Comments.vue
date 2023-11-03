@@ -46,7 +46,7 @@
 
     <v-divider :thickness="2" class="mt-5"></v-divider>
 
-    <v-chip-group v-model="selectedCommentOrder" @update:modelValue="onOrderChange" selected-class="text-primary" class="my-2" >
+    <v-chip-group v-model="selectedCommentOrder" @update:modelValue="onOrderChange" selected-class="text-info" class="my-2" >
       <v-chip value="popularity">By popularity</v-chip>
       <v-chip value="date">By date</v-chip>
     </v-chip-group>
@@ -108,7 +108,7 @@ const scrollToCommentData = computed(() => {return store.getters['comments/getsc
 
 const current_page = ref(1)
 const page_count = ref(1)
-const page_size = 6
+const page_size = 10
 let page_url = ref(`?post_id=${props.post_id}&page=1&page_size=${page_size}`)
 let filters = ref([])
 let orderings = ref('')
@@ -146,13 +146,14 @@ const test = async()=>{
     page_count.value = Math.ceil((await store.dispatch('comments/findCommentOnPageById', {'comment_id': scrollToCommentData.value['comment_id'], 'page_size': page_size})).count / page_size)
     store.commit('comments/setScrollToCommentState', false)
     current_page.value = comments.value['curr_page']
-
+    
     const commentElement = document.getElementById(`comment_card_${scrollToCommentData.value['comment_id']}`)
     if (commentElement) {
-      const offsetTop = commentElement.offsetTop
+
+      const offsetTop = commentElement.offsetHeight
       const windowHeight = document.body.clientHeight
-      const offset = offsetTop - windowHeight / 2
-      
+      const offset = Math.abs(offsetTop - windowHeight / 2)
+
       window.scrollTo({ top: offset, behavior: 'smooth' })
       commentElement.classList.toggle("elevation-24")
       setTimeout(()=> commentElement.classList.toggle("elevation-24"), 2500);

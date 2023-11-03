@@ -4,8 +4,8 @@
         <template v-slot:activator="{ props }">
             <v-btn stacked class="notifications_btn text-none pa-0 mr-3" width="auto" min-width="40" v-bind="props">
                 <v-badge 
-                    v-if="new_notifications_count > 0"
-                    :content="new_notifications_count > 50 ? '50+' : new_notifications_count" color="error">
+                    v-if="notifications_count > 0"
+                    :content="notifications_count > 50 ? '50+' : notifications_count" color="error">
                     <v-icon>mdi-bell-outline</v-icon>
                 </v-badge>
                 <v-icon v-else>mdi-bell-outline</v-icon>
@@ -31,6 +31,7 @@
 
             <v-divider class="mb-2"></v-divider>
 
+
             <div v-for="notification in notificationsList" :key="notification">
                 <div class="notification_container d-flex flex-row align-start justify-start pb-1 mx-2">
                     <div class="avatar">
@@ -51,23 +52,46 @@
                             </span>
                             
                             <span v-if="notification.notification_type == 'post_comment'">
-                                <span> left a comment on your post </span>
+                                <span> left a 
+                                    <span class="text-info clickable" @click="goToComment(notification?.data?.id, notification?.data?.post?.id)">
+                                        comment
+                                    </span> 
+                                    on your post 
+                                </span>
                                 <span class="post_data text-info clickable" 
                                     @click="routes.push({name: 'journal_detail', params: { post_id:  notification?.data?.post?.id }})">
-                                    #{{notification?.data?.post?.id}} - {{notification.data?.post?.title}}
+                                    #{{notification?.data?.post?.id}} - {{notification.data?.post?.title.length > 100 ? notification.data?.post?.title.slice(0, 100) + '...' : notification.data?.post?.title}}
                                 </span>
                             </span>
                             
+                            <span v-else-if="notification.notification_type == 'post_reaction'">
+                                <span> 
+                                    left a
+                                    <span :style="notification?.data?.reaction_type == 'like' ? 'color: green;' : 'color: red;'">{{ notification?.data?.reaction_type }}</span> 
+                                    to your post
+                                </span>
+                                <span class="comment_data text-info font-italic clickable" 
+                                    @click="routes.push({name: 'journal_detail', params: { post_id:  notification?.data?.post?.id }})">
+                                    #{{notification?.data?.post?.id}} - {{notification.data?.post?.title.length > 100 ? notification.data?.post?.title.slice(0, 100) + '...' : notification.data?.post?.title}}
+                                </span>
+                            </span>
+
                             <span v-else-if="notification.notification_type == 'comment_reply'">
-                                <span> left a reply to your comment </span>
-                                <span class="comment_data text-info font-italic clickable" @click="console.log('comment')">
+                                <span> left a
+                                    <span class="text-info clickable"
+                                        @click="goToComment(notification?.data?.id, notification?.data?.post)">
+                                        reply
+                                    </span> 
+                                    to your comment </span>
+                                <span class="comment_data text-info font-italic clickable" 
+                                    @click="goToComment(notification?.data?.parent?.id, notification?.data?.post)">
                                     {{notification?.data?.parent?.text.length > 100 ? notification?.data?.parent?.text.slice(0, 100) + '...' : notification?.data?.parent?.text}}
                                 </span>
                             </span>
 
                             <span v-else-if="notification.notification_type == 'comment_reaction'">
                                 <span> 
-                                    left a reaction
+                                    left a
                                     <span :style="notification?.data?.reaction_type == 'like' ? 'color: green;' : 'color: red;'">{{ notification?.data?.reaction_type }}</span> 
                                     to your comment
                                 </span>
@@ -80,14 +104,13 @@
                             <span v-else-if="notification.notification_type == 'subscribe'">
                                 <span> subscribed to you</span>
                             </span>
-                            
                         </div>
                         <div class="notification_datetime text-subtitle-2 text-high-emphasis font-weight-light">{{ DateTimeFormat(notification?.data?.created_datetime) }}</div>
                     </div>
                 </div>
                 <v-divider class="pb-2"></v-divider>
             </div>
-            
+           
 
             <v-card-action class="d-flex flex-row align-center justify-center w-100 mb-2">
                 <v-btn class="show_all_notifications w-100" variant="text" @click="console.log('show_all')">Show all</v-btn>
@@ -109,16 +132,16 @@ const websocket = ref(null);
 
 const current_page = ref(1)
 const page_count = ref(1)
-const page_size = 15
+const page_size = 10
 let page_url = ref(`?page=1&page_size=${page_size}`)
 
-let new_notifications_count = ref(0)
+let notifications_count = ref(0)
 const notificationsList = computed(() => {return store.getters['accounts/getNotificationsList']});
 
 const LoadNewPost = async() =>{
     try{
         await store.dispatch('journal/getPostFeedList', {'paginate_url': `feed/?page=1&page_size=${new_posts_count.value}`, 'request_type': 'load_more'})  
-        new_notifications_count.value = 0
+        notifications_count.value = 0
     }
     catch(error){console.log(error)}
  
@@ -140,23 +163,20 @@ onBeforeMount(async () => {
             url += refresh_response.access
         }
 
-        const notifications_count = (await store.dispatch('accounts/getNotificationsList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count 
-        new_notifications_count.value = notifications_count
-        page_count.value = Math.ceil(notifications_count / page_size)
+        notifications_count.value = (await store.dispatch('accounts/getNotificationsList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count 
+        page_count.value = Math.ceil(notifications_count.value / page_size)
         
         websocket.value = new WebSocket(url)
-        websocket.onmessage = function(e){
+
+        websocket.value.onmessage = function(e){
             let data = JSON.parse(e.data)
-            print(data, e)
-            // new_notifications_count.value += 1
-            // if(data.action == 'create_post'){new_posts_count.value += 1}
+            if(data.status == '200'){
+                notifications_count.value += 1
+                store.commit('accounts/addNotifiactionInStore', data.data)
+            }
         }
 
-
-}
-
-
-    
+    }
 })
 
 onBeforeUnmount(() => {
@@ -168,6 +188,8 @@ const goToComment = (comment_id, post_id) => {
     store.commit('comments/setScrollToCommentId', comment_id)
     routes.push({name: 'journal_detail', params: { post_id:  post_id }})
 }
+
+
 
 </script>
 
