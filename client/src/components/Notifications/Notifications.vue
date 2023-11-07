@@ -1,6 +1,6 @@
 <template>
 
-    <v-menu class="notifications_menu" location="bottom" transition="slide-y-transition">
+    <v-menu class="notifications_menu" location="bottom" transition="slide-y-transition" :close-on-content-click="false" height="500px">
         <template v-slot:activator="{ props }">
             <v-btn stacked class="notifications_btn text-none pa-0 mr-3" width="auto" min-width="40" v-bind="props">
                 <v-badge 
@@ -17,7 +17,7 @@
                 <v-btn class="read_all_btn" 
                     variant="text" 
                     rounded="sm"
-                    @click="console.log('read_all')">
+                    @click="seenAllNotification">
                     Read all
                 </v-btn>
                 <v-btn class="notifications_settings_btn" 
@@ -28,91 +28,136 @@
                 </v-btn>
             </div>
             
+            <v-divider></v-divider>
 
-            <v-divider class="mb-2"></v-divider>
+            <div class="content_container" style="overflow-y: auto; max-height: 410px;">
+                <v-card class="my-1" v-for="notification in notificationsList" :key="notification.notification_id"
+                    rounded="0" 
+                    :variant="notification?.seen ? 'default' : 'tonal'" 
+                    color="indigo">   
 
+                    <div class="notification_container d-flex flex-row align-start justify-space-between my-1 mx-2">
+                        <div class="d-flex flex-row justify-start mr-2">
+                            <div class="avatar">
+                                <v-avatar class="avatar mr-2" style="cursor:pointer" size="32">
+                                    <v-img 
+                                        v-if="notification?.data?.author?.avatar != null" 
+                                        :src="notification?.data?.author?.avatar " 
+                                        :alt="notification?.data?.author?.username">
+                                    </v-img>
+                                    <v-icon icon="mdi-account-circle" size='x-large' v-else></v-icon>
+                                </v-avatar>
+                            </div>
+                            <div class="notification_text">
+                                <div class="text">
 
-            <div v-for="notification in notificationsList" :key="notification">
-                <div class="notification_container d-flex flex-row align-start justify-start pb-1 mx-2">
-                    <div class="avatar">
-                        <v-avatar class="avatar mr-2" style="cursor:pointer" size="32">
-                            <v-img 
-                                v-if="notification?.data?.author?.avatar != null" 
-                                :src="notification?.data?.author?.avatar " 
-                                :alt="notification?.data?.author?.username">
-                            </v-img>
-                            <v-icon icon="mdi-account-circle" size='x-large' v-else></v-icon>
-                        </v-avatar>
-                    </div>
-                    <div class="notification_text d-flex flex-column align-start">
-                        <div class="text">
-                            <span class="username text-info clickable"
-                                @click="routes.push({name: 'user_profile', params: { username:  notification?.data?.author?.username }})">
-                                @{{ notification?.data?.author?.username }}
-                            </span>
-                            
-                            <span v-if="notification.notification_type == 'post_comment'">
-                                <span> left a 
-                                    <span class="text-info clickable" @click="goToComment(notification?.data?.id, notification?.data?.post?.id)">
-                                        comment
-                                    </span> 
-                                    on your post 
-                                </span>
-                                <span class="post_data text-info clickable" 
-                                    @click="routes.push({name: 'journal_detail', params: { post_id:  notification?.data?.post?.id }})">
-                                    #{{notification?.data?.post?.id}} - {{notification.data?.post?.title.length > 100 ? notification.data?.post?.title.slice(0, 100) + '...' : notification.data?.post?.title}}
-                                </span>
-                            </span>
-                            
-                            <span v-else-if="notification.notification_type == 'post_reaction'">
-                                <span> 
-                                    left a
-                                    <span :style="notification?.data?.reaction_type == 'like' ? 'color: green;' : 'color: red;'">{{ notification?.data?.reaction_type }}</span> 
-                                    to your post
-                                </span>
-                                <span class="comment_data text-info font-italic clickable" 
-                                    @click="routes.push({name: 'journal_detail', params: { post_id:  notification?.data?.post?.id }})">
-                                    #{{notification?.data?.post?.id}} - {{notification.data?.post?.title.length > 100 ? notification.data?.post?.title.slice(0, 100) + '...' : notification.data?.post?.title}}
-                                </span>
-                            </span>
+                                    <span class="username text-info clickable"
+                                        @click="routes.push({name: 'user_profile', params: { username:  notification?.data?.author?.username }})">
+                                        @{{ notification?.data?.author?.username }}
+                                    </span>
+                                    
+                                    <span class='text-high-emphasis font-weight-light' v-if="notification.notification_type == 'post_comment'">
+                                        <span> left a 
+                                            <span class="text-info clickable" @click="goToComment(notification?.data?.id, notification?.data?.post?.id)">
+                                                comment
+                                            </span> 
+                                            on your post 
+                                        </span>
+                                        <span class="post_data text-info clickable" 
+                                            @click="routes.push({name: 'journal_detail', params: { post_id:  notification?.data?.post?.id }})">
+                                            #{{notification?.data?.post?.id}} - {{notification.data?.post?.title.length > 100 ? notification.data?.post?.title.slice(0, 100) + '...' : notification.data?.post?.title}}
+                                        </span>
+                                        <div class="notification_datetime text-subtitle-2 text-high-emphasis font-weight-light">{{ DateTimeFormat(notification?.data?.created_datetime) }}</div>
+                                    </span>
+                                    
+                                    <span class='text-high-emphasis font-weight-light'  v-else-if="notification.notification_type == 'post_reaction'">
+                                        <span> 
+                                            left a
+                                            <span :style="notification?.data?.reaction_type == 'like' ? 'color: green;' : 'color: red;'">{{ notification?.data?.reaction_type }}</span> 
+                                            to your post
+                                        </span>
+                                        <span class="comment_data text-info font-italic clickable" 
+                                            @click="routes.push({name: 'journal_detail', params: { post_id:  notification?.data?.post?.id }})">
+                                            #{{notification?.data?.post?.id}} - {{notification.data?.post?.title.length > 100 ? notification.data?.post?.title.slice(0, 100) + '...' : notification.data?.post?.title}}
+                                        </span>
+                                        <div class="notification_datetime text-subtitle-2 text-high-emphasis font-weight-light">{{ DateTimeFormat(notification?.data?.created_datetime) }}</div>
+                                    </span>
 
-                            <span v-else-if="notification.notification_type == 'comment_reply'">
-                                <span> left a
-                                    <span class="text-info clickable"
-                                        @click="goToComment(notification?.data?.id, notification?.data?.post)">
-                                        reply
-                                    </span> 
-                                    to your comment </span>
-                                <span class="comment_data text-info font-italic clickable" 
-                                    @click="goToComment(notification?.data?.parent?.id, notification?.data?.post)">
-                                    {{notification?.data?.parent?.text.length > 100 ? notification?.data?.parent?.text.slice(0, 100) + '...' : notification?.data?.parent?.text}}
-                                </span>
-                            </span>
+                                    <span class='text-high-emphasis font-weight-light'  v-else-if="notification.notification_type == 'comment_reply'">
+                                        <span> left a
+                                            <span class="text-info clickable"
+                                                @click="goToComment(notification?.data?.id, notification?.data?.post)">
+                                                reply
+                                            </span> 
+                                            to your 
+                                        </span>
 
-                            <span v-else-if="notification.notification_type == 'comment_reaction'">
-                                <span> 
-                                    left a
-                                    <span :style="notification?.data?.reaction_type == 'like' ? 'color: green;' : 'color: red;'">{{ notification?.data?.reaction_type }}</span> 
-                                    to your comment
-                                </span>
-                                <span class="comment_data text-info font-italic clickable" 
-                                    @click="goToComment(notification?.data?.comment?.id, notification?.data?.comment?.post)">
-                                    {{notification?.data?.comment?.text.length > 100 ? notification?.data?.comment?.text.slice(0, 100) + '...' : notification?.data?.comment?.text}}
-                                </span>
-                            </span>
+                                        <span class="text-info font-italic clickable"
+                                            @click="goToComment(notification?.data?.parent?.id, notification?.data?.post)">
+                                            comment
+                                        </span>
 
-                            <span v-else-if="notification.notification_type == 'subscribe'">
-                                <span> subscribed to you</span>
-                            </span>
+                                        <div class="notification_datetime text-subtitle-2 text-high-emphasis font-weight-light">{{ DateTimeFormat(notification?.data?.created_datetime) }}</div>
+
+                                        <v-textarea class="comment_data font-italic ml-3 py-2"
+                                            :model-value="notification?.data?.parent?.text.length > 100 ? '“'+notification?.data?.parent?.text.slice(0, 100) + '...”' : '“'+notification?.data?.parent?.text+'”'"
+                                            variant="solo"
+                                            readonly
+                                            hide-details
+                                            auto-grow
+                                            rows="1">
+                                        </v-textarea>
+                                    </span>
+
+                                    <span class='text-high-emphasis font-weight-light'  v-else-if="notification.notification_type == 'comment_reaction'">
+                                        <span> 
+                                            left a
+                                            <span :style="notification?.data?.reaction_type == 'like' ? 'color: green;' : 'color: red;'">{{ notification?.data?.reaction_type }}</span> 
+                                            to your 
+                                            <span class="text-info font-italic clickable"
+                                                @click="goToComment(notification?.data?.comment?.id, notification?.data?.comment?.post)">
+                                                comment
+                                            </span> 
+                                        </span>
+
+                                        <div class="notification_datetime text-subtitle-2 text-high-emphasis font-weight-light">{{ DateTimeFormat(notification?.data?.created_datetime) }}</div>
+
+                                        <v-textarea class="comment_data font-italic ml-3 py-2"
+                                            :model-value="notification?.data?.comment?.text.length > 100 ? '“'+notification?.data?.comment?.text.slice(0, 100) + '...”' : '“'+notification?.data?.comment?.text+'”'"
+                                            variant="solo"
+                                            readonly
+                                            hide-details
+                                            auto-grow
+                                            rows="1">
+                                        </v-textarea>
+
+                                    </span>
+
+                                    <span class='text-high-emphasis font-weight-light'  v-else-if="notification.notification_type == 'subscribe'">
+                                        <span> subscribed to you</span>
+                                        <div class="notification_datetime text-subtitle-2 text-high-emphasis font-weight-light">{{ DateTimeFormat(notification?.data?.created_datetime) }}</div>
+                                    </span>
+                                
+                                </div>
+                            </div>
                         </div>
-                        <div class="notification_datetime text-subtitle-2 text-high-emphasis font-weight-light">{{ DateTimeFormat(notification?.data?.created_datetime) }}</div>
-                    </div>
-                </div>
-                <v-divider class="pb-2"></v-divider>
-            </div>
-           
 
-            <v-card-action class="d-flex flex-row align-center justify-center w-100 mb-2">
+                        <v-checkbox-btn class="seen_checkbox"
+                            style="flex: 0 0;"
+                            v-model="notification.seen"
+                            @change="seenNotification(notification.notification_id, notification.seen)"
+                            :hide-details="false"
+                            density="compat" 
+                            true-icon="mdi-eye" 
+                            false-icon="mdi-eye-off">
+                        </v-checkbox-btn>
+                    </div>
+
+                    <v-divider></v-divider>
+                </v-card>
+            </div>
+
+            <v-card-action class="d-flex flex-row align-center justify-center w-100">
                 <v-btn class="show_all_notifications w-100" variant="text" @click="console.log('show_all')">Show all</v-btn>
             </v-card-action>
         </v-card>
@@ -147,6 +192,8 @@ const LoadNewPost = async() =>{
  
     window.scrollTo({top: 0,behavior: "smooth"});
 }
+
+
 
 onBeforeMount(async () => {
     if(store.getters['auth/loginState'] == true){
@@ -189,6 +236,18 @@ const goToComment = (comment_id, post_id) => {
     routes.push({name: 'journal_detail', params: { post_id:  post_id }})
 }
 
+const seenNotification = (notification_id, notification_state) => {
+    console.log(notification_id, notification_state)
+}
+
+const seenAllNotification = () => {
+
+    for(const notification of notificationsList.value){
+        notification.seen = true
+    }
+
+}
+
 
 
 </script>
@@ -196,7 +255,7 @@ const goToComment = (comment_id, post_id) => {
 <style lang="scss" scoped>
 .clickable{
     &:hover{
-        cursor: pointer;
+        cursor: pointer !important;
         text-decoration: underline;
     }
 }

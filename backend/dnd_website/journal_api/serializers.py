@@ -110,7 +110,8 @@ class NotificationSerializer(serializers.ModelSerializer):
                 data = {
                     'notification_type': 'post_reaction',
                     'seen': instance.seen,
-                    'data': post_reaction__serializer_data
+                    'data': post_reaction__serializer_data,
+                    'notification_id': instance.id,
                 }
                 return data
             
@@ -128,7 +129,8 @@ class NotificationSerializer(serializers.ModelSerializer):
                 data = {
                     'notification_type': 'post_comment',
                     'seen': instance.seen,
-                    'data': comment__serializer_data
+                    'data': comment__serializer_data,
+                    'notification_id': instance.id,
                 }
                 return data
             
@@ -140,7 +142,8 @@ class NotificationSerializer(serializers.ModelSerializer):
                 data = {
                     'notification_type': 'comment_reply',
                     'seen': instance.seen,
-                    'data': comment__serializer_data
+                    'data': comment__serializer_data,
+                    'notification_id': instance.id,
                 }
                 return data
             
@@ -158,7 +161,8 @@ class NotificationSerializer(serializers.ModelSerializer):
                 data = {
                     'notification_type': 'comment_reaction',
                     'seen': instance.seen,
-                    'data': comment_reaction__serializer_data
+                    'data': comment_reaction__serializer_data,
+                    'notification_id': instance.id,
                 }
                 return data
             
@@ -172,7 +176,8 @@ class NotificationSerializer(serializers.ModelSerializer):
                 data= {
                     "notification_type": 'subscribe',
                     "seen": instance.seen,
-                    "data" : subscription_data
+                    "data" : subscription_data,
+                    'notification_id': instance.id,
                 }
 
                 return data
