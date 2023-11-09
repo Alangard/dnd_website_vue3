@@ -6,7 +6,7 @@
                 disable-resize-watcher='false' 
                 location="right"
                 permanent="true"
-                width="750"
+                :width="`${mobileWidthLimit.value}px`"
                 temporary>
 
                 <div class='d-flex flex-row align-center justify-space-between pt-1' style="width: 100vw;">

@@ -192,7 +192,7 @@
             class="create_post_btn"
             icon="mdi-plus-thick"
             position="fixed"
-            style="bottom: 70px; right: 10%; z-index: 9999;">
+            style="bottom: 20px; right: 10%; z-index: 9999;">
         </v-btn>
     </v-theme-provider>
     
@@ -202,7 +202,7 @@
 import { getCurrentInstance, defineAsyncComponent, onMounted, onBeforeUnmount, ref, defineEmits, computed, onBeforeMount, toRaw, watch} from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
-import { useTheme, useDisplay } from 'vuetify/lib/framework.mjs';
+import {useDisplay } from 'vuetify/lib/framework.mjs';
 import {DateTimeFormat} from '@/helpers'
 import routes from '@/router/router' 
 

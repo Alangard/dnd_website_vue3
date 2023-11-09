@@ -45,6 +45,13 @@ const routes = [
   },
 
   {
+    path: '/Settings',
+    name: 'settings',
+    meta: {navbar_name: 'User profile', navbar_style: 'default' },
+    component: () => import('@/pages/Settings/Settings.vue'),
+  },
+
+  {
     path: '/user/:username',
     name: 'user_profile',
     meta: {navbar_name: 'User profile', navbar_style: 'default' },

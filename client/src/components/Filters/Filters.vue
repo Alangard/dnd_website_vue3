@@ -18,26 +18,40 @@
                                 @update:modelValue="onOrderChange"
                         ></v-select>
                 </div>
-
-                <v-slide-group class="pa-4" v-model="contentType" selected-class="bg-info">
-
-                        <v-slide-group-item 
-                                v-for="variant in contentTypeVariants" :key="variant" 
-                                v-slot="{ isSelected, toggle, selectedClass }">
-
-                                        <v-btn :class="['ma-2', selectedClass]" 
-                                                :color="isSelected ? 'text-info' : undefined"
-                                                @click="() => {toggle(); $emit('clickContentType', variant);}">
-                                                {{ variant }}
-                                        </v-btn>
-                        </v-slide-group-item>
-                </v-slide-group>
-
         </div>
 
-        <v-sheet class='d-flex flex-row align-center w-100 justify-end pb-2' v-if='width < mobileWidthLimit'>
-                <v-btn class='filter_btn' size="large" variant="plain" icon="mdi-tune" @click.stop="openFilterAside"></v-btn>
-        </v-sheet>  
+        <v-slide-group class="ml-3 pa-2" v-model="contentType" selected-class="bg-info">
+
+                <v-slide-group-item 
+                        v-for="variant in contentTypeVariants" :key="variant" 
+                        v-slot="{ isSelected, toggle, selectedClass }">
+
+                                <v-btn :class="['ma-2', selectedClass]"
+                                        v-if='width >= mobileWidthLimit'
+                                        :color="isSelected ? 'text-info' : undefined"
+                                        @click="() => {toggle(); $emit('clickContentType', variant);}">
+                                        {{ variant }}
+                                </v-btn>
+                                <v-sheet class='d-flex flex-row align-center w-100 justify-end pb-2' v-else>
+                                        <v-btn :class="['ma-2', selectedClass]"
+                                                :icon="variant == 'All posts' ? 'mdi-post-outline' : 'mdi-rss'"
+                                                variant="plain" 
+                                                :color="isSelected ? 'text-info' : undefined"
+                                                width="35px"
+                                                height="35px"
+                                                @click="() => {toggle(); $emit('clickContentType', variant);}">
+                                        </v-btn>
+                                </v-sheet>  
+
+                </v-slide-group-item>
+
+                <v-sheet class='d-flex flex-row align-center w-100 justify-end pb-2' v-if='width < mobileWidthLimit'>
+                        <v-btn class='filter_btn' variant="plain" width="35px" height="35px" icon="mdi-tune" @click.stop="openFilterAside"></v-btn>
+                </v-sheet>  
+        </v-slide-group>
+
+
+
 </v-card>     
 
 
@@ -80,7 +94,7 @@ const displayPostInListStyle =() => {store.commit('changePostListStyle', 'list')
         display: flex;
         flex-direction: row;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start;
         margin: 20px 0 15px 0;
         padding: 25px 5px 10px 15px;
         width: inherit;

@@ -1,6 +1,6 @@
 <template>
 
-    <v-menu class="notifications_menu" location="bottom" transition="slide-y-transition" :close-on-content-click="false" height="500px">
+    <v-menu class="notifications_menu" location="bottom" transition="slide-y-transition" :close-on-content-click="false">
         <template v-slot:activator="{ props }">
             <v-btn stacked class="notifications_btn text-none pa-0 mr-3" width="auto" min-width="40" v-bind="props">
                 <v-badge 
@@ -12,7 +12,7 @@
             </v-btn>
         </template>
 
-        <v-card class="notifications_menu_card" width="400px">
+        <v-card class="notifications_menu_card" max-width="400px">
             <div class="notification_top_menu d-flex flex-row align-center justify-space-between">
                 <v-btn class="read_all_btn" 
                     variant="text" 
@@ -30,7 +30,7 @@
             
             <v-divider></v-divider>
 
-            <div class="content_container" style="overflow-y: auto; max-height: 410px;">
+            <div class="content_container" style="overflow-y: auto; max-height: 440px;">
                 <v-card class="my-1" v-for="notification in notificationsList" :key="notification.notification_id"
                     rounded="0" 
                     :variant="notification?.seen ? 'default' : 'tonal'" 
@@ -155,11 +155,11 @@
 
                     <v-divider></v-divider>
                 </v-card>
-            </div>
 
-            <v-card-action class="d-flex flex-row align-center justify-center w-100">
-                <v-btn class="show_all_notifications w-100" variant="text" @click="console.log('show_all')">Show all</v-btn>
-            </v-card-action>
+                <v-card-action class="d-flex flex-row align-center justify-center w-100">
+                    <v-btn class="show_all_notifications w-100" variant="text" @click="console.log('show_all')">Show all</v-btn>
+                </v-card-action>
+            </div>
         </v-card>
     </v-menu>
         
