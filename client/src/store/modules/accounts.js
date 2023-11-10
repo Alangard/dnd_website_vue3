@@ -5,8 +5,8 @@ const user = JSON.parse(localStorage.getItem('user'));
 const BASE_URL = axios.defaults.baseURL
 
 const initialState = user
-  ? { status: { loggedIn: true }, user, usersList: null, subscriptions: null, notifications: null}
-  : { status: { loggedIn: false }, user: null, usersList: null, subscriptions:null, notifications: null};
+  ? { status: { loggedIn: true }, user, usersList: null, subscriptions: null, notifications: null, all_notifications: null} 
+  : { status: { loggedIn: false }, user: null, usersList: null, subscriptions:null, notifications: null, all_notifications: null};
 
 export const accounts = {
   namespaced: true,
@@ -46,7 +46,7 @@ export const accounts = {
       try{
         const response = await interceptorsInstance.get(BASE_URL + `notifications/${paginate_url}`, { headers: authHeader() })
         if(request_type == 'initial'){commit('setNotificationsListInStore', response.data)}
-        else if(request_type == 'load_more'){commit('addNotificationsInStore', response.data)}
+        else if(request_type == 'all_notifications'){commit('setAllNotificationsListInStore', response.data)}
         return response.data
       }
       catch(error){console.log(error)}
@@ -75,11 +75,12 @@ export const accounts = {
       state.notifications = data;
     },
 
-    addNotificationsInStore(state, data){
-      state.notifications.unshift(data)
+    setAllNotificationsListInStore(state, data){
+      state.all_notifications = data
     },
 
-    addNotifiactionInStore(state, data){
+
+    addNotificationInStore(state, data){
       state.notifications.results.unshift(data)
       state.notifications.count += 1
     }
@@ -95,6 +96,10 @@ export const accounts = {
 
     getNotificationsList(state){
       return state.notifications.results
+    },
+
+    getAllNotificationsList(state){
+      return state.all_notifications.results
     }
   }
 }

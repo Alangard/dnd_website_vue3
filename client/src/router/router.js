@@ -45,10 +45,10 @@ const routes = [
   },
 
   {
-    path: '/Settings',
-    name: 'settings',
+    path: '/notifications',
+    name: 'notifications',
     meta: {navbar_name: 'User profile', navbar_style: 'default' },
-    component: () => import('@/pages/Settings/Settings.vue'),
+    component: () => import('@/pages/Notifications/Notifications.vue'),
   },
 
   {

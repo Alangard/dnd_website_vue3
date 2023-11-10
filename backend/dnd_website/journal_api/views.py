@@ -290,8 +290,21 @@ class NotificationsViewSet(viewsets.ModelViewSet):
          # Проверяем, авторизован ли пользователь
         if not request.user.is_authenticated:
             return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        instance = self.queryset.filter(receiver__id=request.user.id)
+        
+        def myfilters(queryset):
+            instance = queryset
+            params = request.query_params
 
-        instance = self.queryset.filter(receiver__id=request.user.id, seen=False)
+            for param in params:
+                if param == 'seen' and params[param] != None:
+                    seen_state = True if params[param] == "True" else False
+                
+                    instance = instance.filter(seen=seen_state)
+            return instance
+
+        instance = myfilters(instance)
         page = self.paginate_queryset(instance)
 
         if page is not None: 

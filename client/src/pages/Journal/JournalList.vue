@@ -185,16 +185,16 @@
 
 
 
-    <v-theme-provider :theme="theme?.global?.name?.value =='dark' ? 'light' : 'dark'">
-        <v-btn 
-            v-if="!filterAsideState && width < mobileWidthLimit"
-            @click="routes.push({name: 'journal_create'})"
-            class="create_post_btn"
-            icon="mdi-plus-thick"
-            position="fixed"
-            style="bottom: 20px; right: 10%; z-index: 9999;">
-        </v-btn>
-    </v-theme-provider>
+<v-theme-provider :theme="theme?.global?.name?.value =='dark' ? 'light' : 'dark'">
+    <v-btn 
+        v-if="!filterAsideState && width < mobileWidthLimit"
+        @click="routes.push({name: 'journal_create'})"
+        class="create_post_btn"
+        icon="mdi-plus-thick"
+        position="fixed"
+        style="bottom: 20px; right: 10%; z-index: 9999;">
+    </v-btn>
+</v-theme-provider>
     
 </template>
 
