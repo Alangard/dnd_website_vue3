@@ -50,6 +50,23 @@ export const accounts = {
         return response.data
       }
       catch(error){console.log(error)}
+    },
+
+    async submitNotificationsAction({commit}, action_data){
+      try{
+        switch(action_data.action.value){
+          case 'seen':
+            await interceptorsInstance.patch(BASE_URL + `notifications/`, { headers: authHeader() })
+            break
+          case 'unseen':
+            await interceptorsInstance.patch(BASE_URL + `notifications/`, { headers: authHeader() })
+            break
+          case 'delete':
+            await interceptorsInstance.delete(BASE_URL + `notifications/`, { headers: authHeader() })
+            break
+        }
+      }
+      catch(error){console.log(error)}
     }
 
   },
@@ -83,7 +100,16 @@ export const accounts = {
     addNotificationInStore(state, data){
       state.notifications.results.unshift(data)
       state.notifications.count += 1
-    }
+    },
+
+    removeNotificationInStore(state, notifications_id__list){
+      for(notification_id of notifications_id__list){
+        splice(notification_id, 1)
+      }
+
+    },
+
+    removeAllNotificationsListInStore(state, data){}
   },
   getters: {
     getUsersList(state){

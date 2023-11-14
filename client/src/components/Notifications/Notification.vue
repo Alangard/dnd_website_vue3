@@ -106,24 +106,35 @@
             </div>
         </div>
 
-        <v-checkbox-btn class="seen_checkbox"
+        <v-checkbox-btn class="seen_checkbox" v-if="prop.checkbox_with_icon"
             style="flex: 0 0;"
             v-model="prop.notification.seen"
-            @change="seenNotification(prop.notification.notification_id, prop.notification.seen)"
+            @change="selectCheckbox(prop.notification.notification_id, prop.notification.seen)"
             :hide-details="false"
             density="compat" 
             true-icon="mdi-eye" 
             false-icon="mdi-eye-off">
         </v-checkbox-btn>
+
+        
+        <v-checkbox-btn class="seen_checkbox" v-else
+            style="flex: 0 0;"
+            v-model="prop.notification.seen"
+            @change="selectCheckbox(prop.notification.notification_id, prop.notification.seen)"
+            :hide-details="false"
+            density="compat">
+        </v-checkbox-btn>
+        
     </div>
 </template>
 
 <script setup>
-import { ref, defineProps} from 'vue'
+import { ref, defineProps, defineEmits} from 'vue'
 import routes from '@/router/router'
 import {DateTimeFormat} from '@/helpers' 
 
-const prop = defineProps(['notification'])
+const prop = defineProps(['notification', 'checkbox_with_icon'])
+const emit = defineEmits(['selectCheckbox'])
 
 const goToComment = (comment_id, post_id) => {
     store.commit('comments/setScrollToCommentState', true)
@@ -131,8 +142,8 @@ const goToComment = (comment_id, post_id) => {
     routes.push({name: 'journal_detail', params: { post_id:  post_id }})
 }
 
-const seenNotification = (notification_id, notification_state) => {
-    console.log(notification_id, notification_state)
+const selectCheckbox = (notification_id, notification_state) => {
+    emit('selectCheckbox', notification_id, notification_state)
 }
 </script>
 

@@ -1,6 +1,6 @@
 <template>
 
-    <v-menu class="notifications_menu" location="bottom" transition="slide-y-transition" :close-on-content-click="false">
+    <v-menu class="notifications_menu" location="bottom" transition="slide-y-transition" :close-on-content-click="false" v-model="notificationMenuOpen">
         <template v-slot:activator="{ props }">
             <v-btn stacked class="notifications_btn text-none pa-0 mr-3" width="auto" min-width="40" v-bind="props">
                 <v-badge 
@@ -14,17 +14,12 @@
 
         <v-card class="notifications_menu_card" max-width="400px">
             <div class="notification_top_menu d-flex flex-row align-center justify-space-between">
-                <v-btn class="read_all_btn" 
-                    variant="text" 
-                    rounded="sm"
-                    @click="seenAllNotification">
-                    Read all
-                </v-btn>
+                <v-card-title>Notifications</v-card-title>
                 <v-btn class="notifications_settings_btn" 
                     icon="mdi-cog-outline" 
                     variant="text" 
                     rounded="sm" 
-                    @click="console.log('notifications_settings')">
+                    @click="()=> {notificationMenuOpen = !notificationMenuOpen; routes.push({name: 'notifications_settings'})}">
                 </v-btn>
             </div>
             
@@ -36,13 +31,13 @@
                     :variant="notification?.seen ? 'default' : 'tonal'" 
                     color="indigo">   
 
-                    <Notification :notification="notification"></Notification>
+                    <Notification :notification="notification" :checkbox_with_icon="true" @selectCheckbox="console.log('select_notification_comp')"></Notification>
 
                     <v-divider></v-divider>
                 </v-card>
 
                 <v-card-action class="d-flex flex-row align-center justify-center w-100">
-                    <v-btn class="show_all_notifications w-100" variant="text" @click="console.log('show_all')">Show all</v-btn>
+                    <v-btn class="show_all_notifications w-100" variant="text" @click="notificationMenuOpen = !notificationMenuOpen; routes.push({name: 'notifications'})">Show all</v-btn>
                 </v-card-action>
             </div>
         </v-card>
@@ -67,6 +62,7 @@ const page_size = 10
 let page_url = ref(`?page=1&page_size=${page_size}`)
 
 let notifications_count = ref(0)
+const notificationMenuOpen = ref(false)
 const notificationsList = computed(() => {return store.getters['accounts/getNotificationsList']});
 
 onBeforeMount(async () => {
@@ -105,14 +101,6 @@ onBeforeUnmount(() => {
 })
 
 
-
-const seenAllNotification = () => {
-
-    for(const notification of notificationsList.value){
-        notification.seen = true
-    }
-
-}
 
 
 

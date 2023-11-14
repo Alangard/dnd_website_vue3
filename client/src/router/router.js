@@ -14,6 +14,7 @@ const routes = [
     name: 'journal',
     meta: {navbar_name: 'Journal', navbar_style: 'default'},
     component: () => import('@/pages/Journal/JournalList.vue'),
+    /// alias and child
   },
 
   {
@@ -47,8 +48,15 @@ const routes = [
   {
     path: '/notifications',
     name: 'notifications',
-    meta: {navbar_name: 'User profile', navbar_style: 'default' },
+    meta: {navbar_name: 'User profile', navbar_style: 'default',  requiresAuth: true},
     component: () => import('@/pages/Notifications/Notifications.vue'),
+  },
+
+  {
+    path: '/notifications/settings',
+    name: 'notifications_settings',
+    meta: {navbar_name: 'User profile', navbar_style: 'default',  requiresAuth: true},
+    component: () => import('@/pages/Notifications/NotificationsSetting.vue'),
   },
 
   {
