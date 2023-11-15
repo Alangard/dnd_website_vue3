@@ -311,6 +311,57 @@ class NotificationsViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
+    @action(detail=False, methods=['post'])  
+    def delete_notifications(self, request, pk=None):
+        self.permission_classes = [IsOwnerOrAdmin]
+        self.serializer_class = NotificationSerializer
+        self.ordering = ['-created_datetime']
+        self.pagination_class = NotificationPagination
+
+        # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Получаем данные
+        notifications_ids = request.data.get('notifications_ids')
+
+        notification_list__obj = self.queryset.filter(pk__in=notifications_ids)
+        if notification_list__obj:
+            notification_list__obj.delete()
+
+            instance = self.queryset.filter(receiver__id=request.user.id)
+            page = self.paginate_queryset(instance)
+
+            if page is not None: 
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+        else:
+             return Response({"error": "Уведомления с указанными id не существуют"}, status=status.HTTP_403_FORBIDDEN)
+    
+    @action(detail=False, methods=['post'])  
+    def update_notifications(self, request, pk=None):
+        self.serializer_class = NotificationSerializer
+        self.permission_classes = [IsOwnerOrReadOnly]
+
+        # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Получаем данные
+        notifications_ids = request.data.get('notifications_ids')
+        action = request.data.get('action')['value']
+        seen_state = True if action == 'seen' else False
+
+        notification_list__obj = self.queryset.filter(pk__in=notifications_ids)
+
+        if notification_list__obj:
+            notification_list__obj.update(seen=seen_state, seen_datetime=datetime.now())
+            return Response(status=status.HTTP_200_OK)
+        else:
+             return Response({"error": "Уведомления с указанными id не существуют"}, status=status.HTTP_403_FORBIDDEN)
+
+
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().select_related('author').prefetch_related('tags', 'post_reactions', 'comments')
 

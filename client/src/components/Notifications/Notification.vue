@@ -1,7 +1,7 @@
 <template>
     
     <div class="notification_container d-flex flex-row align-start justify-space-between my-1 mx-2">
-        <div class="d-flex flex-row justify-start mr-2">
+        <div class="d-flex flex-row justify-start mr-2 w-100">
             <div class="avatar">
                 <v-avatar class="avatar mr-2" style="cursor:pointer" size="32">
                     <v-img 
@@ -12,7 +12,7 @@
                     <v-icon icon="mdi-account-circle" size='x-large' v-else></v-icon>
                 </v-avatar>
             </div>
-            <div class="notification_text">
+            <div class="notification_text w-100">
                 <div class="text">
 
                     <span class="username text-info clickable"
@@ -119,7 +119,7 @@
         
         <v-checkbox-btn class="seen_checkbox" v-else
             style="flex: 0 0;"
-            v-model="prop.notification.seen"
+            v-model="isChecked"
             @change="selectCheckbox(prop.notification.notification_id, prop.notification.seen)"
             :hide-details="false"
             density="compat">
@@ -129,12 +129,14 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits} from 'vue'
+import { ref, defineProps, defineEmits, computed} from 'vue'
 import routes from '@/router/router'
 import {DateTimeFormat} from '@/helpers' 
 
-const prop = defineProps(['notification', 'checkbox_with_icon'])
+const prop = defineProps(['notification', 'checkbox_with_icon', 'checkedNotificationList'])
 const emit = defineEmits(['selectCheckbox'])
+
+const isChecked = computed(() => {return prop.checkedNotificationList.includes(prop.notification.notification_id)})
 
 const goToComment = (comment_id, post_id) => {
     store.commit('comments/setScrollToCommentState', true)

@@ -5,8 +5,8 @@ const user = JSON.parse(localStorage.getItem('user'));
 const BASE_URL = axios.defaults.baseURL
 
 const initialState = user
-  ? { status: { loggedIn: true }, user, usersList: null, subscriptions: null, notifications: null, all_notifications: null} 
-  : { status: { loggedIn: false }, user: null, usersList: null, subscriptions:null, notifications: null, all_notifications: null};
+  ? { status: { loggedIn: true }, user, usersList: null, subscriptions: null, notifications: null, } 
+  : { status: { loggedIn: false }, user: null, usersList: null, subscriptions:null, notifications: null, };
 
 export const accounts = {
   namespaced: true,
@@ -45,25 +45,20 @@ export const accounts = {
     async getNotificationsList({commit},{paginate_url, request_type}){
       try{
         const response = await interceptorsInstance.get(BASE_URL + `notifications/${paginate_url}`, { headers: authHeader() })
-        if(request_type == 'initial'){commit('setNotificationsListInStore', response.data)}
-        else if(request_type == 'all_notifications'){commit('setAllNotificationsListInStore', response.data)}
+        if(!request_type){commit('setNotificationsListInStore', response.data)}
         return response.data
       }
       catch(error){console.log(error)}
     },
 
+
     async submitNotificationsAction({commit}, action_data){
       try{
-        switch(action_data.action.value){
-          case 'seen':
-            await interceptorsInstance.patch(BASE_URL + `notifications/`, { headers: authHeader() })
-            break
-          case 'unseen':
-            await interceptorsInstance.patch(BASE_URL + `notifications/`, { headers: authHeader() })
-            break
-          case 'delete':
-            await interceptorsInstance.delete(BASE_URL + `notifications/`, { headers: authHeader() })
-            break
+        if(action_data.action.value == 'seen' || action_data.action.value == 'unseen'){
+          await interceptorsInstance.post(BASE_URL + `notifications/update_notifications/`, action_data,  { headers: authHeader() })
+        }
+        else if(action_data.action.value == 'delete'){
+          await interceptorsInstance.post(BASE_URL + `notifications/delete_notifications/?page_size=${action_data.page_size}`, action_data, { headers: authHeader() })
         }
       }
       catch(error){console.log(error)}
@@ -92,24 +87,18 @@ export const accounts = {
       state.notifications = data;
     },
 
-    setAllNotificationsListInStore(state, data){
-      state.all_notifications = data
-    },
-
-
     addNotificationInStore(state, data){
       state.notifications.results.unshift(data)
       state.notifications.count += 1
     },
 
     removeNotificationInStore(state, notifications_id__list){
-      for(notification_id of notifications_id__list){
-        splice(notification_id, 1)
-      }
+      notifications_id__list.forEach(element => {
+          state.notifications.results = state.notifications.results.filter(obj => obj.notification_id !== element);
+      });
 
+      state.notifications.count = state.notifications.results.length
     },
-
-    removeAllNotificationsListInStore(state, data){}
   },
   getters: {
     getUsersList(state){
@@ -123,9 +112,5 @@ export const accounts = {
     getNotificationsList(state){
       return state.notifications.results
     },
-
-    getAllNotificationsList(state){
-      return state.all_notifications.results
-    }
   }
 }

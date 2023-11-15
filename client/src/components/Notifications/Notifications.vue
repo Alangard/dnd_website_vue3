@@ -46,7 +46,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount, onBeforeUnmount } from 'vue'
+import { ref, computed, onBeforeMount, onBeforeUnmount, watch } from 'vue'
 import { useStore } from 'vuex';
 import axios from 'axios';
 import routes from '@/router/router' 
@@ -63,7 +63,19 @@ let page_url = ref(`?page=1&page_size=${page_size}`)
 
 let notifications_count = ref(0)
 const notificationMenuOpen = ref(false)
-const notificationsList = computed(() => {return store.getters['accounts/getNotificationsList']});
+const notificationsList = ref(null)
+
+watch(notificationMenuOpen, async(newValue, oldValue) => {
+    if(newValue == true){
+        const response = await store.dispatch('accounts/getNotificationsList', {'paginate_url': page_url.value, 'request_type': 'navbar'})
+        notifications_count.value = response.count
+        notificationsList.value = response.results
+        page_count.value = Math.ceil(notifications_count.value / page_size)   
+    }
+})
+
+
+   
 
 onBeforeMount(async () => {
     if(store.getters['auth/loginState'] == true){
@@ -80,11 +92,14 @@ onBeforeMount(async () => {
             url += refresh_response.access
         }
 
-        notifications_count.value = (await store.dispatch('accounts/getNotificationsList', {'paginate_url': page_url.value, 'request_type': 'initial'})).count 
-        page_count.value = Math.ceil(notifications_count.value / page_size)
-        
-        websocket.value = new WebSocket(url)
 
+        const response = await store.dispatch('accounts/getNotificationsList', {'paginate_url': page_url.value, 'request_type': 'navbar'})
+        notifications_count.value = response.count
+        notificationsList.value = response.results
+        page_count.value = Math.ceil(notifications_count.value / page_size)          
+     
+
+        websocket.value = new WebSocket(url)
         websocket.value.onmessage = function(e){
             let data = JSON.parse(e.data)
             if(data.status == '200'){

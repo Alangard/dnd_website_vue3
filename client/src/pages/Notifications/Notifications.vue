@@ -17,9 +17,8 @@
         </div>
 
         <div class="d-flex flex-row align-center justify-space-between w-100 mt-4"> 
-          <v-select
-            class="filter_seen_notifications__select"
-            :style="width >= mobileWidthLimit ? '' : 'max-width: 150px'"
+          <v-select class="filter_seen_notifications__select"
+            style="max-width: 150px"
             v-model="seenNotificationFilterSelect"
             :items="notificationFilterList"
             return-object
@@ -27,18 +26,18 @@
             density="compact"
             variant="solo"
             prepend-inner-icon="mdi-filter-outline"
-            hide-details
           ></v-select>
 
-          <div class="notifications__actions_container d-flex flex-row align-center" v-if="checkedNotificationList.length > 0">
+          <div class="notifications__actions_container d-flex flex-row align-start" v-if="checkedNotificationList.length > 0">
             <v-select class="notifications_actions mr-2" 
-              :style="width >= mobileWidthLimit ? '' : 'max-width: 120px'"
+              :style="width >= mobileWidthLimit ? '' : 'max-width: 100px'"
               v-model="notificationActionSelect"
               :items="notificationActionList"
               return-object
               density="compact"
               variant="solo"
-              hide-details
+              persistent-hint
+              :hint="`Selected notifications ${checkedNotificationList.length}`"
             ></v-select>
 
             <v-btn class="notifications__action_submit" 
@@ -48,7 +47,6 @@
               @click="submitNotificationAction()">
             </v-btn>
           </div>
-
         </div>
       </v-card-title>
 
@@ -59,7 +57,11 @@
         :variant="notification?.seen ? 'default' : 'tonal'" 
         color="indigo">   
 
-        <Notification :notification="notification" :checkbox_with_icon="false" @selectCheckbox="selectCheckbox"></Notification>
+        <Notification 
+          :notification="notification" 
+          :checkbox_with_icon="false"
+          :checkedNotificationList="checkedNotificationList" 
+          @selectCheckbox="selectCheckbox" ></Notification>
 
         <v-divider></v-divider>
       </v-card>
@@ -114,20 +116,9 @@ onBeforeMount(async () => {
     notificationsList.value = response.results
     page_count.value = Math.ceil(notifications_count.value / page_size)          
   }
-})
 
-const tab = ref('option-1')
-const notificationSettings = ref(
-    {
-        'new_follower': {'title': 'New follower', 'text': 'Someone starts following you', 'value': false},
-        'new_comment': {'title': 'New comment', 'text': 'Someone wrote comment to your post', 'value': false},
-        'new_reply': {'title': 'New reply', 'text': 'Someone wrote a reply to your comment', 'value': false},
-        'new__post_reaction': {'title': 'New reaction yo your post', 'text': 'Someone reacts to your post', 'value': false},
-        'new__comment_reaction': {'title': 'New reaction on comment', 'text': 'Someone reacts to your comment', 'value': false},
-        'new__feed_post': {'title': 'New feed post', 'text': "Someone you're following posted something", 'value': false},
-        'new__feed_reaction': {'title': 'New feed reaction', 'text': "Someone you're following left a reaction.", 'value': false},
-    }   
-)
+  filters.value = `seen=${seenNotificationFilterSelect.value['value'] == 'seen' ? "True" : "False"}`
+})
 
 const selectCheckbox =(notification_id, notification_state) =>{
   const notification_index = checkedNotificationList.value.indexOf(notification_id)
@@ -136,6 +127,13 @@ const selectCheckbox =(notification_id, notification_state) =>{
 }
 
 const submitNotificationAction =() =>{
+  const data = {
+    'page_size': page_size,
+    'action': notificationActionSelect.value,
+    'notifications_ids': checkedNotificationList.value
+  }
+
+  store.dispatch('accounts/submitNotificationsAction', data)
   alert(`Submit action ${notificationActionSelect.value['value']}`)
 }
 
