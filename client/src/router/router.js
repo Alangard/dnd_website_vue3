@@ -48,15 +48,22 @@ const routes = [
   {
     path: '/notifications',
     name: 'notifications',
-    meta: {navbar_name: 'User profile', navbar_style: 'default',  requiresAuth: true},
+    meta: {navbar_name: 'Notifications', navbar_style: 'default',  requiresAuth: true},
     component: () => import('@/pages/Notifications/Notifications.vue'),
   },
 
   {
-    path: '/notifications/settings',
+    path: '/settings/notifications',
     name: 'notifications_settings',
-    meta: {navbar_name: 'User profile', navbar_style: 'default',  requiresAuth: true},
-    component: () => import('@/pages/Notifications/NotificationsSetting.vue'),
+    meta: {navbar_name: 'Notifications settings', navbar_style: 'default',  requiresAuth: true},
+    component: () => import('@/pages/Settings/NotificationsSetting.vue'),
+  },
+
+  {
+    path: '/settings/account',
+    name: 'account_settings',
+    meta: {navbar_name: 'Account settings', navbar_style: 'default',  requiresAuth: true},
+    component: () => import('@/pages/Settings/AccountSetting.vue'),
   },
 
   {

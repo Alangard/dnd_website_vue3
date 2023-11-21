@@ -42,13 +42,13 @@
                 <v-card class="main-container elevation-8 w-100" v-for="post in postsList" :key="post">
                     <div class="user_data d-flex flex-row align-center justify-space-between mb-1 w-100" >
                         <div class="d-flex flex-row align-center justify-start">
-                            <v-avatar class="clickable transformable avatar" size="x-small"
+    
+                            <v-avatar class="clickable transformable avatar" 
+                                :image="post?.author?.avatar" 
+                                :alt="post?.author?.username" 
+                                size="32" 
                                 @click="routes.push({name: 'user_profile', params: { username: post.author.username }})">
-                                <v-img v-if="post.author.avatar"
-                                    :src="post.author.avatar"
-                                    :alt="post.author.username">
-                                </v-img>
-                                <v-icon icon="mdi-account-circle" v-else></v-icon>
+                                <v-icon icon="mdi-account-circle" size="32"></v-icon>
                             </v-avatar>
 
                             <span class="username clickable transformable px-1 text-caption text-capitalize font-weight-regular"
