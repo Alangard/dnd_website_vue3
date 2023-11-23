@@ -163,36 +163,6 @@ import LogInVue from '@/pages/Auth/LogIn.vue';
 
     <v-dialog v-model="profilePreviewDialog" width="auto">
         <v-card style="min-height: 380px; max-height: 450px;">
-            <!-- <div class="user_profile" style="position: relative;" >
-                <v-img class="background_img" 
-                    width="auto" 
-                    max-height='300px' 
-                    cover 
-                    src="https://cdn.vuetifyjs.com/images/parallax/material.jpg" 
-                    style="position: relative;">
-                </v-img>
-
-                <div class="profile_info__container d-flex flex-row align-end" style="position: absolute; bottom: -60px; left: 20px;" >
-                    <div class="avatar" style="position: relative;">
-                        <v-avatar class="avatar" 
-                            image="https://cdn.vuetifyjs.com/images/parallax/material.jpg" 
-                            alt="username" 
-                            size="120"
-                            :style="`border: 4px solid ${theme.current.value.colors.background}`"
-                            @click="routes.push({name: 'user_profile', params: { username: post.author.username }})">
-                            <v-icon icon="mdi-account-circle" size="120"></v-icon>
-                        </v-avatar>
-                        <span class="online_status" 
-                            :style="`position: absolute; bottom: 17px; right: 6px; padding: 5px; border-radius: 50%;  background: #00b916; border: 4px solid ${theme.current.value.colors.background}`">
-                        </span>
-                    </div>
-                    <div class="d-flex flex-column ml-4">
-                        <span class="username text-h6">Username</span>
-                        <span class="user_role">User role</span>
-                    </div>
-                </div>
-
-            </div> -->
           
             <div class="user_profile" style="position: relative;">
                 <div class="profile_header"
@@ -223,9 +193,10 @@ import LogInVue from '@/pages/Auth/LogIn.vue';
                         :style="`position: absolute; padding: 5px; bottom: 17px; right: 4px; border: 4px solid ${theme.current.value.colors.background}; border-radius: 10px; background: ${theme.current.value.colors.success};`">
                     </span>
                 </div>
-                <div class="user_title" style="display: inline-block; margin-top: 15px; vertical-align: top;">
+                <div class="user_title" style="display: inline-block; vertical-align: top;">
                     <div class="username text-h6">Username</div>
                     <div class="user_role">User role</div>
+                    <div class="last_visited text-caption">Last visited: 23 November 2023</div>
                 </div>
                 <div class="d-flex flex-row user_info mx-3 mt-3">
                     <v-card class="about pa-2" variant="tonal" min-width="300px" max-width="600px">

@@ -70,7 +70,7 @@ const routes = [
     path: '/user/:username',
     name: 'user_profile',
     meta: {navbar_name: 'User profile', navbar_style: 'default' },
-    component: () => import('@/pages/User.vue'),
+    component: () => import('@/pages/Profile/Profile.vue'),
   },
 
   {
