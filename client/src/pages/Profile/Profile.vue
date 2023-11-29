@@ -37,8 +37,8 @@
                     :style="`position: absolute; padding: 5px; bottom: 17px; right: 4px; border: 4px solid ${theme.current.value.colors.background}; border-radius: 10px; background: ${theme.current.value.colors.success};`">
                 </span>
             </div>
-            <div class="user_title" style="display: inline-block; vertical-align: top;" @mouseover="editablUserTitle = true" @mouseleave="editablUserTitle = false" >
-                <div class="px-2" v-show="editablUserTitle == false && userTitleEditField == false">  
+            <div class="user_title" style="display: inline-block; vertical-align: top;" @mouseover="editableUserTitle = true" @mouseleave="editableUserTitle = false" >
+                <div class="px-2" v-show="editableUserTitle == false && userTitleEditField == false">  
                     <div class="username text-h6">{{username}}</div>
                     <div class="user_role">{{ user_role }}</div>
                 </div>
@@ -64,48 +64,105 @@
                         @click:append="sendUserRole()">
                     </v-text-field>
                 </div>
-                <v-card class="px-2 pre_edit_container" v-if="editablUserTitle && userTitleEditField == false" style="position: relative;">
+                <v-card class="px-2 pre_edit_container" v-if="editableUserTitle && userTitleEditField == false" style="position: relative;">
                     <div class="username text-h6">{{username}}</div>
                     <div class="user_role">{{ user_role }}</div>
                     <v-btn 
-                        v-show="editablUserTitle" 
+                        v-show="editableUserTitle" 
                         @click="userTitleEditField = true"
                         density="comfortable" 
                         icon="mdi-pencil-outline"  
                         style="position: absolute; top: 0px; right: 10px">
                     </v-btn>
                 </v-card>
+
                 <div class="last_visited text-caption px-2">Last visited: 23 November 2023</div>
             </div>
-            <div class="about d-flex flex-row user_info mx-3 mt-3">
-                <v-card class="pa-2" variant="tonal" min-width="300px" max-width="600px">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-                </v-card>
+            <div class="about d-flex flex-row user_info mx-3 mt-3" style="min-width: 300px; max-width: 600px; position: relative;" @mouseover="editableAboutInfo = true" @mouseleave="editableAboutInfo = false">
+                <div v-if="aboutEditField == false">
+                    <v-card class="pa-2" variant="tonal">
+                    {{about_info}}
+                    </v-card>
+                    <v-btn 
+                        v-show="editableAboutInfo" 
+                        @click="aboutEditField = true"
+                        density="comfortable" 
+                        icon="mdi-pencil-outline"  
+                        style="position: absolute; top: 10px; right: 10px">
+                    </v-btn>
+                </div>
+
+                <v-textarea class="about_info" 
+                    v-else
+                    v-model="about_info"
+                    placeholder="about me" 
+                    variant="filled"
+                    density="compact" 
+                    clearable
+                    hide-details 
+                    hide-spin-buttons
+                    no-resize
+                    :append-icon="about_info !== '' && editedAbout == false ? 'mdi-check' : ''"
+                    @click:append="sendAboutInfo()">
+                </v-textarea>
             </div>
 
-            <v-card class="stats mt-5 mx-3">
-                <v-card-title>Stats</v-card-title>
-                <v-card-text class="d-flex flex-row flex-wrap">
-                    <v-card class="d-flex flex-column align-center" rounded="0">
-                        <v-card-title>Likes</v-card-title>
-                        <v-card-text>12000</v-card-text>
-                    </v-card>
+            <v-card class="stats mt-5 mx-3" style="position: relative;" @mouseover="editableStats = true" @mouseleave="editableStats = false">
+                <div v-if="editStats == false">
+                    <v-card-title>Stats</v-card-title>
+                    <v-card-text class="d-flex flex-row flex-wrap">
+                        <v-card class="d-flex flex-column align-center" rounded="0">
+                            <v-card-title>Likes</v-card-title>
+                            <v-card-text>12000</v-card-text>
+                        </v-card>
 
-                    <v-card class="d-flex flex-column align-center" rounded="0">
-                        <v-card-title>Comments</v-card-title>
-                        <v-card-text>360</v-card-text>
-                    </v-card>
+                        <v-card class="d-flex flex-column align-center" rounded="0">
+                            <v-card-title>Comments</v-card-title>
+                            <v-card-text>360</v-card-text>
+                        </v-card>
 
-                    <v-card class="d-flex flex-column align-center" rounded="0">
-                        <v-card-title>Posts</v-card-title>
-                        <v-card-text>15</v-card-text>
-                    </v-card>
+                        <v-card class="d-flex flex-column align-center" rounded="0">
+                            <v-card-title>Posts</v-card-title>
+                            <v-card-text>15</v-card-text>
+                        </v-card>
 
-                    <v-card class="d-flex flex-column align-center" rounded="0">
-                        <v-card-title>Longest stay in the top</v-card-title>
-                        <v-card-text>5 days</v-card-text>
-                    </v-card>
-                </v-card-text>
+                        <v-card class="d-flex flex-column align-center" rounded="0">
+                            <v-card-title>Longest stay in the top</v-card-title>
+                            <v-card-text>5 days</v-card-text>
+                        </v-card>
+                    </v-card-text>
+                    <v-btn 
+                        v-show="editableStats" 
+                        @click="editStats = true"
+                        density="comfortable" 
+                        icon="mdi-pencil-outline"  
+                        style="position: absolute; top: 10px; right: 10px">
+                    </v-btn>
+                </div>
+                <div v-else>
+                    <v-card-title>Stats</v-card-title>
+                    <v-card-text class="d-flex flex-row flex-wrap">
+                        <v-card class="d-flex flex-column align-center" rounded="0">
+                            <v-card-title>Likes</v-card-title>
+                            <v-card-text>12000</v-card-text>
+                        </v-card>
+
+                        <v-card class="d-flex flex-column align-center" rounded="0">
+                            <v-card-title>Comments</v-card-title>
+                            <v-card-text>360</v-card-text>
+                        </v-card>
+
+                        <v-card class="d-flex flex-column align-center" rounded="0">
+                            <v-card-title>Posts</v-card-title>
+                            <v-card-text>15</v-card-text>
+                        </v-card>
+
+                        <v-card class="d-flex flex-column align-center" rounded="0">
+                            <v-card-title>Longest stay in the top</v-card-title>
+                            <v-card-text>5 days</v-card-text>
+                        </v-card>
+                    </v-card-text>
+                </div>
             </v-card>
 
             <div class="showcase mt-5 mx-3">
@@ -196,6 +253,8 @@
             </v-card>
         </div>
     </v-card>
+
+    <DragAndDrop></DragAndDrop>
 </div>
 
 
@@ -209,6 +268,8 @@ import { useDisplay } from 'vuetify/lib/framework.mjs';
 import { useTheme } from 'vuetify/lib/framework.mjs';
 import routes from '@/router/router'
 
+import DragAndDrop from '@/components/Drag_and_drop.vue'
+
 let theme = useTheme()
 const { width } = useDisplay();
 const store = useStore();
@@ -216,16 +277,23 @@ const store = useStore();
 const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 
 let expansionPanelShowcases = ref(['achievements', 'active_company','workshop' ])
+
 let editableBackground = ref(false)
 let editableAvatar = ref(false)
-let editablUserTitle = ref(false)
+let editableUserTitle = ref(false)
+let editableAboutInfo = ref(false)
+let editableStats = ref(false)
 
 let userTitleEditField = ref(false)
+let aboutEditField = ref(false)
 let editedUsername = ref(false)
 let editedUserRole = ref(false)
+let editedAbout = ref(false)
+let editStats = ref(false)
 
 let username = ref('Alangard')
 let user_role = ref('user')
+let about_info = ref('Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation')
 
 const sendUsername =() => {
     // checkUsername;
@@ -233,7 +301,7 @@ const sendUsername =() => {
     if(editedUserRole.value == true){
         console.log('username')
         userTitleEditField.value = false
-        editablUserTitle.value = false
+        editableUserTitle.value = false
         editedUsername.value = false
         editedUserRole.value = false
     }
@@ -246,11 +314,13 @@ const sendUserRole =() =>{
     if(editedUsername.value == true){
         console.log('user_role')
         userTitleEditField.value = false
-        editablUserTitle.value = false
+        editableUserTitle.value = false
         editedUsername.value = false
         editedUserRole.value = false
     }
 }
+
+const sendAboutInfo =() =>{aboutEditField.value = false;}
 
 </script>
 
