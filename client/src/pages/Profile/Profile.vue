@@ -111,24 +111,9 @@
                 <div v-if="editStats == false">
                     <v-card-title>Stats</v-card-title>
                     <v-card-text class="d-flex flex-row flex-wrap">
-                        <v-card class="d-flex flex-column align-center" rounded="0">
-                            <v-card-title>Likes</v-card-title>
-                            <v-card-text>12000</v-card-text>
-                        </v-card>
-
-                        <v-card class="d-flex flex-column align-center" rounded="0">
-                            <v-card-title>Comments</v-card-title>
-                            <v-card-text>360</v-card-text>
-                        </v-card>
-
-                        <v-card class="d-flex flex-column align-center" rounded="0">
-                            <v-card-title>Posts</v-card-title>
-                            <v-card-text>15</v-card-text>
-                        </v-card>
-
-                        <v-card class="d-flex flex-column align-center" rounded="0">
-                            <v-card-title>Longest stay in the top</v-card-title>
-                            <v-card-text>5 days</v-card-text>
+                        <v-card class="d-flex flex-column align-center" rounded="0" v-for="stat in stats_info_list" :key="stat">
+                            <v-card-title>{{ stat.name }}</v-card-title>
+                            <v-card-text>{{ stat.count }}</v-card-text>
                         </v-card>
                     </v-card-text>
                     <v-btn 
@@ -141,27 +126,24 @@
                 </div>
                 <div v-else>
                     <v-card-title>Stats</v-card-title>
-                    <v-card-text class="d-flex flex-row flex-wrap">
-                        <v-card class="d-flex flex-column align-center" rounded="0">
-                            <v-card-title>Likes</v-card-title>
-                            <v-card-text>12000</v-card-text>
-                        </v-card>
+                    <v-card-text class="d-flex flex-row align-center flex-wrap">
 
-                        <v-card class="d-flex flex-column align-center" rounded="0">
-                            <v-card-title>Comments</v-card-title>
-                            <v-card-text>360</v-card-text>
-                        </v-card>
+                        <DraggableStats :list="stats_info_list"></DraggableStats>
 
-                        <v-card class="d-flex flex-column align-center" rounded="0">
-                            <v-card-title>Posts</v-card-title>
-                            <v-card-text>15</v-card-text>
-                        </v-card>
-
-                        <v-card class="d-flex flex-column align-center" rounded="0">
-                            <v-card-title>Longest stay in the top</v-card-title>
-                            <v-card-text>5 days</v-card-text>
-                        </v-card>
+                        <v-btn class="add_stat_block ml-3"
+                            v-if="stats_info_list.length < 4"
+                            icon="mdi-plus" 
+                            width="50px"
+                            height="50px">
+                        </v-btn>
                     </v-card-text>
+                    <v-btn class="save_stat"
+                        @click="saveStats"
+                        density="comfortable" 
+                        icon="mdi-check-outline"  
+                        style="position: absolute; top: 10px; right: 10px">
+                    </v-btn>
+
                 </div>
             </v-card>
 
@@ -254,7 +236,7 @@
         </div>
     </v-card>
 
-    <DragAndDrop></DragAndDrop>
+
 </div>
 
 
@@ -268,7 +250,9 @@ import { useDisplay } from 'vuetify/lib/framework.mjs';
 import { useTheme } from 'vuetify/lib/framework.mjs';
 import routes from '@/router/router'
 
-import DragAndDrop from '@/components/Drag_and_drop.vue'
+import DraggableStats from '@/components/Profile/DraggableStats.vue'
+
+const stats_info_list = ref([{'name': 'Likes', 'count': 12000}, {'name': 'Comments', 'count': 360}, {'name': 'Post', 'count': 15}, {'name': '"Hot" streak', 'count': '5 days'}])
 
 let theme = useTheme()
 const { width } = useDisplay();
@@ -321,6 +305,11 @@ const sendUserRole =() =>{
 }
 
 const sendAboutInfo =() =>{aboutEditField.value = false;}
+
+const saveStats =() =>{
+    //send stats
+    editStats.value = false
+}
 
 </script>
 

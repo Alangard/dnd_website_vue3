@@ -77,21 +77,17 @@
   
 <template>
     <div class="row">
-      <div class="col-2">
+      <!-- <div class="col-2">
         <v-btn class="btn btn-secondary button" @click="sort">
           To original order
         </v-btn>
-      </div>
+      </div> -->
   
       <div class="col-6">
-        <h3>Transition</h3>
+        <slot name="title"></slot>
         <draggable
           class="d-flex flex-row list-group"
-          :component-data="{
-            tag: 'ul',
-            type: 'transition-group',
-            name: !drag ? 'flip-list' : null
-          }"
+          :component-data="{ tag: 'ul', type: 'transition-group', name: !drag ? 'flip-list' : null}"
           v-model="list"
           v-bind="dragOptions"
           @start="drag = true"
@@ -99,14 +95,15 @@
           item-key="order"
         >
           <template #item="{ element }">
-            <li class="list-group-item">
-              <v-icon
+            <div class="list-group-item">
+              <!-- <slot name="list_item"></slot> -->
+              <!-- <v-icon
                 :class="{ 'fa fa-anchor': element.fixed, 'glyphicon glyphicon-pushpin': !element.fixed }"
                 @click="element.fixed = !element.fixed"
                 aria-hidden="true"
               ></v-icon>
-              {{ element.name }}
-            </li>
+              {{ element.name }} -->
+            </div>
           </template>
         </draggable>
       </div>
@@ -116,8 +113,10 @@
   </template>
   
   <script setup>
-  import { ref, reactive } from 'vue';
+  import { ref, reactive, defineProps } from 'vue';
   import draggable from 'vuedraggable'
+
+  const props = defineProps(['test_list'])
   
   const message = [
     "vue.draggable",
@@ -131,7 +130,7 @@
   ];
   
   const list = ref(
-    message.map((name, index) => {
+    props.test_list?.map((name, index) => {
       return { name, order: index + 1 };
     })
   );
