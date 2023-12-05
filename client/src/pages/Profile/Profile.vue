@@ -128,7 +128,7 @@
                     <v-card-title>Stats</v-card-title>
                     <v-card-text class="d-flex flex-row align-center flex-wrap">
 
-                        <DraggableStats :list="stats_info_list"></DraggableStats>
+                        <DraggableShowcase :list="stats_info_list" :type="'stats'"></DraggableShowcase>
 
                         <v-btn class="add_stat_block ml-3"
                             v-if="stats_info_list.length < 4"
@@ -153,18 +153,17 @@
                             <v-expansion-panel-title class="text-h6" expand-icon="mdi-plus" collapse-icon="mdi-minus">Achivements showcase</v-expansion-panel-title>
                             <v-expansion-panel-text>
                                 <div class="d-flex flex-row flex-wrap">
-                                    <!-- <v-card class="mr-3" width="90px" height="90px" v-for="achievement in achievements" :key="achievement.id">
+
+                                    <DraggableShowcase :list="info.achievements" :type="'achievements'"></DraggableShowcase>
+                                    <!-- <v-card class="mr-3 mt-3" width="90px" height="90px">
+                                        <v-img height="100%" cover src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"></v-img>
+                                    </v-card>
+                                    <v-card class="mr-3 mt-3" width="90px" height="90px">
+                                        <v-img height="100%" cover src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"></v-img>
+                                    </v-card>
+                                    <v-card class="mr-3 mt-3" width="90px" height="90px">
                                         <v-img height="100%" cover src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"></v-img>
                                     </v-card> -->
-                                    <v-card class="mr-3 mt-3" width="90px" height="90px">
-                                        <v-img height="100%" cover src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"></v-img>
-                                    </v-card>
-                                    <v-card class="mr-3 mt-3" width="90px" height="90px">
-                                        <v-img height="100%" cover src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"></v-img>
-                                    </v-card>
-                                    <v-card class="mr-3 mt-3" width="90px" height="90px">
-                                        <v-img height="100%" cover src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"></v-img>
-                                    </v-card>
                                 </div>
                             </v-expansion-panel-text>
                         </v-expansion-panel>
@@ -173,7 +172,8 @@
                             <v-expansion-panel-title class="text-h6" expand-icon="mdi-plus" collapse-icon="mdi-minus">Company showcase</v-expansion-panel-title>
                             <v-expansion-panel-text>
                                 <div class="d-flex flex-row flex-wrap">
-                                    <v-card class="d-flex flex-column align-center mr-3 mt-3 pt-3">
+                                    <DraggableShowcase :list="info.active_company" :type="'active_company'"></DraggableShowcase>
+                                    <!-- <v-card class="d-flex flex-column align-center mr-3 mt-3 pt-3">
                                         <v-img width="90px" height="90px" cover src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"></v-img>
                                         <v-card-title class="pb-0">Tavern</v-card-title>
                                         <v-card-subtitle>
@@ -193,7 +193,7 @@
                                         <v-card-subtitle>
                                             <span class="role">Player</span>/<span class="player_name">Mjolnir</span>
                                         </v-card-subtitle>
-                                    </v-card>
+                                    </v-card> -->
                                 </div>
                             </v-expansion-panel-text>
                         </v-expansion-panel>
@@ -202,7 +202,8 @@
                             <v-expansion-panel-title class="text-h6" expand-icon="mdi-plus" collapse-icon="mdi-minus">Workshop</v-expansion-panel-title>
                             <v-expansion-panel-text>
                                 <div class="d-flex flex-row flex-wrap">
-                                    <v-card class="d-flex flex-column align-center mr-3 mt-3 pt-3">
+                                    <DraggableShowcase :list="info.workshop" :type="'workshop'"></DraggableShowcase>
+                                    <!-- <v-card class="d-flex flex-column align-center mr-3 mt-3 pt-3">
                                         <v-img width="90px" height="90px" cover src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"></v-img>
                                         <v-card-title class="pb-0">The Ancient Ring</v-card-title>
                                         <v-card-subtitle>
@@ -222,7 +223,7 @@
                                         <v-card-subtitle>
                                             <span class="role">NPC</span>
                                         </v-card-subtitle>
-                                    </v-card>
+                                    </v-card> -->
                                 </div>
                             </v-expansion-panel-text>
                         </v-expansion-panel>
@@ -235,6 +236,8 @@
             </v-card>
         </div>
     </v-card>
+
+    
 
 
 </div>
@@ -250,9 +253,29 @@ import { useDisplay } from 'vuetify/lib/framework.mjs';
 import { useTheme } from 'vuetify/lib/framework.mjs';
 import routes from '@/router/router'
 
-import DraggableStats from '@/components/Profile/DraggableStats.vue'
+import DraggableShowcase from '@/components/Profile/DraggableShowcase.vue'
 
 const stats_info_list = ref([{'name': 'Likes', 'count': 12000}, {'name': 'Comments', 'count': 360}, {'name': 'Post', 'count': 15}, {'name': '"Hot" streak', 'count': '5 days'}])
+
+let expansionPanelShowcases = ref(['achievements', 'active_company','workshop' ])
+const info = ref({
+    'achievements': [{'img_link': 'https://cdn.vuetifyjs.com/images/parallax/material.jpg'}, {'img_link': 'https://cdn.vuetifyjs.com/images/parallax/material.jpg'}, {'img_link': 'https://cdn.vuetifyjs.com/images/parallax/material.jpg'}],
+    'active_company': [
+        {'company_name': 'Tavern', 'company_role': 'Player', 'player_name': 'John Doe', 'img_link': 'https://cdn.vuetifyjs.com/images/parallax/material.jpg'},
+        {'company_name': 'Mousetrap', 'company_role': 'Player', 'player_name': 'Rem Stonehold', 'img_link': 'https://cdn.vuetifyjs.com/images/parallax/material.jpg'},
+        {'company_name': 'Curse of Strahd', 'company_role': 'Player', 'player_name': 'Mjolnir', 'img_link': 'https://cdn.vuetifyjs.com/images/parallax/material.jpg'},
+    ],
+    'workshop': [
+        {'object_name': 'The Ancient Ring', 'object_type': 'Item', 'img_link': 'https://cdn.vuetifyjs.com/images/parallax/material.jpg'},
+        {'object_name': 'John Doe', 'object_type': 'Character', 'img_link': 'https://cdn.vuetifyjs.com/images/parallax/material.jpg'},
+        {'object_name': 'Lily Doe', 'object_type': 'NPC', 'img_link': 'https://cdn.vuetifyjs.com/images/parallax/material.jpg'},
+    ]
+
+})
+
+
+
+
 
 let theme = useTheme()
 const { width } = useDisplay();
@@ -260,7 +283,7 @@ const store = useStore();
 
 const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 
-let expansionPanelShowcases = ref(['achievements', 'active_company','workshop' ])
+
 
 let editableBackground = ref(false)
 let editableAvatar = ref(false)

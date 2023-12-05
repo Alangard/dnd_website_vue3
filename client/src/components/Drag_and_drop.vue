@@ -77,14 +77,7 @@
   
 <template>
     <div class="row">
-      <!-- <div class="col-2">
-        <v-btn class="btn btn-secondary button" @click="sort">
-          To original order
-        </v-btn>
-      </div> -->
-  
       <div class="col-6">
-        <slot name="title"></slot>
         <draggable
           class="d-flex flex-row list-group"
           :component-data="{ tag: 'ul', type: 'transition-group', name: !drag ? 'flip-list' : null}"
@@ -96,13 +89,12 @@
         >
           <template #item="{ element }">
             <div class="list-group-item">
-              <!-- <slot name="list_item"></slot> -->
-              <!-- <v-icon
+              <v-icon
                 :class="{ 'fa fa-anchor': element.fixed, 'glyphicon glyphicon-pushpin': !element.fixed }"
                 @click="element.fixed = !element.fixed"
                 aria-hidden="true"
               ></v-icon>
-              {{ element.name }} -->
+              {{ element.name }}
             </div>
           </template>
         </draggable>
@@ -130,8 +122,8 @@
   ];
   
   const list = ref(
-    props.test_list?.map((name, index) => {
-      return { name, order: index + 1 };
+    props.test_list?.map((data, index) => {
+      return { data, order: index + 1 };
     })
   );
   
