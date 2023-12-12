@@ -22,7 +22,7 @@ class CustomAccountAdmin(UserAdmin):
             "Advanced info",
             {
                 "classes": ["collapse"],
-                "fields": ['slug', "avatar"],
+                "fields": ['slug', "avatar", "about_info"],
             },
         ),
     ]

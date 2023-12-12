@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-import {ref, defineAsyncComponent, onBeforeMount, computed, onBeforeUnmount} from 'vue';
+import {ref, defineAsyncComponent, onBeforeMount, computed, onBeforeUnmount, watch} from 'vue';
 import { useTheme } from 'vuetify/lib/framework.mjs';
 import { useStore } from 'vuex';
 import axios from 'axios';
@@ -39,11 +39,17 @@ let showAuthDialog = ref(false);
 let darkTheme = ref(false);
 const main_menu_drawer = ref(false);
 
+const online_status = computed(() => store.getters['getOnlineStatus'])
+
 
 // const websocket = ref(null);
 
 
-
+watch(() => online_status.value, (newValue, oldValue) => {
+  if(newValue == false){
+    store.commit('setLastOnlineDate')
+  }
+})
 
 
 const LocalStorageThemeManager = () => {

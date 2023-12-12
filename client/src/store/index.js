@@ -10,6 +10,8 @@ export default createStore({
   state(){
     return{
       mobileWidthLimit: 750,
+      online_status: window.navigator.onLine,
+      last_online_date: '',
       // modals_info: {id: 0, state: false, modal_type: '', action_pressed: false},
 
       // postData: {},
@@ -27,6 +29,7 @@ export default createStore({
     }
     
   },
+
   getters: {
 
 
@@ -34,6 +37,14 @@ export default createStore({
     getMobileWidthLimit (state) {
       return state.mobileWidthLimit;
     },
+
+    getOnlineStatus(state){
+      return state.online_status;
+    },
+
+    getLastOnlineDate(state){
+      return state.last_online_date;
+    }
 
     // getModalActionStatus(state){
     //   return state.modals_info.action_pressed;
@@ -95,7 +106,10 @@ export default createStore({
     // }
 },
 
-//   mutations: {
+   mutations: {
+    setLastOnlineDate(state){
+      state.last_online_date = Date.now()
+    }
 //     // Set posts_data /////////////////////////////////////////////////////////// there are we are use this code with a API
     
 //     setPostData(state, fetching_data){
@@ -170,8 +184,7 @@ export default createStore({
 //         localStorage.theme = chose_theme;
 //       }
 //     },
-
-// },
+ },
   // actions: {
   //   async fetchPostData({ commit, dispatch, getters }, payload={'url': '', 'setVariable': false}) {
 

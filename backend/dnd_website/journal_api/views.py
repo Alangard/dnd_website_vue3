@@ -65,7 +65,10 @@ import math
 channel_layer = get_channel_layer()
 
 
-
+class UsersListPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
 
 class PostListPagination(PageNumberPagination):
     page_size = 10
@@ -231,7 +234,7 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
         except Subscription.DoesNotExist:
             subscription = Subscription(subscription_reciever=user_to_subscribe, subscriber=user)
             subscription.save()
-            return Response({'success': f'Вы успешно подписались на пользователя {user_to_subscribe.username}#{user_to_subscribe.id}', 'data': ShortAccountSerializer(user_to_subscribe).data}) 
+            return Response({'success': f'Вы успешно подписались на пользователя {user_to_subscribe.username}#{user_to_subscribe.id}', 'data': ShortAccountSerializer(user_to_subscribe, context={"request": request}).data}) 
         
     def retrieve(self, request, *args, **kwargs):
         user_id = int(kwargs.get('pk')) 
@@ -242,14 +245,14 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
         subscribers_list = []
         subscribed_to_list = []
 
-        user_serializer = ShortAccountSerializer(user)
+        user_serializer = ShortAccountSerializer(user, context={"request": request})
         for element in subscribers:
-            data = ShortAccountSerializer(element.subscriber).data
+            data = ShortAccountSerializer(element.subscriber, context={"request": request}).data
             data['subscription_datetime'] = element.subscription_datetime
             subscribers_list.append(data)
 
         for element in subscribed_to:
-            data = ShortAccountSerializer(element.subscription_reciever).data
+            data = ShortAccountSerializer(element.subscription_reciever, context={"request": request}).data
             data['subscription_datetime'] = element.subscription_datetime
             subscribed_to_list.append(data)
 
@@ -1069,12 +1072,31 @@ class UserViewSet(viewsets.ModelViewSet):
         user_id = kwargs.get('pk')
         
         instance = self.queryset.get(pk=user_id)
-        serializer = self.serializer_class(instance)
+        serializer = self.serializer_class(instance, context={"request": request})
         return Response(serializer.data)
         
-    def list(self, request, *args, **kwargs):        
-        serializer = self.serializer_class(self.queryset, many=True)
-        return Response(serializer.data)
+    def list(self, request, *args, **kwargs):
+        self.ordering = ['-username']
+        self.pagination_class = UsersListPagination
+
+        def myfilters(queryset):
+            instance = queryset
+            params = request.query_params
+
+            for param in params:
+                if param == 'username' and params[param] != None:
+                    instance = instance.filter(username__exact=params[param])
+            return instance
+
+        instance = myfilters(self.queryset)
+
+        page = self.paginate_queryset(instance)
+        if page is not None: 
+            serializer = self.serializer_class(page, many=True, context={"request": request})
+            return self.get_paginated_response(serializer.data)
+            
+        # serializer = self.serializer_class(self.queryset, many=True)
+        # return Response(serializer.data)
 
 class SendConfirmationCodeView(APIView):
     def post(self, request):

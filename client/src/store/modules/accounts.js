@@ -5,8 +5,34 @@ const user = JSON.parse(localStorage.getItem('user'));
 const BASE_URL = axios.defaults.baseURL
 
 const initialState = user
-  ? { status: { loggedIn: true }, user, usersList: null, subscriptions: null, notifications: null, } 
-  : { status: { loggedIn: false }, user: null, usersList: null, subscriptions:null, notifications: null, };
+  ? { status: { loggedIn: true }, user, usersList: null, subscriptions: null, notifications: null, 
+  showcase_info: {'stats': {
+    'selected':[
+      {'data': {'name': 'Likes','count': 12000},'order': 1},
+      {'data': {'name': 'Comments','count': 360},'order': 2},
+      {'data': {'name': 'Post','count': 15},'order': 3}],
+    'all':[
+      {'data': {'name': 'Likes','count': 12000}},
+      {'data': {'name': 'Comments','count': 360}},
+      {'data': {'name': 'Post','count': 15}},
+      {'data': {'name': 'Dislikes','count': 3}}
+    ]
+  }
+}}
+  : { status: { loggedIn: false }, user: null, usersList: null, subscriptions:null, notifications: null, 
+  showcase_info: {'stats': {
+    'selected':[
+      {'data': {'name': 'Likes','count': 12000},'order': 1},
+      {'data': {'name': 'Comments','count': 360},'order': 2},
+      {'data': {'name': 'Post','count': 15},'order': 3}],
+    'all':[
+      {'data': {'name': 'Likes','count': 12000}},
+      {'data': {'name': 'Comments','count': 360}},
+      {'data': {'name': 'Post','count': 15}},
+      {'data': {'name': 'Dislikes','count': 3}}
+    ]
+  }
+}}
 
 export const accounts = {
   namespaced: true,
@@ -36,9 +62,17 @@ export const accounts = {
     async getUsersList({commit},){
       try{
         const response = await interceptorsInstance.get(BASE_URL + 'auth/user/')
-        commit('setUsersListInStore', response.data)
-        return response.data
+        commit('setUsersListInStore', response.data.results)
+        return response.data.results
       }  
+      catch(error){console.log(error)}
+    },
+
+    async getUserInfo({commit}, username){
+      try{
+        const response = await interceptorsInstance.get(BASE_URL + `auth/user/?username=${username}`)
+        return response.data.results
+      }
       catch(error){console.log(error)}
     },
 
@@ -60,6 +94,13 @@ export const accounts = {
         else if(action_data.action.value == 'delete'){
           await interceptorsInstance.post(BASE_URL + `notifications/delete_notifications/?page_size=${action_data.page_size}`, action_data, { headers: authHeader() })
         }
+      }
+      catch(error){console.log(error)}
+    },
+
+    async getStatsWhileCreating({commit}, stats_type){
+      try{
+        await interceptorsInstance.get(BASE_URL + `profile/createing_stats_block/?stats_type=${stats_type}`, { headers: authHeader() })
       }
       catch(error){console.log(error)}
     }
@@ -99,6 +140,33 @@ export const accounts = {
 
       state.notifications.count = state.notifications.results.length
     },
+
+
+    addStatBlock(state){
+      const length = state.showcase_info.stats.selected.length
+      state.showcase_info.stats.selected.push({'data': {'name': '','count': 0},'order': length + 1, 'type': 'creating'})
+    },
+
+    removeStatBlock(state, order){
+      const idx = state.showcase_info.stats.selected.findIndex((item) => item.order === order);
+      state.showcase_info.stats.selected.splice(idx, 1)
+    },
+
+    updateCountStats(state, stats_name){
+      const count = state.showcase_info.stats.all.filter((element)=> element.data.name == stats_name)[0].data.count
+      const length = state.showcase_info.stats.selected.length
+      const data = {'data': {'name': stats_name,'count': count},'order': length, 'type': 'creating'}
+      state.showcase_info.stats.selected.splice(-1, 1, data)
+    },
+
+    saveLastStatBlock(state, stats_name){
+      const count = state.showcase_info.stats.all.filter((element)=> element.data.name == stats_name)[0].data.count
+      const length = state.showcase_info.stats.selected.length
+      const data = {'data': {'name': stats_name,'count': count},'order': length}
+      state.showcase_info.stats.selected.splice(-1, 1, data)
+    },
+
+
   },
   getters: {
     getUsersList(state){
@@ -112,5 +180,9 @@ export const accounts = {
     getNotificationsList(state){
       return state.notifications.results
     },
+
+    getShowcaseStats(state){
+      return state.showcase_info.stats
+    }
   }
 }

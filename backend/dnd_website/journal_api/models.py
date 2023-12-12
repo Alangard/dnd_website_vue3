@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.utils.timezone import now
 from django.db.models.signals import *
 from tinymce.models import HTMLField
+from django.conf import settings
 
 
 class UserManager(BaseUserManager):
@@ -36,6 +37,7 @@ class Account(AbstractUser):
     avatar = models.ImageField(upload_to='images/user_avatars/%Y/%m/%d/', blank=True)
     confirmation_code = models.CharField(max_length=6, null=True, blank=True)
     is_active = models.BooleanField(default=False)
+    about_info = models.CharField(max_length=200, blank=True, null=True)
     # is_superuser = models.BooleanField(default=True)
     # is_staff = models.BooleanField(default=True)
 
@@ -55,10 +57,9 @@ class Account(AbstractUser):
         self.slug = slugify(self.username)
         super().save(*args, **kwargs)
 
-    
-
     def __str__(self):
         return f'{self.id} - {self.username}'
+
 
 
 class Notification(models.Model):
