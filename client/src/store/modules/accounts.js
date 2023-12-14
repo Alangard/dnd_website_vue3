@@ -5,7 +5,7 @@ const user = JSON.parse(localStorage.getItem('user'));
 const BASE_URL = axios.defaults.baseURL
 
 const initialState = user
-  ? { status: { loggedIn: true }, user, usersList: null, subscriptions: null, notifications: null, 
+  ? { status: { loggedIn: true }, user, usersList: null, subscriptions: null, notifications: null, searched_user_info: null,
   showcase_info: {'stats': {
     'selected':[
       {'data': {'name': 'Likes','count': 12000},'order': 1},
@@ -19,7 +19,7 @@ const initialState = user
     ]
   }
 }}
-  : { status: { loggedIn: false }, user: null, usersList: null, subscriptions:null, notifications: null, 
+  : { status: { loggedIn: false }, user: null, usersList: null, subscriptions:null, notifications: null, searched_user_info: null,
   showcase_info: {'stats': {
     'selected':[
       {'data': {'name': 'Likes','count': 12000},'order': 1},
@@ -68,10 +68,11 @@ export const accounts = {
       catch(error){console.log(error)}
     },
 
-    async getUserInfo({commit}, username){
+    async getUserInfo({commit, state}, username){
       try{
         const response = await interceptorsInstance.get(BASE_URL + `auth/user/?username=${username}`)
-        return response.data.results
+        state.searched_user_info = response.data.results[0]
+        return response.data.results[0]
       }
       catch(error){console.log(error)}
     },
@@ -98,9 +99,19 @@ export const accounts = {
       catch(error){console.log(error)}
     },
 
-    async getStatsWhileCreating({commit}, stats_type){
+    // async getStatsWhileCreating({commit}, stats_type){
+    //   try{
+    //     await interceptorsInstance.get(BASE_URL + `profile/createing_stats_block/?stats_type=${stats_type}`, { headers: authHeader() })
+    //   }
+    //   catch(error){console.log(error)}
+    // }
+
+    async changeAccountData({state, commit}, data){
       try{
-        await interceptorsInstance.get(BASE_URL + `profile/createing_stats_block/?stats_type=${stats_type}`, { headers: authHeader() })
+        const response = await interceptorsInstance.patch(BASE_URL + `auth/user/${state.user.user_data.id}/`, data,  { headers: authHeader() })
+        commit('auth/changeUserData', response.data, { root: true })
+        commit('changeUserData', response.data)
+        return response.data
       }
       catch(error){console.log(error)}
     }
@@ -165,6 +176,15 @@ export const accounts = {
       const data = {'data': {'name': stats_name,'count': count},'order': length}
       state.showcase_info.stats.selected.splice(-1, 1, data)
     },
+    
+    changeUserData(state, user_data){
+      state.user.user_data = user_data
+      state.searched_user_info = user_data
+      const user = JSON.parse(localStorage.getItem('user'))
+      user['user_data'] = user_data
+
+      localStorage.setItem('user', JSON.stringify(user))
+    },
 
 
   },
@@ -183,6 +203,10 @@ export const accounts = {
 
     getShowcaseStats(state){
       return state.showcase_info.stats
+    },
+
+    getUserInfo(state){
+      return state.searched_user_info
     }
   }
 }

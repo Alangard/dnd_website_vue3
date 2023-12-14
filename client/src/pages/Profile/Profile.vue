@@ -21,26 +21,25 @@
                     src="https://cdn.vuetifyjs.com/images/parallax/material.jpg" 
                     style="position: relative;">
                 </v-img>
-                <v-btn  v-show="editableBackground" density="comfortable" icon="mdi-pencil-outline"  style="position: absolute; top: 25px; right: 25px"></v-btn>
+                <v-btn  v-show="editableBackground && hasPermissions" density="comfortable" icon="mdi-pencil-outline"  style="position: absolute; top: 25px; right: 25px"></v-btn>
             </div>
             <div class="avatar_container"
                 @mouseover="editableAvatar = true" 
                 @mouseleave="editableAvatar = false"  
-                style="display: inline-block; margin: -45px 10px 0 12px; position: relative;"
-                @click="routes.push({name: 'user_profile', params: { username: user_data?.username }})">
-                <v-avatar class="avatar" v-if="user_data?.avatar !== null || user_data?.avatar !== ''" 
+                style="display: inline-block; margin: -45px 10px 0 12px; position: relative;">
+                <v-avatar class="avatar" v-if="user_data?.avatar" 
                     :image="user_data?.avatar" 
                     :alt="user_data?.username" 
                     size="120"
                     :style="`border: 4px solid ${theme.current.value.colors.background}; border-radius: 80px; display: inline-block;position: relative; overflow: hidden;`">
                 </v-avatar>
 
-                <v-icon class="account_icon d-flex" v-if="!user_data?.avatar"
+                <v-icon class="account_icon d-flex" v-else
                     icon="mdi-account-circle" 
                     size="120"
                     :style="`border: 4px solid ${theme.current.value.colors.background}; border-radius: 80px; display: inline-block;position: relative; overflow: hidden;`">
                 </v-icon>
-                <v-btn  v-show="editableAvatar" density="comfortable" icon="mdi-pencil-outline"  style="position: absolute; top: 40px; right: 40px"></v-btn>
+                <v-btn  v-show="editableAvatar && hasPermissions" density="comfortable" icon="mdi-pencil-outline"  style="position: absolute; top: 40px; right: 40px" @click="avatar_change_dialog__opened = true"></v-btn>
                 <span class="online_status" 
                     :style="online_status ? `border-color: ${theme.current.value.colors.background}; background: ${theme.current.value.colors.success};` : `border-color: ${theme.current.value.colors.background}; background: #cad0ce;`">
                 </span>
@@ -72,7 +71,7 @@
                         @click:append="sendUserRole()">
                     </v-text-field>
                 </div>
-                <v-card class="pl-2 pr-15 pre_edit_container" v-if="editableUserTitle && userTitleEditField == false" style="position: relative;">
+                <v-card class="pl-2 pr-15 pre_edit_container" v-if="editableUserTitle && userTitleEditField == false && hasPermissions" style="position: relative;">
                     <div class="username text-h6">{{user_data?.username}}</div>
                     <div class="user_role">{{ user_role }}</div>
                     <v-btn 
@@ -92,7 +91,7 @@
                     {{user_data?.about_info}}
                     </v-card>
                     <v-btn 
-                        v-show="editableAboutInfo" 
+                        v-show="editableAboutInfo && hasPermissions" 
                         @click="aboutEditField = true"
                         density="comfortable" 
                         icon="mdi-pencil-outline"  
@@ -140,7 +139,7 @@
                         </div>
                     </v-card-text>
                     <v-btn 
-                        v-show="editableStats && editStats == false"
+                        v-show="editableStats && editStats == false && hasPermissions"
                         @click="editStats = true"
                         density="comfortable" 
                         icon="mdi-pencil-outline"  
@@ -235,6 +234,58 @@
     </v-card>
 </div>
 
+<v-dialog class="avatar_change_dialog"
+    v-model="avatar_change_dialog__opened"
+    width="auto">
+
+    <v-card>
+        <v-card-title>Editing avatar</v-card-title>
+        <v-card-text class="d-flex flex-row align-start">
+            <v-avatar class="avatar" v-if="user_data?.avatar" 
+                :image="user_data?.avatar" 
+                :alt="user_data?.username" 
+                size="120">
+            </v-avatar>
+
+            <v-icon class="account_icon d-flex" v-else
+                icon="mdi-account-circle" 
+                size="120">
+            </v-icon>
+
+
+            <div class="d-flex flex-column ml-3">
+                <v-list class="py-0" lines="one">
+                    <v-list-item class="pt-0 pb-2">
+                        <v-list-item-title class="pb-2 text-h6">Upload</v-list-item-title>
+                        <v-list-item-subtitle class="pb-1">Acceptable formats: *.jpg,*.jpeg,*.png,*.webp</v-list-item-subtitle>
+                        <v-list-item-subtitle class="pb-1">Maximum size: 10mb</v-list-item-subtitle>
+                    </v-list-item>
+                </v-list>
+
+                <v-file-input class="edit_avatar mx-4 mb-4"
+                    v-model="avatar"
+                    accept="image/png, image/jpeg, image/jpg, image/webp"
+                    prepend-inner-icon="mdi-image"
+                    prepend-icon=""
+                    width="290px"
+                    variant="solo"
+                    label="Select image"
+                                        >
+                </v-file-input>
+  
+
+
+      
+
+                <v-btn class="delete_avatar mx-4" width="290px" @click="delete_avatar" :disabled="user_data.avatar == null">Delete avatar</v-btn>
+            </div>
+        </v-card-text>
+        <v-card-actions>
+            <v-btn color="primary" block @click="avatar_edit_confirm ">Confirm</v-btn>
+        </v-card-actions>
+    </v-card>
+</v-dialog>
+
 
 
 </template>
@@ -248,6 +299,32 @@ import {DateTimeFormat} from '@/helpers'
 import routes from '@/router/router'
 
 import DraggableShowcase from '@/components/Profile/DraggableShowcase.vue'
+
+const avatar = ref(null)
+const errors = ref(false)
+
+
+
+const avatar_edit_confirm =()=> {
+    avatar_change_dialog__opened.value = false
+    let formData = new FormData();
+
+    if(errors.value == false){
+        if(avatar.value == null){formData.append("avatar", avatar.value)}
+        else{formData.append("avatar", avatar.value[0])}
+
+        store.dispatch('accounts/changeAccountData', formData)
+    }
+}
+
+const delete_avatar =() =>{
+    if(user_data.value.avatar != null){
+        store.dispatch('accounts/changeAccountData', {'avatar': 'null'})
+    }
+
+}
+
+
 
 // let expansionPanelShowcases = ref(['achievements', 'active_company','workshop' ])
 
@@ -273,12 +350,15 @@ let theme = useTheme()
 const { width } = useDisplay();
 const store = useStore();
 
+
+
 const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 const stats_info = computed(() => {return store.getters['accounts/getShowcaseStats']})
 const last_online_date = computed(() => {return store.getters['getLastOnlineDate']})
 const online_status = computed(() => store.getters['getOnlineStatus'])
+let user_data = ref(null) 
 
-let user_data = ref(null)
+const hasPermissions = ref(false)
 
 let editableBackground = ref(false)
 let editableAvatar = ref(false)
@@ -302,10 +382,25 @@ let about_info = ref('Lorem ipsum dolor sit amet, consectetur adipiscing elit, s
 let addStat = ref(false)
 let statType = ref(false)
 
+const avatar_change_dialog__opened = ref(false)
+
 
 onBeforeMount(async() => {
-    const response = await store.dispatch('accounts/getUserInfo', routes.currentRoute.value.params['username'])
-    user_data.value = response[0]
+    // ? store.getters['auth/getUserData'].username != routes.currentRoute.value.params['username'] : computed(() => {return store.getters['account/getUserInfo']})
+    const route_username = routes.currentRoute.value.params['username']
+    if(route_username != store.getters['auth/getUserData'].username){
+        user_data.value = await store.dispatch('accounts/getUserInfo', route_username)
+        hasPermissions.value = false
+    }
+    else{
+        user_data = computed(() => {return store.getters['auth/getUserData']})
+        hasPermissions.value = true
+    }
+
+
+   
+    
+
 })
 
 
@@ -405,5 +500,7 @@ const addWorkshopBlock =() =>{ console.log('add workshop') }
         right: 4px;
         border: 4px solid; 
         border-radius: 10px;
-    }
+    }   
+   
+
 </style>

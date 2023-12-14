@@ -11,6 +11,7 @@ from django_filters import rest_framework as DjangoFilters
 from rest_framework.permissions import *
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 import re
+import os
 
 from .filters import *
 from .permisions import *
@@ -1094,10 +1095,46 @@ class UserViewSet(viewsets.ModelViewSet):
         if page is not None: 
             serializer = self.serializer_class(page, many=True, context={"request": request})
             return self.get_paginated_response(serializer.data)
-            
-        # serializer = self.serializer_class(self.queryset, many=True)
-        # return Response(serializer.data)
 
+    def partial_update(self, request, *args, **kwargs):
+
+        user_id = kwargs.get('pk')
+
+        # Проверяем, авторизован ли пользователь
+        if not request.user.is_authenticated:
+            return Response({"error": "Необходима авторизация"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        try: 
+            account = Account.objects.get(pk=user_id)
+        except Account.DoesNotExist: 
+            return Response({"error": "Аккаунт не существует"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Получаем данные в необходимом формате
+        data = {}
+
+        for key, value in request.data.items():
+            match key:
+                case 'avatar':
+                    data[key] = request.FILES.get('avatar')
+
+        
+        if int(request.user.id) == int(user_id):
+            serializer = self.serializer_class(account, data=data, partial=True, context={"request": request})
+            if serializer.is_valid(raise_exception=True):
+                print(data['avatar'])
+
+                if(data['avatar'] == None):
+                    os.remove(account.avatar.path) # delete old image from server
+                    account.avatar.delete(save=False)  # delete old image file from database
+                serializer.save()
+                 
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Вы не являетесь пользователем, данные которого нужно изменить и не имеетe достаточно прав"}, status=status.HTTP_403_FORBIDDEN)
+    
+    
+    
+        
 class SendConfirmationCodeView(APIView):
     def post(self, request):
         serializer = ResetPasswordSerializer(data=request.data)

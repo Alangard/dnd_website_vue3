@@ -6,7 +6,7 @@ from django.utils.timezone import now
 from django.db.models.signals import *
 from tinymce.models import HTMLField
 from django.conf import settings
-
+import uuid
 
 class UserManager(BaseUserManager):
     def _create_user(self, username, email, password, **extra_fields):
@@ -31,10 +31,16 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_active', True)
         return self._create_user(username, email, password, **extra_fields)
 
+
+def avatar_upload_to(instance, filename):
+    username = instance.username
+    uuid_filename = uuid.uuid4()
+    return 'images/user_avatars/{}/{}'.format(username, uuid_filename) 
+
 class Account(AbstractUser):
     email = models.EmailField(unique=True)
     slug = models.SlugField(max_length=150, db_index=True, blank=True, null=True)
-    avatar = models.ImageField(upload_to='images/user_avatars/%Y/%m/%d/', blank=True)
+    avatar = models.ImageField(upload_to=avatar_upload_to, blank=True, null=True)
     confirmation_code = models.CharField(max_length=6, null=True, blank=True)
     is_active = models.BooleanField(default=False)
     about_info = models.CharField(max_length=200, blank=True, null=True)
@@ -51,6 +57,7 @@ class Account(AbstractUser):
         db_table = "Account"
         verbose_name = "Account"
         verbose_name_plural = "Account"
+
 
     def save(self, *args, **kwargs):
         from django.utils.text import slugify

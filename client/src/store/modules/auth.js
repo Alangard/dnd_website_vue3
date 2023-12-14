@@ -125,6 +125,14 @@ export const auth = {
       user['user_data'] = user_data
 
       localStorage.setItem('user', JSON.stringify(user))
+    },
+
+    changeUserData(state, user_data){
+      state.user.user_data = user_data
+      const user = JSON.parse(localStorage.getItem('user'))
+      user['user_data'] = user_data
+
+      localStorage.setItem('user', JSON.stringify(user))
     }
   },
   getters: {
