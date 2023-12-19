@@ -1,5 +1,4 @@
 
-import LogInVue from '@/pages/Auth/LogIn.vue';
 <template>  
     <v-card class="mt-8 mb-6 personal_information"
         :class="{'d-flex flex-row align-start': width >= mobileWidthLimit, 'd-flex flex-column justify-start': width < mobileWidthLimit}"
@@ -18,16 +17,17 @@ import LogInVue from '@/pages/Auth/LogIn.vue';
         </v-card>
 
         <v-card-text class="pa-6">
-            <v-text-field label="EMAIL ADDRESS" type="email" variant="solo" clearable></v-text-field>
+            <v-text-field class="d-flex flex-row flex-wrap" label="EMAIL ADDRESS" type="email" variant="solo" color="primary"  clearable></v-text-field>
 
             <v-row>
                 <v-col cols="6">
                     <v-select class="text-caption" label="REGION" clearable variant="solo" :items="['Rus', 'Eng']"></v-select>
                 </v-col>
                 <v-col cols="6">
-                    <v-text-field
+                    <v-text-field class="d-flex flex-row flex-wrap"
                             v-model="formattedDate"
                             label="DATE OF BIRTH"
+                            color="primary"
                             variant="solo">
                     </v-text-field>
                 </v-col>
@@ -55,12 +55,121 @@ import LogInVue from '@/pages/Auth/LogIn.vue';
         <v-card-text class="pa-6">
             <v-row>
                 <v-col cols="6">
-                    <v-text-field label="PROFILE NAME" type="text" variant="solo" clearable></v-text-field>
+                    <v-text-field class="d-flex flex-row flex-wrap" label="PROFILE NAME" type="text" variant="solo" color="primary" clearable></v-text-field>
                 </v-col>
                 <v-col cols="6">
-                    <v-text-field label="TAGNAME" type="text" variant="solo" clearable></v-text-field>
+                    <v-text-field class="d-flex flex-row flex-wrap" label="TAGNAME" type="text" variant="solo" color="primary" clearable></v-text-field>
                 </v-col>
             </v-row>
+
+            <div class="d-flex flex-row-reverse mt-6">
+                <v-btn :disabled="!wasEdited">SAVE AND VERIFY</v-btn>
+            </div>
+        </v-card-text>
+    </v-card>
+
+    <v-card class="mb-6 addintional_profile_info"
+        :class="{'d-flex flex-row align-start': width >= mobileWidthLimit, 'd-flex flex-column justify-start': width < mobileWidthLimit}"
+        :style=" width >= mobileWidthLimit ? 'width: 750px;' : 'max-width: 750px; min-width: 300px'" 
+        height="auto">
+        
+        <v-card class="pa-6"
+            :style=" width >= mobileWidthLimit ? 'width: 300px; height: 100%' : 'width: 100%; height: auto'"
+            variant="tonal"  
+            rounded="0"> 
+            <v-card-title class="pa-0">Additional profile info</v-card-title>
+            <v-card-text class="pa-0">Customize the additional information displayed on your profile.
+            </v-card-text>
+        </v-card>
+
+        <v-card-text class="pa-6">
+            <div class="profile_background" style="position: relative;"  
+                @mouseover="editableProfileBackgroundImg = true" 
+                @mouseleave="editableProfileBackgroundImg = false">
+
+                <p class="text-h6 mb-2">Profile background image</p>
+                <v-img class="background_img" v-if="user_data.background" 
+                    max-height='300px' 
+                    cover 
+                    :src='user_data.background'>
+                </v-img>
+ 
+                <v-img class="background_img" v-else 
+                    max-height='300px' 
+                    cover >
+                </v-img>
+                
+                <v-file-input class="edit_profile_background_img d-flex flex-row flex-wrap mt-3 mb-4"
+                    v-if="editProfileBackgroundImg"
+                    v-model="user_data.background"
+                    :error-messages="validationErrors.background !== ''? validationErrors.background : validator.background.$errors.map(e => e.$message)"
+                    @input="validator.background.$touch"
+                    :accept="allowedImageExtensions.map(ext => `image/${ext}`).join(', ')"
+                    prepend-inner-icon="mdi-image"
+                    prepend-icon=""
+                    variant="solo"
+                    label="Select image">
+                </v-file-input>
+
+
+                <v-btn 
+                    v-show="editableProfileBackgroundImg || editProfileBackgroundImg || width < mobileWidthLimit"
+                    @click="editProfileBackgroundImg = !editProfileBackgroundImg" 
+                    density="comfortable" 
+                    icon="mdi-pencil-outline"  
+                    style="position: absolute; top: 50px; right: 15px">
+                </v-btn>
+                <v-btn 
+                    v-show="(editableProfileBackgroundImg || width < mobileWidthLimit) && user_data.background" 
+                    density="comfortable"
+                    icon="mdi-trash-can-outline"  
+                    style="position: absolute; top: 95px; right: 15px">
+                </v-btn>
+            </div>
+
+            <v-card class="profile_avatar mt-3" style="position: relative;" 
+                @mouseover="editableProfileBackgroundImg = true" 
+                @mouseleave="editableProfileBackgroundImg = false">
+
+                <v-card-title>Profile avatar</v-card-title>
+                <v-card-text class="d-flex flex-row align-center justify-space-between w-auto">
+                    <v-avatar class="avatar pr-2" v-if="user_data.avatar" 
+                        :image="user_data.avatar" 
+                        :alt="user_data.username" 
+                        size="120">
+                    </v-avatar>
+
+                    <v-icon class="account_icon d-flex pr-2" v-else
+                        icon="mdi-account-circle" 
+                        size="120">
+                    </v-icon>
+
+                    <div class="d-flex flex-column justify-center px-2 w-100">
+                        <v-file-input class="edit_avatar d-flex flex-row flex-wrap mb-2"
+                            v-if="editAvatarImg"
+                            v-model="user_data.new_avatar"
+                            :error-messages="validationErrors.new_avatar !== ''? validationErrors.new_avatar : validator.new_avatar.$errors.map(e => e.$message)"
+                            @input="validator.new_avatar.$touch"
+                            :accept="allowedImageExtensions.map(ext => `image/${ext}`).join(', ')"
+                            prepend-inner-icon="mdi-image"
+                            prepend-icon=""
+                            variant="solo"
+                            label="Select image">
+                        </v-file-input>
+
+                        <v-btn class="delete_avatar"  @click="delete_avatar" :disabled="user_data.avatar == null">Delete avatar</v-btn>
+                    </div>
+                </v-card-text>
+            </v-card>
+        
+            <v-textarea class="about_info d-flex flex-row flex-wrap"
+                v-model="user_data.about_info"
+                auto-grow
+                clearable
+                variant="solo"
+                label="About me"
+                rows="1"
+            ></v-textarea>
 
             <div class="d-flex flex-row-reverse mt-6">
                 <v-btn :disabled="!wasEdited">SAVE AND VERIFY</v-btn>
@@ -82,12 +191,21 @@ import LogInVue from '@/pages/Auth/LogIn.vue';
         </v-card>
 
         <v-card-text class="pa-6">
-            <v-text-field label="USERNAME" type="text" variant="solo" clearable></v-text-field>
+            <v-text-field class="d-flex flex-row flex-wrap" 
+                v-model='user_data.username' 
+                label="USERNAME" 
+                type="text" 
+                variant="solo"
+                color="primary" 
+                clearable>
+            </v-text-field>
+
             <p class="text-h6 mb-2">Change Password</p>
 
             <v-text-field
-                v-model="formdata.curr_password"
-                :append-icon="showCurrPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                class="d-flex flex-row flex-wrap"
+                v-model="user_data.curr_password"
+                :append-inner-icon="showCurrPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 :type="showCurrPassword ? 'text' : 'password'"
                 @click:append="showCurrPassword = !showCurrPassword"
                 clearable
@@ -97,8 +215,9 @@ import LogInVue from '@/pages/Auth/LogIn.vue';
             ></v-text-field>
 
             <v-text-field
-                v-model="formdata.new_password"
-                :append-icon="showNewPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                class="d-flex flex-row flex-wrap"
+                v-model="user_data.new_password"
+                :append-inner-icon="showNewPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 :type="showNewPassword ? 'text' : 'password'"
                 @click:append="showNewPassword = !showNewPassword"
                 clearable
@@ -108,8 +227,9 @@ import LogInVue from '@/pages/Auth/LogIn.vue';
             ></v-text-field>
 
             <v-text-field
-                v-model="formdata.confirm_new_password"
-                :append-icon="showConfirmNewPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                class="d-flex flex-row flex-wrap"
+                v-model="user_data.confirm_new_password"
+                :append-inner-icon="showConfirmNewPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 :type="showConfirmNewPassword ? 'text' : 'password'"
                 @click:append="showConfirmNewPassword = !showConfirmNewPassword"
                 clearable
@@ -161,184 +281,24 @@ import LogInVue from '@/pages/Auth/LogIn.vue';
 
     </v-card>
 
-    <v-dialog v-model="profilePreviewDialog" width="auto">
-        <v-card style="min-height: 380px; max-height: 450px;">
-          
-            <div class="user_profile" style="position: relative;">
-                <div class="profile_header"
-                    style="position: relative; background-size: 100%;background-repeat: no-repeat; background-position: center;  overflow: hidden;  min-height: 65px;">
-
-                    <v-img class="background_img" 
-                        width="auto" 
-                        max-height='300px' 
-                        cover 
-                        src="https://cdn.vuetifyjs.com/images/parallax/material.jpg" 
-                        style="position: relative;">
-                    </v-img>
-                </div>
-                <div class="avatar_container" style="display: inline-block; margin: -45px 10px 0 12px; position: relative;">
-                    <v-avatar class="avatar" 
-                        image="https://cdn.vuetifyjs.com/images/parallax/material.jpg" 
-                        alt="username" 
-                        size="120"
-                        :style="`border: 4px solid ${theme.current.value.colors.background}; border-radius: 80px; display: inline-block;position: relative; overflow: hidden;`"
-                        @click="routes.push({name: 'user_profile', params: { username: post.author.username }})">
-                        <v-icon 
-                            icon="mdi-account-circle" 
-                            size="120" 
-                            :style="`border: 4px solid ${theme.current.value.colors.background}; border-radius: 80px; display: inline-block;position: relative; overflow: hidden;`">
-                        </v-icon>
-                    </v-avatar>
-                    <span class="online_status" 
-                        :style="`position: absolute; padding: 5px; bottom: 17px; right: 4px; border: 4px solid ${theme.current.value.colors.background}; border-radius: 10px; background: ${theme.current.value.colors.success};`">
-                    </span>
-                </div>
-                <div class="user_title" style="display: inline-block; vertical-align: top;">
-                    <div class="username text-h6">Username</div>
-                    <div class="user_role">User role</div>
-                    <div class="last_visited text-caption">Last visited: 23 November 2023</div>
-                </div>
-                <div class="d-flex flex-row user_info mx-3 mt-3">
-                    <v-card class="about pa-2" variant="tonal" min-width="300px" max-width="600px">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-                    </v-card>
-                </div>
-
-                <v-card class="stats mt-5 mx-3">
-                    <v-card-title>Stats</v-card-title>
-                    <v-card-text class="d-flex flex-row flex-wrap">
-                        <v-card class="d-flex flex-column align-center" rounded="0">
-                            <v-card-title>Likes</v-card-title>
-                            <v-card-text>12000</v-card-text>
-                        </v-card>
-
-                        <v-card class="d-flex flex-column align-center" rounded="0">
-                            <v-card-title>Comments</v-card-title>
-                            <v-card-text>360</v-card-text>
-                        </v-card>
-
-                        <v-card class="d-flex flex-column align-center" rounded="0">
-                            <v-card-title>Posts</v-card-title>
-                            <v-card-text>15</v-card-text>
-                        </v-card>
-
-                        <v-card class="d-flex flex-column align-center" rounded="0">
-                            <v-card-title>Longest stay in the top</v-card-title>
-                            <v-card-text>5 days</v-card-text>
-                        </v-card>
-                    </v-card-text>
-                </v-card>
-
-                <div class="showcase mt-5 mx-3">
-                    <!-- <v-card class="achievements">
-                        <v-card-title>Achivements showcase</v-card-title>
-                        <v-divider></v-divider> -->
-
-
-                        <v-expansion-panels v-model="expansionPanelShowcases">
-                            <v-expansion-panel class="achievements" value="achievements">
-                                <v-expansion-panel-title class="text-h6" expand-icon="mdi-plus" collapse-icon="mdi-minus">Achivements showcase</v-expansion-panel-title>
-                                <v-expansion-panel-text>
-                                    <div class="d-flex flex-row flex-wrap">
-                                        <!-- <v-card class="mr-3" width="90px" height="90px" v-for="achievement in achievements" :key="achievement.id">
-                                            <v-img height="100%" cover src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"></v-img>
-                                        </v-card> -->
-                                        <v-card class="mr-3 mt-3" width="90px" height="90px">
-                                            <v-img height="100%" cover src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"></v-img>
-                                        </v-card>
-                                        <v-card class="mr-3 mt-3" width="90px" height="90px">
-                                            <v-img height="100%" cover src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"></v-img>
-                                        </v-card>
-                                        <v-card class="mr-3 mt-3" width="90px" height="90px">
-                                            <v-img height="100%" cover src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"></v-img>
-                                        </v-card>
-                                    </div>
-                                </v-expansion-panel-text>
-                            </v-expansion-panel>
-
-                            <v-expansion-panel class="active_company" value="active_company">
-                                <v-expansion-panel-title class="text-h6" expand-icon="mdi-plus" collapse-icon="mdi-minus">Company showcase</v-expansion-panel-title>
-                                <v-expansion-panel-text>
-                                    <div class="d-flex flex-row flex-wrap">
-                                        <v-card class="d-flex flex-column align-center mr-3 mt-3 pt-3">
-                                            <v-img width="90px" height="90px" cover src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"></v-img>
-                                            <v-card-title class="pb-0">Tavern</v-card-title>
-                                            <v-card-subtitle>
-                                                <span class="role">Player</span>/<span class="player_name">John Doe</span>
-                                            </v-card-subtitle>
-                                        </v-card>
-                                        <v-card class="d-flex flex-column align-center mr-3 mt-3 pt-3">
-                                            <v-img width="90px" height="90px" cover src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"></v-img>
-                                            <v-card-title class="pb-0">Mousetrap</v-card-title>
-                                            <v-card-subtitle>
-                                                <span class="role">Player</span>/<span class="player_name">Rem Stonehold</span>
-                                            </v-card-subtitle>
-                                        </v-card>
-                                        <v-card class="d-flex flex-column align-center mr-3 mt-3 pt-3">
-                                            <v-img width="90px" height="90px" cover src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"></v-img>
-                                            <v-card-title class="pb-0">Curse of Strahd</v-card-title>
-                                            <v-card-subtitle>
-                                                <span class="role">Player</span>/<span class="player_name">Mjolnir</span>
-                                            </v-card-subtitle>
-                                        </v-card>
-                                    </div>
-                                </v-expansion-panel-text>
-                            </v-expansion-panel>
-
-                            
-                            <v-expansion-panel class="workshop" value="workshop">
-                                <v-expansion-panel-title class="text-h6" expand-icon="mdi-plus" collapse-icon="mdi-minus">Workshop</v-expansion-panel-title>
-                                <v-expansion-panel-text>
-                                    <div class="d-flex flex-row flex-wrap">
-                                        <v-card class="d-flex flex-column align-center mr-3 mt-3 pt-3">
-                                            <v-img width="90px" height="90px" cover src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"></v-img>
-                                            <v-card-title class="pb-0">The Ancient Ring</v-card-title>
-                                            <v-card-subtitle>
-                                                <span class="type">Item</span>
-                                            </v-card-subtitle>
-                                        </v-card>
-                                        <v-card class="d-flex flex-column align-center mr-3 mt-3 pt-3">
-                                            <v-img width="90px" height="90px" cover src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"></v-img>
-                                            <v-card-title class="pb-0">John Doe</v-card-title>
-                                            <v-card-subtitle>
-                                                <span class="type">Character</span>
-                                            </v-card-subtitle>
-                                        </v-card>
-                                        <v-card class="d-flex flex-column align-center mr-3 mt-3 pt-3">
-                                            <v-img width="90px" height="90px" cover src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"></v-img>
-                                            <v-card-title class="pb-0">Lily Doe</v-card-title>
-                                            <v-card-subtitle>
-                                                <span class="role">NPC</span>
-                                            </v-card-subtitle>
-                                        </v-card>
-                                    </div>
-                                </v-expansion-panel-text>
-                            </v-expansion-panel>
-                        </v-expansion-panels>
-                </div>
-
-                <v-card class="wall mt-5 mx-3">
-                    <v-card-title>Wall <span class="text-subtitle-1">77</span></v-card-title>
-                    <v-card-text>Is empty yet</v-card-text>
-                </v-card>
-            </div>
-                
-        </v-card>
+    <!-- <v-dialog v-model="profilePreviewDialog" width="auto">
+        <Profile></Profile>
            
 
   
-    </v-dialog>
+    </v-dialog> -->
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref, computed, onBeforeMount, watchEffect, watch } from 'vue';
+import { onMounted, onBeforeUnmount, ref, computed, onBeforeMount, watchEffect, watch, toRaw } from 'vue';
 import { useStore } from 'vuex';
 import { useDisplay } from 'vuetify/lib/framework.mjs';
 import { useTheme } from 'vuetify/lib/framework.mjs';
+import { useVuelidate } from '@vuelidate/core'
+import { required, helpers} from '@vuelidate/validators'
 import routes from '@/router/router'
 
-
-
+import Profile from '@/pages/Profile/Profile.vue'
 
 
 let theme = useTheme()
@@ -346,6 +306,9 @@ const { width } = useDisplay();
 const store = useStore();
 
 const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
+let user_data_initial = computed(() => {return store.getters['auth/getUserData']})
+let user_data = ref(null)
+
 const wasEdited = ref(false)
 
 const formattedDate = ref('')
@@ -355,13 +318,64 @@ let showNewPassword = ref(false);
 let showConfirmNewPassword = ref(false);
 let expansionPanelShowcases = ref(['achievements'])
 
-const formdata = ref({
-    'curr_password': '',
-    'new_password': '',
-    'confirm_new_password': ''
+let editableProfileBackgroundImg = ref(false)
+let editProfileBackgroundImg = ref(false)
+let editAvatarImg = ref(true)
+const profilePreviewDialog = ref(true)
+
+
+const allowedImageExtensions = ref(['jpg', 'jpeg', 'png', 'webp']);
+const maxImageSize = ref(2000000)
+
+//Custom validations errors from backend
+const validationErrors = ref({'avatar': '',})
+
+const validator_rules = computed(() => ({
+    new_avatar: {
+        required: helpers.withMessage('Please select an image file', required),
+        maxSize: helpers.withMessage('Maximum file size must not be greater than 2MB', (value) => {
+        if (!value[0]) return true;
+
+        const fileSize = value[0].size;
+
+        return fileSize <= maxImageSize.value;
+        }),
+        fileExt: helpers.withMessage('The file must have the extension: *.jpg,*.jpeg,*.png,*.webp', (value) => {
+        if (!value[0] || !value[0].name) return true;
+
+        const fileExtension = value[0].name.split('.').pop().toLowerCase();
+
+        return allowedImageExtensions.value.includes(fileExtension);
+        })
+  }
+}));
+
+const validator = useVuelidate(validator_rules, user_data)
+
+onBeforeMount(() => {
+    const additional_dict = {'curr_password': '','new_password': '','confirm_new_password': '', 'new_background': '', 'new_avatar': ''}
+    user_data.value = Object.assign(additional_dict, toRaw(user_data_initial.value));
+
 })
 
-const profilePreviewDialog = ref(true)
+const delete_avatar =() =>{
+    if(user_data.value.avatar != null){
+        store.dispatch('accounts/changeAccountData', {'avatar': 'null'})
+    }
+
+}
+
+const avatar_edit_confirm =()=> {
+    avatar_change_dialog__opened.value = false
+    let formData = new FormData();
+
+    if(validator?.avatar?.$errors?.length > 0){
+        if(formdata.value.avatar== null){formData.append("avatar", formdata.value.avatar)}
+        else{formData.append("avatar", formdata.value.avatar[0])}
+
+        store.dispatch('accounts/changeAccountData', formData)
+    }
+}
 
 </script>
 

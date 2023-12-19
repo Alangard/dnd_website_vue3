@@ -257,31 +257,27 @@
                 <v-list class="py-0" lines="one">
                     <v-list-item class="pt-0 pb-2">
                         <v-list-item-title class="pb-2 text-h6">Upload</v-list-item-title>
-                        <v-list-item-subtitle class="pb-1">Acceptable formats: *.jpg,*.jpeg,*.png,*.webp</v-list-item-subtitle>
-                        <v-list-item-subtitle class="pb-1">Maximum size: 10mb</v-list-item-subtitle>
+                        <v-list-item-subtitle class="pb-1">Acceptable formats: {{allowedImageExtensions.map(ext => `*.${ext}`).join(', ')}}</v-list-item-subtitle>
+                        <v-list-item-subtitle class="pb-1">Maximum size: {{maxImageSize / 1000000}}MB</v-list-item-subtitle>
                     </v-list-item>
                 </v-list>
-
-                <v-file-input class="edit_avatar mx-4 mb-4"
-                    v-model="avatar"
-                    accept="image/png, image/jpeg, image/jpg, image/webp"
+                
+                <v-file-input class="edit_avatar d-flex flex-row flex-wrap mx-4 mb-4" style="width: 290px;"
+                    v-model="formdata.avatar"
+                    :error-messages="validationErrors.avatar !== ''? validationErrors.avatar : validator.avatar.$errors.map(e => e.$message)"
+                    @input="validator.avatar.$touch"
+                    :accept="allowedImageExtensions.map(ext => `image/${ext}`).join(', ')"
                     prepend-inner-icon="mdi-image"
                     prepend-icon=""
-                    width="290px"
                     variant="solo"
-                    label="Select image"
-                                        >
+                    label="Select image">
                 </v-file-input>
-  
-
-
       
-
                 <v-btn class="delete_avatar mx-4" width="290px" @click="delete_avatar" :disabled="user_data.avatar == null">Delete avatar</v-btn>
             </div>
         </v-card-text>
         <v-card-actions>
-            <v-btn color="primary" block @click="avatar_edit_confirm ">Confirm</v-btn>
+            <v-btn color="primary" block :disabled="validator?.avatar?.$errors?.length > 0" @click="avatar_edit_confirm">Confirm</v-btn>
         </v-card-actions>
     </v-card>
 </v-dialog>
@@ -295,35 +291,13 @@ import { onMounted, onBeforeUnmount, ref, computed, onBeforeMount, watchEffect, 
 import { useStore } from 'vuex';
 import { useDisplay } from 'vuetify/lib/framework.mjs';
 import { useTheme } from 'vuetify/lib/framework.mjs';
+import { useVuelidate } from '@vuelidate/core'
+import { required, helpers} from '@vuelidate/validators'
+
 import {DateTimeFormat} from '@/helpers'
 import routes from '@/router/router'
 
 import DraggableShowcase from '@/components/Profile/DraggableShowcase.vue'
-
-const avatar = ref(null)
-const errors = ref(false)
-
-
-
-const avatar_edit_confirm =()=> {
-    avatar_change_dialog__opened.value = false
-    let formData = new FormData();
-
-    if(errors.value == false){
-        if(avatar.value == null){formData.append("avatar", avatar.value)}
-        else{formData.append("avatar", avatar.value[0])}
-
-        store.dispatch('accounts/changeAccountData', formData)
-    }
-}
-
-const delete_avatar =() =>{
-    if(user_data.value.avatar != null){
-        store.dispatch('accounts/changeAccountData', {'avatar': 'null'})
-    }
-
-}
-
 
 
 // let expansionPanelShowcases = ref(['achievements', 'active_company','workshop' ])
@@ -386,16 +360,19 @@ const avatar_change_dialog__opened = ref(false)
 
 
 onBeforeMount(async() => {
-    // ? store.getters['auth/getUserData'].username != routes.currentRoute.value.params['username'] : computed(() => {return store.getters['account/getUserInfo']})
-    const route_username = routes.currentRoute.value.params['username']
-    if(route_username != store.getters['auth/getUserData'].username){
-        user_data.value = await store.dispatch('accounts/getUserInfo', route_username)
-        hasPermissions.value = false
-    }
-    else{
-        user_data = computed(() => {return store.getters['auth/getUserData']})
+
+   
+    user_data = computed(() => {return store.getters['auth/getUserData']})
         hasPermissions.value = true
-    }
+    // const route_username = routes.currentRoute.value.params['username']
+    // if(route_username != store.getters['auth/getUserData'].username){
+    //     user_data.value = await store.dispatch('accounts/getUserInfo', route_username)
+    //     hasPermissions.value = false
+    // }
+    // else{
+    //     user_data = computed(() => {return store.getters['auth/getUserData']})
+    //     hasPermissions.value = true
+    // }
 
 
    
