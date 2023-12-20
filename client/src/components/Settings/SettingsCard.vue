@@ -68,9 +68,31 @@
         </v-card-text>
     </v-card>
 
-    <v-card class="mb-6 addintional_profile_info"
+    <v-card class="mb-6 notifications_settings"
         :class="{'d-flex flex-row align-start': width >= mobileWidthLimit, 'd-flex flex-column justify-start': width < mobileWidthLimit}"
         :style=" width >= mobileWidthLimit ? 'width: 750px;' : 'max-width: 750px; min-width: 300px'" 
+        height="auto">
+        
+        <v-card class="pa-6"
+            :style=" width >= mobileWidthLimit ? 'width: 300px; height: 100%' : 'width: 100%; height: auto'"
+            variant="tonal"  
+            rounded="0"> 
+            <v-card-title class="pa-0">Notifications Settings</v-card-title>
+            <v-card-text class="pa-0">You can customize your alerts by selecting the users and the activities you want to be notified about on the site.</v-card-text>
+        </v-card>
+
+        <v-card-text class="pa-6">
+            
+
+            <div class="d-flex flex-row-reverse mt-6">
+                <v-btn :disabled="!wasEdited">SAVE AND VERIFY</v-btn>
+            </div>
+        </v-card-text>
+    </v-card>
+
+    <v-card class="mb-6 addintional_profile_info"
+        :class="{'d-flex flex-row align-start': width >= mobileWidthLimit, 'd-flex flex-column justify-start': width < mobileWidthLimit}"
+        :style=" width >= mobileWidthLimit ? 'width: 750px;' : 'max-width: 750px; min-width: 300px; width: inherit;'"
         height="auto">
         
         <v-card class="pa-6"
@@ -82,7 +104,8 @@
             </v-card-text>
         </v-card>
 
-        <v-card-text class="pa-6">
+
+        <v-card-text class="pa-6 w-100" style="position: relative; max-width: 450px;">
             <div class="profile_background" style="position: relative;"  
                 @mouseover="editableProfileBackgroundImg = true" 
                 @mouseleave="editableProfileBackgroundImg = false">
@@ -96,7 +119,8 @@
  
                 <v-img class="background_img" v-else 
                     max-height='300px' 
-                    cover >
+                    cover 
+                    src="https://cdn.vuetifyjs.com/images/parallax/material.jpg" >
                 </v-img>
                 
                 <v-file-input class="edit_profile_background_img d-flex flex-row flex-wrap mt-3 mb-4"
@@ -133,7 +157,8 @@
 
                 <v-card-title>Profile avatar</v-card-title>
                 <v-card-text class="d-flex flex-row align-center justify-space-between w-auto">
-                    <v-avatar class="avatar pr-2" v-if="user_data.avatar" 
+                    <v-avatar class="avatar pr-2" 
+                        v-if="user_data.avatar" 
                         :image="user_data.avatar" 
                         :alt="user_data.username" 
                         size="120">
@@ -170,6 +195,30 @@
                 label="About me"
                 rows="1"
             ></v-textarea>
+
+            <v-card class="stats" style="position: relative;">
+                
+                <v-card-title>Stats</v-card-title>
+                <v-card-text>
+                    <div class="showcase_container d-flex flex-row align-center pa-2" style="overflow-x: auto;">
+                        <DraggableShowcase 
+                            :list="stats_info.selected" 
+                            :type="'stats'" 
+                            :edit="true" 
+                            @changeStatOption="changeStatOption"
+                            @removeStatBlock="removeStatBlock">
+                        </DraggableShowcase>
+
+                        <v-btn class="add_stat_block ml-3"
+                            v-if="stats_info?.selected?.length < 4"
+                            @click="addStatsBlock"
+                            icon="mdi-plus" 
+                            width="50px"
+                            height="50px">
+                        </v-btn>
+                    </div>
+                </v-card-text>
+            </v-card>
 
             <div class="d-flex flex-row-reverse mt-6">
                 <v-btn :disabled="!wasEdited">SAVE AND VERIFY</v-btn>
@@ -261,8 +310,8 @@
             <v-btn :disabled="!wasEdited" width="100%">LOG OUT</v-btn>
         </v-card-text>
     </v-card>
-
-    <v-card class="profile_view"
+ 
+    <v-card class="mb-6 profile_preview"
         :class="{'d-flex flex-row align-start': width >= mobileWidthLimit, 'd-flex flex-column justify-start': width < mobileWidthLimit}"
         :style=" width >= mobileWidthLimit ? 'width: 750px;' : 'max-width: 750px; min-width: 300px'" 
         height="auto">
@@ -271,22 +320,20 @@
             :style=" width >= mobileWidthLimit ? 'width: 300px; height: 100%' : 'width: 100%; height: auto'"
             variant="tonal"  
             rounded="0"> 
-            <v-card-title class="pa-0">Profile View</v-card-title>
-            <v-card-text class="pa-0">Create or edit your profile for others to see.</v-card-text>
+            <v-card-title class="pa-0">Profile Preview</v-card-title>
+            <v-card-text class="pa-0">See how your changes have affected the appearance of the profile.</v-card-text>
         </v-card>
 
         <v-card-text class="d-flex flex-row-reverse align-center pa-6" :style="width >= mobileWidthLimit ? 'height: 100%;' : ''">
             <v-btn width="100%" @click="profilePreviewDialog = true">PREVIEW PROFILE</v-btn>
         </v-card-text>
-
     </v-card>
 
-    <!-- <v-dialog v-model="profilePreviewDialog" width="auto">
+ 
+    <v-dialog class="ma-0" v-model="profilePreviewDialog" width="auto" scrollable >
         <Profile></Profile>
-           
-
+    </v-dialog>
   
-    </v-dialog> -->
 </template>
 
 <script setup>
@@ -299,6 +346,7 @@ import { required, helpers} from '@vuelidate/validators'
 import routes from '@/router/router'
 
 import Profile from '@/pages/Profile/Profile.vue'
+import DraggableShowcase from '@/components/Profile/DraggableShowcase.vue'
 
 
 let theme = useTheme()
@@ -307,6 +355,7 @@ const store = useStore();
 
 const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 let user_data_initial = computed(() => {return store.getters['auth/getUserData']})
+const stats_info = computed(() => {return store.getters['accounts/getShowcaseStats']})
 let user_data = ref(null)
 
 const wasEdited = ref(false)
@@ -316,19 +365,20 @@ const formattedDate = ref('')
 let showCurrPassword = ref(false);
 let showNewPassword = ref(false);
 let showConfirmNewPassword = ref(false);
-let expansionPanelShowcases = ref(['achievements'])
 
 let editableProfileBackgroundImg = ref(false)
 let editProfileBackgroundImg = ref(false)
 let editAvatarImg = ref(true)
-const profilePreviewDialog = ref(true)
+const profilePreviewDialog = ref(false)
 
+let addStat = ref(false)
+let statType = ref(false)
 
 const allowedImageExtensions = ref(['jpg', 'jpeg', 'png', 'webp']);
 const maxImageSize = ref(2000000)
 
 //Custom validations errors from backend
-const validationErrors = ref({'avatar': '',})
+const validationErrors = ref({'new_avatar': '',})
 
 const validator_rules = computed(() => ({
     new_avatar: {
@@ -370,11 +420,33 @@ const avatar_edit_confirm =()=> {
     let formData = new FormData();
 
     if(validator?.avatar?.$errors?.length > 0){
-        if(formdata.value.avatar== null){formData.append("avatar", formdata.value.avatar)}
-        else{formData.append("avatar", formdata.value.avatar[0])}
+        if(user_data.value.avatar== null){formData.append("avatar", user_data.value.avatar)}
+        else{formData.append("avatar", user_data.value.avatar[0])}
 
         store.dispatch('accounts/changeAccountData', formData)
     }
+}
+
+const addStatsBlock =() => { 
+    addStat.value = true;
+    store.commit('accounts/addStatBlock')
+}
+
+const removeStatBlock =(order) => {
+    store.commit('accounts/removeStatBlock', order)
+}
+
+const changeStatOption =(type) =>{
+    statType.value = type
+    store.commit('accounts/updateCountStats', type)
+}
+
+const saveStats =() =>{
+    if(statType.value !== ''){
+        store.commit('accounts/saveLastStatBlock', statType.value)
+        statType.value = ''
+    }
+
 }
 
 </script>

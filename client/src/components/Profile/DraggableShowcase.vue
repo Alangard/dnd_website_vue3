@@ -1,8 +1,8 @@
  
    <template>
-    <div class="row">
+    
   
-      <div class="col-6">
+      
         <draggable
             class="d-flex flex-row list-group"
             :component-data="{ tag: 'ul', type: 'transition-group', name: !drag ? 'flip-list' : null}"
@@ -68,10 +68,10 @@
             </div>
           </template>
         </draggable>
-      </div>
+      
   
       <rawDisplayer class="col-3" :value="props.list" title="List" />
-    </div>
+    
   </template>
 
 
