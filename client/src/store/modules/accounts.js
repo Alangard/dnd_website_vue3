@@ -5,7 +5,7 @@ const user = JSON.parse(localStorage.getItem('user'));
 const BASE_URL = axios.defaults.baseURL
 
 const initialState = user
-  ? { status: { loggedIn: true }, user, usersList: null, subscriptions: null, notifications: null, searched_user_info: null,
+  ? { status: { loggedIn: true }, user, usersList: null, subscriptions: null, notifications: null, searched_user_info: null, userSettings: null,
   showcase_info: {'stats': {
     'selected':[
       {'data': {'name': 'Likes','count': 12000},'order': 1},
@@ -19,7 +19,7 @@ const initialState = user
     ]
   }
 }}
-  : { status: { loggedIn: false }, user: null, usersList: null, subscriptions:null, notifications: null, searched_user_info: null,
+  : { status: { loggedIn: false }, user: null, usersList: null, subscriptions:null, notifications: null, searched_user_info: null, userSettings: null,
   showcase_info: {'stats': {
     'selected':[
       {'data': {'name': 'Likes','count': 12000},'order': 1},
@@ -105,6 +105,16 @@ export const accounts = {
     //   }
     //   catch(error){console.log(error)}
     // }
+
+    async getUserSettings({state, commit}){
+      try{
+        const response = await interceptorsInstance.get(BASE_URL + `auth/user/${state.user.user_data.id}/settings/`, { headers: authHeader() })
+        console.log(response.data)
+        state.userSettings = response.data
+        return response.data
+      }
+      catch(error){console.log(error)}
+    },
 
     async changeAccountData({state, commit}, data){
       try{

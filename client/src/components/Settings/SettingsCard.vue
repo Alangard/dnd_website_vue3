@@ -18,20 +18,8 @@
 
         <v-card-text class="pa-6">
             <v-text-field class="d-flex flex-row flex-wrap" label="EMAIL ADDRESS" type="email" variant="solo" color="primary"  clearable></v-text-field>
-
-            <v-row>
-                <v-col cols="6">
-                    <v-select class="text-caption" label="REGION" clearable variant="solo" :items="['Rus', 'Eng']"></v-select>
-                </v-col>
-                <v-col cols="6">
-                    <v-text-field class="d-flex flex-row flex-wrap"
-                            v-model="formattedDate"
-                            label="DATE OF BIRTH"
-                            color="primary"
-                            variant="solo">
-                    </v-text-field>
-                </v-col>
-            </v-row>
+            <v-select class="d-flex flex-row flex-wrap text-caption" label="REGION" clearable variant="solo" :items="['Rus', 'Eng']"></v-select>
+    
 
             <div class="d-flex flex-row-reverse mt-6">
                 <v-btn :disabled="!wasEdited">SAVE AND VERIFY</v-btn>
@@ -348,6 +336,29 @@ import routes from '@/router/router'
 import Profile from '@/pages/Profile/Profile.vue'
 import DraggableShowcase from '@/components/Profile/DraggableShowcase.vue'
 
+let test = ref(null)
+let initial__user_data = ref({
+    'personal_info': {'email': '','region': '', 'save': false},
+    'profile_id': {'profile_name': '', 'tagname': '', 'save': false},
+    'additional_profile_info': {
+        'profile_background_img': '',
+        'profile_avtar_img': '',
+        'about_info': '',
+        'stats': '',
+        'save': false
+    },
+    'sign-in': {
+        'username': '',
+        'current_password': '',
+        'new_password': '',
+        'confirm_new_password': '',
+        'save': false
+    },
+})
+
+
+
+
 
 let theme = useTheme()
 const { width } = useDisplay();
@@ -402,9 +413,12 @@ const validator_rules = computed(() => ({
 
 const validator = useVuelidate(validator_rules, user_data)
 
-onBeforeMount(() => {
+onBeforeMount(async() => {
     const additional_dict = {'curr_password': '','new_password': '','confirm_new_password': '', 'new_background': '', 'new_avatar': ''}
     user_data.value = Object.assign(additional_dict, toRaw(user_data_initial.value));
+
+    const response = await store.dispatch('accounts/getUserSettings')
+    test.value = response
 
 })
 

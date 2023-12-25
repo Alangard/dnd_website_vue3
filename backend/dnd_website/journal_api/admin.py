@@ -4,28 +4,28 @@ from django.contrib.auth.admin import UserAdmin
 from . import models
 from django.db import models as models_dict
 from django.forms import TextInput, Textarea
-from .forms import MultiLineCharField
-
+from .forms import MultiLineCharField, UserCreationForm
 
 class CustomAccountAdmin(UserAdmin):
-    search_fields = ('username',)
-    readonly_fields = ['slug']
     list_display = ['username', 'email', 'date_joined', 'is_staff', 'is_active']
-    fieldsets = [
+    search_fields = ('email', )
+    readonly_fields = ['slug']
+    fieldsets = (
+        (None, {"fields": ["username", "email", "password"]}),
+        ("Advanced info", {
+            "classes": ["collapse"],
+            "fields": ['slug', 'avatar', 'about_info'],
+        }),
+    )
+    add_fieldsets = (
         (
             None,
             {
-                "fields": ["username", "email", "password"],
+                'classes': ('wide',),
+                'fields': ('username', 'email', 'password1', 'password2'),
             },
         ),
-        (
-            "Advanced info",
-            {
-                "classes": ["collapse"],
-                "fields": ['slug', "avatar", "about_info"],
-            },
-        ),
-    ]
+    )
 
 class NotificationAdmin(admin.ModelAdmin):
     model = models.Notification

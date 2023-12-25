@@ -1071,10 +1071,25 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):        
         user_id = kwargs.get('pk')
-        
         instance = self.queryset.get(pk=user_id)
         serializer = self.serializer_class(instance, context={"request": request})
         return Response(serializer.data)
+        
+    @action(detail=True, methods=['get'], url_path='settings')
+    def get_settings(self, request, pk=None):
+        user_id = pk
+        # Проверяем существование пользователя
+        try:
+            instance = self.queryset.get(pk=user_id)
+        except Account.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        # Проверяем, аутентифицирован ли пользователь и является ли он запрашиваемым пользователем
+        if not request.user.is_authenticated or int(request.user.id) != int(user_id):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        else:
+            serializer = AccountSettingsSerializer(instance, context={"request": request})
+            return Response(serializer.data)  
         
     def list(self, request, *args, **kwargs):
         self.ordering = ['-username']

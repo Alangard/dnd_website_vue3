@@ -14,7 +14,7 @@ class UserManager(BaseUserManager):
             raise ValueError('The Email field must be set')
 
         email = self.normalize_email(email)
-        user = self.model(username=username, email=email, **extra_fields)
+        user = self.model(username=username, email=email, profile_name=username, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         
@@ -37,10 +37,18 @@ def avatar_upload_to(instance, filename):
     uuid_filename = uuid.uuid4()
     return 'images/user_avatars/{}/{}'.format(username, uuid_filename) 
 
+def background_image__upload_to(instance, filename):
+    username = instance.username
+    uuid_filename = uuid.uuid4()
+    return 'images/user_bacground_img/{}/{}'.format(username, uuid_filename)
+
 class Account(AbstractUser):
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, blank=False)
     slug = models.SlugField(max_length=150, db_index=True, blank=True, null=True)
     avatar = models.ImageField(upload_to=avatar_upload_to, blank=True, null=True)
+    background_image = models.ImageField(upload_to=background_image__upload_to, blank=True, null=True)
+    profile_name = models.CharField(max_length=150, null=True, blank=True)
+    tagname = models.CharField(max_length=150, db_index=True, blank=True, null=True)
     confirmation_code = models.CharField(max_length=6, null=True, blank=True)
     is_active = models.BooleanField(default=False)
     about_info = models.CharField(max_length=200, blank=True, null=True)

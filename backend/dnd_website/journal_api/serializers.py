@@ -74,6 +74,12 @@ class ShortAccountSerializer(serializers.ModelSerializer):
         model = Account
         fields = ["id", "username", "avatar", "about_info"]
 
+class AccountSettingsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Account
+        fields = ["id", "profile_name", "tagname", "username", "email", "avatar", "background_image", "about_info"]
+
 class NotificationSerializer(serializers.ModelSerializer):
 
     class Meta:
