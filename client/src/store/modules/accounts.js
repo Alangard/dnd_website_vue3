@@ -116,6 +116,14 @@ export const accounts = {
       catch(error){console.log(error)}
     },
 
+    async updateUserSettings({state, commit}, data){
+      try{
+        const response = await interceptorsInstance.post(BASE_URL + `auth/user/${state.user.user_data.id}/settings/change/`, data, { headers: authHeader() })
+        return response.data
+      }
+      catch(error){console.log(error)}
+    },
+
     async changeAccountData({state, commit}, data){
       try{
         const response = await interceptorsInstance.patch(BASE_URL + `auth/user/${state.user.user_data.id}/`, data,  { headers: authHeader() })

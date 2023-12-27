@@ -17,12 +17,17 @@
         </v-card>
 
         <v-card-text class="pa-6">
-            <v-text-field class="d-flex flex-row flex-wrap" label="EMAIL ADDRESS" type="email" variant="solo" color="primary"  clearable></v-text-field>
-            <v-select class="d-flex flex-row flex-wrap text-caption" label="REGION" clearable variant="solo" :items="['Rus', 'Eng']"></v-select>
-    
+            <v-text-field class="d-flex flex-row flex-wrap" 
+                v-model="user_data.personal_info.email" 
+                label="EMAIL ADDRESS" type="email" variant="solo" color="primary" clearable>
+            </v-text-field>
+            <v-select class="d-flex flex-row flex-wrap text-caption" 
+                v-model="user_data.personal_info.region" 
+                label="REGION" clearable variant="solo" :items="['Rus', 'Eng']">
+            </v-select>
 
             <div class="d-flex flex-row-reverse mt-6">
-                <v-btn :disabled="!wasEdited">SAVE AND VERIFY</v-btn>
+                <v-btn :disabled="!wasEdited" @click="testfunc(user_data.personal_info)">SAVE AND VERIFY</v-btn>
             </div>
         </v-card-text>
     </v-card>
@@ -43,15 +48,21 @@
         <v-card-text class="pa-6">
             <v-row>
                 <v-col cols="6">
-                    <v-text-field class="d-flex flex-row flex-wrap" label="PROFILE NAME" type="text" variant="solo" color="primary" clearable></v-text-field>
+                    <v-text-field class="d-flex flex-row flex-wrap"
+                        v-model="user_data.profile_id.profile_name" 
+                        label="PROFILE NAME" type="text" variant="solo" color="primary" clearable>
+                    </v-text-field>
                 </v-col>
                 <v-col cols="6">
-                    <v-text-field class="d-flex flex-row flex-wrap" label="TAGNAME" type="text" variant="solo" color="primary" clearable></v-text-field>
+                    <v-text-field class="d-flex flex-row flex-wrap"
+                        v-model="user_data.profile_id.tagname"  
+                        label="TAGNAME" type="text" variant="solo" color="primary" clearable>
+                    </v-text-field>
                 </v-col>
             </v-row>
 
             <div class="d-flex flex-row-reverse mt-6">
-                <v-btn :disabled="!wasEdited">SAVE AND VERIFY</v-btn>
+                <v-btn :disabled="!wasEdited" @click="testfunc(user_data.profile_id)">SAVE AND VERIFY</v-btn>
             </div>
         </v-card-text>
     </v-card>
@@ -99,10 +110,10 @@
                 @mouseleave="editableProfileBackgroundImg = false">
 
                 <p class="text-h6 mb-2">Profile background image</p>
-                <v-img class="background_img" v-if="user_data.background" 
+                <v-img class="background_img" v-if="user_data.additional_profile_info.profile_background_img" 
                     max-height='300px' 
                     cover 
-                    :src='user_data.background'>
+                    :src='user_data.additional_profile_info.profile_background_img'>
                 </v-img>
  
                 <v-img class="background_img" v-else 
@@ -113,7 +124,7 @@
                 
                 <v-file-input class="edit_profile_background_img d-flex flex-row flex-wrap mt-3 mb-4"
                     v-if="editProfileBackgroundImg"
-                    v-model="user_data.background"
+                    v-model="user_data.additional_profile_info.profile_background_img_new"
                     :error-messages="validationErrors.background !== ''? validationErrors.background : validator.background.$errors.map(e => e.$message)"
                     @input="validator.background.$touch"
                     :accept="allowedImageExtensions.map(ext => `image/${ext}`).join(', ')"
@@ -132,7 +143,7 @@
                     style="position: absolute; top: 50px; right: 15px">
                 </v-btn>
                 <v-btn 
-                    v-show="(editableProfileBackgroundImg || width < mobileWidthLimit) && user_data.background" 
+                    v-show="(editableProfileBackgroundImg || width < mobileWidthLimit) && initial__user_data.additional_profile_info.profile_background_img" 
                     density="comfortable"
                     icon="mdi-trash-can-outline"  
                     style="position: absolute; top: 95px; right: 15px">
@@ -146,9 +157,9 @@
                 <v-card-title>Profile avatar</v-card-title>
                 <v-card-text class="d-flex flex-row align-center justify-space-between w-auto">
                     <v-avatar class="avatar pr-2" 
-                        v-if="user_data.avatar" 
-                        :image="user_data.avatar" 
-                        :alt="user_data.username" 
+                        v-if="user_data.additional_profile_info.profile_avtar_img" 
+                        :image="user_data.additional_profile_info.profile_avtar_img" 
+                        :alt="user_data.sign_in.username" 
                         size="120">
                     </v-avatar>
 
@@ -160,7 +171,7 @@
                     <div class="d-flex flex-column justify-center px-2 w-100">
                         <v-file-input class="edit_avatar d-flex flex-row flex-wrap mb-2"
                             v-if="editAvatarImg"
-                            v-model="user_data.new_avatar"
+                            v-model="user_data.additional_profile_info.profile_avtar_img_new"
                             :error-messages="validationErrors.new_avatar !== ''? validationErrors.new_avatar : validator.new_avatar.$errors.map(e => e.$message)"
                             @input="validator.new_avatar.$touch"
                             :accept="allowedImageExtensions.map(ext => `image/${ext}`).join(', ')"
@@ -170,13 +181,13 @@
                             label="Select image">
                         </v-file-input>
 
-                        <v-btn class="delete_avatar"  @click="delete_avatar" :disabled="user_data.avatar == null">Delete avatar</v-btn>
+                        <v-btn class="delete_avatar"  @click="delete_avatar" :disabled="user_data.additional_profile_info.profile_avtar_img_new == null">Delete avatar</v-btn>
                     </div>
                 </v-card-text>
             </v-card>
         
             <v-textarea class="about_info d-flex flex-row flex-wrap"
-                v-model="user_data.about_info"
+                v-model="user_data.additional_profile_info.about_info"
                 auto-grow
                 clearable
                 variant="solo"
@@ -190,7 +201,7 @@
                 <v-card-text>
                     <div class="showcase_container d-flex flex-row align-center pa-2" style="overflow-x: auto;">
                         <DraggableShowcase 
-                            :list="stats_info.selected" 
+                            :list="user_data.additional_profile_info.stats.selected" 
                             :type="'stats'" 
                             :edit="true" 
                             @changeStatOption="changeStatOption"
@@ -198,7 +209,7 @@
                         </DraggableShowcase>
 
                         <v-btn class="add_stat_block ml-3"
-                            v-if="stats_info?.selected?.length < 4"
+                            v-if="user_data.additional_profile_info.stats?.selected?.length < 4"
                             @click="addStatsBlock"
                             icon="mdi-plus" 
                             width="50px"
@@ -209,7 +220,7 @@
             </v-card>
 
             <div class="d-flex flex-row-reverse mt-6">
-                <v-btn :disabled="!wasEdited">SAVE AND VERIFY</v-btn>
+                <v-btn :disabled="!wasEdited" @click="testfunc(user_data.additional_profile_info)">SAVE AND VERIFY</v-btn>
             </div>
         </v-card-text>
     </v-card>
@@ -229,7 +240,7 @@
 
         <v-card-text class="pa-6">
             <v-text-field class="d-flex flex-row flex-wrap" 
-                v-model='user_data.username' 
+                v-model='user_data.sign_in.username' 
                 label="USERNAME" 
                 type="text" 
                 variant="solo"
@@ -241,7 +252,7 @@
 
             <v-text-field
                 class="d-flex flex-row flex-wrap"
-                v-model="user_data.curr_password"
+                v-model="user_data.sign_in.current_password"
                 :append-inner-icon="showCurrPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 :type="showCurrPassword ? 'text' : 'password'"
                 @click:append="showCurrPassword = !showCurrPassword"
@@ -253,7 +264,7 @@
 
             <v-text-field
                 class="d-flex flex-row flex-wrap"
-                v-model="user_data.new_password"
+                v-model="user_data.sign_in.new_password"
                 :append-inner-icon="showNewPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 :type="showNewPassword ? 'text' : 'password'"
                 @click:append="showNewPassword = !showNewPassword"
@@ -265,7 +276,7 @@
 
             <v-text-field
                 class="d-flex flex-row flex-wrap"
-                v-model="user_data.confirm_new_password"
+                v-model="user_data.sign_in.confirm_new_password"
                 :append-inner-icon="showConfirmNewPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 :type="showConfirmNewPassword ? 'text' : 'password'"
                 @click:append="showConfirmNewPassword = !showConfirmNewPassword"
@@ -276,7 +287,7 @@
             ></v-text-field>
 
             <div class="d-flex flex-row-reverse mt-6">
-                <v-btn :disabled="!wasEdited">SAVE AND VERIFY</v-btn>
+                <v-btn :disabled="!wasEdited" @click="testfunc(user_data.sign_in)">SAVE AND VERIFY</v-btn>
             </div>
         </v-card-text>
     </v-card>
@@ -337,17 +348,31 @@ import Profile from '@/pages/Profile/Profile.vue'
 import DraggableShowcase from '@/components/Profile/DraggableShowcase.vue'
 
 let test = ref(null)
-let initial__user_data = ref({
+let user_data = ref({
     'personal_info': {'email': '','region': '', 'save': false},
     'profile_id': {'profile_name': '', 'tagname': '', 'save': false},
     'additional_profile_info': {
         'profile_background_img': '',
+        'profile_background_img_new': '',
         'profile_avtar_img': '',
+        'profile_avtar_img_new': '',
         'about_info': '',
-        'stats': '',
+        'stats': {
+            'selected':[
+                {'data': {'name': 'Likes','count': 12000},'order': 1},
+                {'data': {'name': 'Comments','count': 360},'order': 2},
+                {'data': {'name': 'Post','count': 15},'order': 3}
+            ],
+            'all':[
+                {'data': {'name': 'Likes','count': 12000}},
+                {'data': {'name': 'Comments','count': 360}},
+                {'data': {'name': 'Post','count': 15}},
+                {'data': {'name': 'Dislikes','count': 3}}
+            ]
+        },
         'save': false
     },
-    'sign-in': {
+    'sign_in': {
         'username': '',
         'current_password': '',
         'new_password': '',
@@ -356,8 +381,15 @@ let initial__user_data = ref({
     },
 })
 
+let initial__user_data = ref(null)
 
 
+
+const testfunc = async(data) => {
+    console.log(data)
+    const response = await store.dispatch('accounts/updateUserSettings', data)
+    console.log(response)
+}
 
 
 let theme = useTheme()
@@ -365,11 +397,10 @@ const { width } = useDisplay();
 const store = useStore();
 
 const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
-let user_data_initial = computed(() => {return store.getters['auth/getUserData']})
-const stats_info = computed(() => {return store.getters['accounts/getShowcaseStats']})
-let user_data = ref(null)
+// let user_data_initial = computed(() => {return store.getters['auth/getUserData']})
+// const stats_info = computed(() => {return store.getters['accounts/getShowcaseStats']})
 
-const wasEdited = ref(false)
+const wasEdited = ref(true)
 
 const formattedDate = ref('')
 
@@ -414,11 +445,21 @@ const validator_rules = computed(() => ({
 const validator = useVuelidate(validator_rules, user_data)
 
 onBeforeMount(async() => {
-    const additional_dict = {'curr_password': '','new_password': '','confirm_new_password': '', 'new_background': '', 'new_avatar': ''}
-    user_data.value = Object.assign(additional_dict, toRaw(user_data_initial.value));
-
     const response = await store.dispatch('accounts/getUserSettings')
-    test.value = response
+
+        user_data.value.personal_info.email = response?.email
+        user_data.value.personal_info.region = response?.region
+        !response.profile_name ? user_data.value.profile_id.profile_name = response.username : response.profile_name
+        user_data.value.profile_id.tagname = response.tagname
+        user_data.value.additional_profile_info.profile_background_img = response.background_image
+        user_data.value.additional_profile_info.profile_avtar_img = response.avatar
+        user_data.value.additional_profile_info.about_info = response.about_info
+        user_data.value.sign_in.username = response.username
+      
+
+        Object.assign(initial__user_data, JSON.parse(JSON.stringify(user_data)))
+   
+    
 
 })
 
