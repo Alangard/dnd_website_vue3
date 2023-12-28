@@ -27,7 +27,7 @@
             </v-select>
 
             <div class="d-flex flex-row-reverse mt-6">
-                <v-btn :disabled="!wasEdited" @click="testfunc(user_data.personal_info)">SAVE AND VERIFY</v-btn>
+                <v-btn :disabled="!wasEdited" @click="updateSettingPart(user_data.personal_info, 'personal_info')">SAVE AND VERIFY</v-btn>
             </div>
         </v-card-text>
     </v-card>
@@ -62,7 +62,7 @@
             </v-row>
 
             <div class="d-flex flex-row-reverse mt-6">
-                <v-btn :disabled="!wasEdited" @click="testfunc(user_data.profile_id)">SAVE AND VERIFY</v-btn>
+                <v-btn :disabled="!wasEdited" @click="updateSettingPart(user_data.profile_id, 'profile_id')">SAVE AND VERIFY</v-btn>
             </div>
         </v-card-text>
     </v-card>
@@ -84,7 +84,7 @@
             
 
             <div class="d-flex flex-row-reverse mt-6">
-                <v-btn :disabled="!wasEdited">SAVE AND VERIFY</v-btn>
+                <v-btn :disabled="!wasEdited" @click="updateSettingPart(1, 'notifications_settings')">SAVE AND VERIFY</v-btn>
             </div>
         </v-card-text>
     </v-card>
@@ -105,9 +105,7 @@
 
 
         <v-card-text class="pa-6 w-100" style="position: relative; max-width: 450px;">
-            <div class="profile_background" style="position: relative;"  
-                @mouseover="editableProfileBackgroundImg = true" 
-                @mouseleave="editableProfileBackgroundImg = false">
+            <div class="profile_background" style="position: relative;">
 
                 <p class="text-h6 mb-2">Profile background image</p>
                 <v-img class="background_img" v-if="user_data.additional_profile_info.profile_background_img" 
@@ -125,8 +123,8 @@
                 <v-file-input class="edit_profile_background_img d-flex flex-row flex-wrap mt-3 mb-4"
                     v-if="editProfileBackgroundImg"
                     v-model="user_data.additional_profile_info.profile_background_img_new"
-                    :error-messages="validationErrors.background !== ''? validationErrors.background : validator.background.$errors.map(e => e.$message)"
-                    @input="validator.background.$touch"
+                    :error-messages="validator.additional_profile_info.profile_background_img_new.$errors.map(e => e.$message)"
+                    @input="validator.additional_profile_info.profile_background_img_new.$touch"
                     :accept="allowedImageExtensions.map(ext => `image/${ext}`).join(', ')"
                     prepend-inner-icon="mdi-image"
                     prepend-icon=""
@@ -135,30 +133,27 @@
                 </v-file-input>
 
 
-                <v-btn 
-                    v-show="editableProfileBackgroundImg || editProfileBackgroundImg || width < mobileWidthLimit"
+                <v-btn
                     @click="editProfileBackgroundImg = !editProfileBackgroundImg" 
                     density="comfortable" 
                     icon="mdi-pencil-outline"  
                     style="position: absolute; top: 50px; right: 15px">
                 </v-btn>
                 <v-btn 
-                    v-show="(editableProfileBackgroundImg || width < mobileWidthLimit) && initial__user_data.additional_profile_info.profile_background_img" 
+                    v-show="user_data.additional_profile_info.profile_background_img" 
                     density="comfortable"
                     icon="mdi-trash-can-outline"  
                     style="position: absolute; top: 95px; right: 15px">
                 </v-btn>
             </div>
 
-            <v-card class="profile_avatar mt-3" style="position: relative;" 
-                @mouseover="editableProfileBackgroundImg = true" 
-                @mouseleave="editableProfileBackgroundImg = false">
+            <v-card class="profile_avatar mt-3" style="position: relative;">
 
                 <v-card-title>Profile avatar</v-card-title>
                 <v-card-text class="d-flex flex-row align-center justify-space-between w-auto">
                     <v-avatar class="avatar pr-2" 
-                        v-if="user_data.additional_profile_info.profile_avtar_img" 
-                        :image="user_data.additional_profile_info.profile_avtar_img" 
+                        v-if="user_data.additional_profile_info.profile_avatar_img" 
+                        :image="user_data.additional_profile_info.profile_avatar_img" 
                         :alt="user_data.sign_in.username" 
                         size="120">
                     </v-avatar>
@@ -171,9 +166,9 @@
                     <div class="d-flex flex-column justify-center px-2 w-100">
                         <v-file-input class="edit_avatar d-flex flex-row flex-wrap mb-2"
                             v-if="editAvatarImg"
-                            v-model="user_data.additional_profile_info.profile_avtar_img_new"
-                            :error-messages="validationErrors.new_avatar !== ''? validationErrors.new_avatar : validator.new_avatar.$errors.map(e => e.$message)"
-                            @input="validator.new_avatar.$touch"
+                            v-model="user_data.additional_profile_info.profile_avatar_img_new"
+                            :error-messages="validator.additional_profile_info.profile_avatar_img_new.$errors.map(e => e.$message)"
+                            @input="validator.additional_profile_info.profile_avatar_img_new.$touch"
                             :accept="allowedImageExtensions.map(ext => `image/${ext}`).join(', ')"
                             prepend-inner-icon="mdi-image"
                             prepend-icon=""
@@ -181,7 +176,7 @@
                             label="Select image">
                         </v-file-input>
 
-                        <v-btn class="delete_avatar"  @click="delete_avatar" :disabled="user_data.additional_profile_info.profile_avtar_img_new == null">Delete avatar</v-btn>
+                        <v-btn class="delete_avatar"  @click="delete_avatar" :disabled="user_data.additional_profile_info.profile_avatar_img_new == null">Delete avatar</v-btn>
                     </div>
                 </v-card-text>
             </v-card>
@@ -220,7 +215,7 @@
             </v-card>
 
             <div class="d-flex flex-row-reverse mt-6">
-                <v-btn :disabled="!wasEdited" @click="testfunc(user_data.additional_profile_info)">SAVE AND VERIFY</v-btn>
+                <v-btn :disabled="!wasEdited" @click="updateSettingPart(user_data.additional_profile_info, 'additional_profile_info')">SAVE AND VERIFY</v-btn>
             </div>
         </v-card-text>
     </v-card>
@@ -287,7 +282,7 @@
             ></v-text-field>
 
             <div class="d-flex flex-row-reverse mt-6">
-                <v-btn :disabled="!wasEdited" @click="testfunc(user_data.sign_in)">SAVE AND VERIFY</v-btn>
+                <v-btn :disabled="!wasEdited" @click="updateSettingPart(user_data.sign_in, 'sign_in')">SAVE AND VERIFY</v-btn>
             </div>
         </v-card-text>
     </v-card>
@@ -341,21 +336,20 @@ import { useStore } from 'vuex';
 import { useDisplay } from 'vuetify/lib/framework.mjs';
 import { useTheme } from 'vuetify/lib/framework.mjs';
 import { useVuelidate } from '@vuelidate/core'
-import { required, helpers} from '@vuelidate/validators'
+import { required, helpers } from '@vuelidate/validators'
 import routes from '@/router/router'
 
 import Profile from '@/pages/Profile/Profile.vue'
 import DraggableShowcase from '@/components/Profile/DraggableShowcase.vue'
 
-let test = ref(null)
 let user_data = ref({
     'personal_info': {'email': '','region': '', 'save': false},
     'profile_id': {'profile_name': '', 'tagname': '', 'save': false},
     'additional_profile_info': {
         'profile_background_img': '',
         'profile_background_img_new': '',
-        'profile_avtar_img': '',
-        'profile_avtar_img_new': '',
+        'profile_avatar_img': '',
+        'profile_avatar_img_new': '',
         'about_info': '',
         'stats': {
             'selected':[
@@ -385,10 +379,21 @@ let initial__user_data = ref(null)
 
 
 
-const testfunc = async(data) => {
-    console.log(data)
-    const response = await store.dispatch('accounts/updateUserSettings', data)
+const updateSettingPart = async(current_data, type) => {
+    const formData = new FormData();
+
+    for(const [key, value] of Object.entries(initial__user_data.value[type])) {
+        //Проверяем и отправляем объект только с теми полями, которые были изменены
+        if(JSON.stringify(current_data[key]) != JSON.stringify(value)){
+            formData.append(key, current_data[key])
+        }
+    }
+
+    const response = await store.dispatch('accounts/updateUserSettings', formData)
     console.log(response)
+
+
+
 }
 
 
@@ -419,30 +424,41 @@ let statType = ref(false)
 const allowedImageExtensions = ref(['jpg', 'jpeg', 'png', 'webp']);
 const maxImageSize = ref(2000000)
 
-//Custom validations errors from backend
-const validationErrors = ref({'new_avatar': '',})
-
 const validator_rules = computed(() => ({
-    new_avatar: {
-        required: helpers.withMessage('Please select an image file', required),
-        maxSize: helpers.withMessage('Maximum file size must not be greater than 2MB', (value) => {
-        if (!value[0]) return true;
 
-        const fileSize = value[0].size;
-
-        return fileSize <= maxImageSize.value;
-        }),
-        fileExt: helpers.withMessage('The file must have the extension: *.jpg,*.jpeg,*.png,*.webp', (value) => {
-        if (!value[0] || !value[0].name) return true;
-
-        const fileExtension = value[0].name.split('.').pop().toLowerCase();
-
-        return allowedImageExtensions.value.includes(fileExtension);
-        })
-  }
+    additional_profile_info: {
+        profile_background_img_new: {
+            required: helpers.withMessage('Please select an image file', required),
+            maxSize: helpers.withMessage('Maximum file size must not be greater than 2MB', (value) => {
+                if (!value[0]) return true;
+                const fileSize = value[0].size;
+                return fileSize <= maxImageSize.value;
+            }),
+            fileExt: helpers.withMessage('The file must have the extension: *.jpg,*.jpeg,*.png,*.webp', (value) => {
+                if (!value[0] || !value[0].name) return true;
+                const fileExtension = value[0].name.split('.').pop().toLowerCase();
+                return allowedImageExtensions.value.includes(fileExtension);
+            })
+        },
+        profile_avatar_img_new: {
+            required: helpers.withMessage('Please select an image file', required),
+            maxSize: helpers.withMessage('Maximum file size must not be greater than 2MB', (value) => {
+                if (!value) return true;
+                const fileSize = value.size;
+                return fileSize <= maxImageSize.value;
+            }),
+            fileExt: helpers.withMessage('The file must have the extension: *.jpg,*.jpeg,*.png,*.webp', (value) => {
+                if (!value[0] || !value[0].name) return true;
+                const fileExtension = value[0].name.split('.').pop().toLowerCase();
+                return allowedImageExtensions.value.includes(fileExtension);
+            })
+        }
+    }
+    
 }));
 
 const validator = useVuelidate(validator_rules, user_data)
+
 
 onBeforeMount(async() => {
     const response = await store.dispatch('accounts/getUserSettings')
@@ -452,7 +468,7 @@ onBeforeMount(async() => {
         !response.profile_name ? user_data.value.profile_id.profile_name = response.username : response.profile_name
         user_data.value.profile_id.tagname = response.tagname
         user_data.value.additional_profile_info.profile_background_img = response.background_image
-        user_data.value.additional_profile_info.profile_avtar_img = response.avatar
+        user_data.value.additional_profile_info.profile_avatar_img = response.avatar
         user_data.value.additional_profile_info.about_info = response.about_info
         user_data.value.sign_in.username = response.username
       

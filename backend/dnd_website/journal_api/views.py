@@ -1104,8 +1104,16 @@ class UserViewSet(viewsets.ModelViewSet):
         if not request.user.is_authenticated or int(request.user.id) != int(user_id):
             return Response(status=status.HTTP_403_FORBIDDEN)
         else:
-            print(request.data)
-            return Response(status=status.HTTP_200_OK)
+            data = {}
+
+            print(request.data.items())
+            for key, value in request.data.items():
+                if(key == 'profile_background_img_new' or key == 'profile_avtar_img_new'):
+                    data[key] = request.FILES.get(key)
+                else:
+                    data[key] = request.data.get(key)
+            print(data)
+            return Response('yes')
             # serializer = AccountSettingsSerializer(instance, data=request.data, context={"request": request}, partial=True)
             # if serializer.is_valid():
             #     serializer.save()
