@@ -54,6 +54,8 @@ class Account(AbstractUser):
     about_info = models.CharField(max_length=200, blank=True, null=True)
     # is_superuser = models.BooleanField(default=True)
     # is_staff = models.BooleanField(default=True)
+    stats = models.ManyToManyField('Stats', blank=True)
+
 
     objects = UserManager()
 
@@ -74,7 +76,24 @@ class Account(AbstractUser):
 
     def __str__(self):
         return f'{self.id} - {self.username}'
+    
 
+class Stats(models.Model):
+    option_name = models.CharField(max_length=50, unique=True)
+    slug = models.SlugField(max_length=75, null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.id} - {self.option_name}'
+    
+    def save(self, *args, **kwargs):
+        from django.utils.text import slugify
+        self.slug = slugify(self.option_name)
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        db_table = "Stats"
+        verbose_name = "Stats"
+        verbose_name_plural = "Stats"
 
 
 class Notification(models.Model):
@@ -164,10 +183,15 @@ class PostReaction(models.Model):
 
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    slug = models.SlugField(max_length=75, unique=True, null=True)
+    slug = models.SlugField(max_length=75, null=True, blank=True)
 
     def __str__(self):
         return f'{self.id} - {self.name}'
+    
+    def save(self, *args, **kwargs):
+        from django.utils.text import slugify
+        self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
     
     def get_absolute_url(self):
         return f'/{self.slug}/'

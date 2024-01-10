@@ -45,6 +45,12 @@ class AccountSerializer(serializers.ModelSerializer):
                     "is_active",
                     'confirmation_code']
         
+class StatsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Stats
+        fields = "__all__"
+        
+
 class ConfirmationCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account

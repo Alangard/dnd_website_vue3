@@ -101,7 +101,38 @@ class CommentsListPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 1000
 
+def get_user_statistics(user_id):
+    statistics = {"selected": [], "all": []}
+    account_instance = Account.objects.all().get(pk=user_id)
 
+    selected_stats_list = StatsSerializer(account_instance.stats.all(), many=True).data
+    all_stats_list = StatsSerializer(Stats.objects.all(), many = True).data
+
+    post_reactions = PostReaction.objects.filter(post__author_id=user_id).values('reaction_type').annotate(count=Count('reaction_type'))
+    comment_reactions = CommentReaction.objects.filter(comment__author_id=user_id).values('reaction_type').annotate(count=Count('reaction_type'))
+    
+    order = 1
+    for element in selected_stats_list:
+        match element['slug']:
+            case 'post-likes':
+                count = post_reactions.get(reaction_type='like')['count'] if post_reactions.filter(reaction_type='like') else 0
+            case 'post-dislikes':
+                count = post_reactions.get(reaction_type='dislike')['count'] if post_reactions.filter(reaction_type='dislike') else 0
+            case 'comment-likes':
+                count = comment_reactions.get(reaction_type='like')['count'] if comment_reactions.filter(reaction_type='like') else 0
+            case 'comment-dislikes':
+                count = comment_reactions.get(reaction_type='dislike')['count'] if comment_reactions.filter(reaction_type='dislike') else 0
+            case 'posts-count':
+                count = Post.objects.filter(author_id=user_id).count()
+            case 'comments-count':
+                count = Comment.objects.filter(post__author_id=user_id).count()
+        
+        selected_data = {"data": {"name": element['option_name'], "count": count}, "order": order}
+        statistics["selected"].append(selected_data)
+        order += 1
+    
+    statistics["all"].append([{"data": {"name": element['option_name']}} for element in all_stats_list])
+    return statistics
 
 @receiver(post_save, sender=PostReaction)
 def leave_post__reaction(sender, instance, created, **kwargs):
@@ -1089,7 +1120,9 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_403_FORBIDDEN)
         else:
             serializer = AccountSettingsSerializer(instance, context={"request": request})
-            return Response(serializer.data)
+            data = serializer.data
+            data["statistics"] = get_user_statistics(user_id)
+            return Response(data)
 
     @action(detail=True, methods=['post'], url_path='settings/change')
     def update_settings(self, request, pk=None):
@@ -1108,8 +1141,10 @@ class UserViewSet(viewsets.ModelViewSet):
 
             print(request.data.items())
             for key, value in request.data.items():
-                if(key == 'profile_background_img_new' or key == 'profile_avtar_img_new'):
-                    data[key] = request.FILES.get(key)
+                if(key == 'profile_background_img_new'):
+                    data['background_image'] = request.FILES.get(key)
+                elif(key == 'profile_avtar_img_new'):
+                    data['avatar'] = request.FILES.get(key)
                 else:
                     data[key] = request.data.get(key)
             print(data)

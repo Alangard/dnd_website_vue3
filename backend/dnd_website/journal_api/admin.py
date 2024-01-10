@@ -14,7 +14,7 @@ class CustomAccountAdmin(UserAdmin):
         (None, {"fields": ["username", "email", "password"]}),
         ("Advanced info", {
             "classes": ["collapse"],
-            "fields": ['slug', 'avatar', 'about_info'],
+            "fields": ['slug', 'avatar', 'about_info', 'stats'],
         }),
     )
     add_fieldsets = (
@@ -26,6 +26,9 @@ class CustomAccountAdmin(UserAdmin):
             },
         ),
     )
+
+class AccountStatsAdmin(admin.ModelAdmin):
+    model = models.Stats
 
 class NotificationAdmin(admin.ModelAdmin):
     model = models.Notification
@@ -72,6 +75,7 @@ class ReportReasonAdmin(admin.ModelAdmin):
 
 
 admin.site.register(models.Account, CustomAccountAdmin)
+admin.site.register(models.Stats, AccountStatsAdmin)
 admin.site.register(models.Notification, NotificationAdmin)
 admin.site.register(models.Subscription)
 admin.site.register(models.Post, PostAdmin)
