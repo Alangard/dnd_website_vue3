@@ -54,7 +54,7 @@ class Account(AbstractUser):
     about_info = models.CharField(max_length=200, blank=True, null=True)
     # is_superuser = models.BooleanField(default=True)
     # is_staff = models.BooleanField(default=True)
-    stats = models.ManyToManyField('Stats', blank=True)
+    stats = models.ManyToManyField('Stats', through='AccountStats', related_name='AccountStats', blank=True)
 
 
     objects = UserManager()
@@ -77,24 +77,49 @@ class Account(AbstractUser):
     def __str__(self):
         return f'{self.id} - {self.username}'
     
-
 class Stats(models.Model):
     option_name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=75, null=True, blank=True)
 
     def __str__(self):
         return f'{self.id} - {self.option_name}'
-    
+
     def save(self, *args, **kwargs):
         from django.utils.text import slugify
         self.slug = slugify(self.option_name)
         super().save(*args, **kwargs)
-    
+
     class Meta:
         db_table = "Stats"
         verbose_name = "Stats"
         verbose_name_plural = "Stats"
 
+class AccountStats(models.Model):
+    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    stat = models.ForeignKey(Stats, on_delete=models.CASCADE)
+    order = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return f'{self.account} / {self.stat.option_name} - {self.order}'
+    
+    def save(self, *args, **kwargs):
+        if not self.pk:  # При добавлении нового элемента
+            last_order = AccountStats.objects.filter(account=self.account).count()
+            self.order = last_order + 1
+
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        remaining_stats = AccountStats.objects.filter(account=self.account).order_by('order')
+        for i, stat in enumerate(remaining_stats, start=1):
+            stat.order = i
+            stat.save()
+            
+    class Meta:
+        db_table = "AccountStats"
+        verbose_name = "Account Stats"
+        verbose_name_plural = "Account Stats"
 
 class Notification(models.Model):
     NOTIFICATION_TYPE = (('post_reaction', 'post_reaction'),

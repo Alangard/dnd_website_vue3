@@ -5,34 +5,8 @@ const user = JSON.parse(localStorage.getItem('user'));
 const BASE_URL = axios.defaults.baseURL
 
 const initialState = user
-  ? { status: { loggedIn: true }, user, usersList: null, subscriptions: null, notifications: null, searched_user_info: null, userSettings: null,
-  showcase_info: {'stats': {
-    'selected':[
-      {'data': {'name': 'Likes','count': 12000},'order': 1},
-      {'data': {'name': 'Comments','count': 360},'order': 2},
-      {'data': {'name': 'Post','count': 15},'order': 3}],
-    'all':[
-      {'data': {'name': 'Likes','count': 12000}},
-      {'data': {'name': 'Comments','count': 360}},
-      {'data': {'name': 'Post','count': 15}},
-      {'data': {'name': 'Dislikes','count': 3}}
-    ]
-  }
-}}
-  : { status: { loggedIn: false }, user: null, usersList: null, subscriptions:null, notifications: null, searched_user_info: null, userSettings: null,
-  showcase_info: {'stats': {
-    'selected':[
-      {'data': {'name': 'Likes','count': 12000},'order': 1},
-      {'data': {'name': 'Comments','count': 360},'order': 2},
-      {'data': {'name': 'Post','count': 15},'order': 3}],
-    'all':[
-      {'data': {'name': 'Likes','count': 12000}},
-      {'data': {'name': 'Comments','count': 360}},
-      {'data': {'name': 'Post','count': 15}},
-      {'data': {'name': 'Dislikes','count': 3}}
-    ]
-  }
-}}
+  ? { status: { loggedIn: true }, user, usersList: null, subscriptions: null, notifications: null, searched_user_info: null, userSettings: null,}
+  : { status: { loggedIn: false }, user: null, usersList: null, subscriptions:null, notifications: null, searched_user_info: null, userSettings: null,}
 
 export const accounts = {
   namespaced: true,
@@ -172,27 +146,27 @@ export const accounts = {
 
 
     addStatBlock(state){
-      const length = state.showcase_info.stats.selected.length
-      state.showcase_info.stats.selected.push({'data': {'name': '','count': 0},'order': length + 1, 'type': 'creating'})
+      const length = state.userSettings.statistics.selected.length
+      state.userSettings.statistics.selected.push({'data': {'name': '','count': 0},'order': length + 1, 'type': 'creating'})
     },
 
     removeStatBlock(state, order){
-      const idx = state.showcase_info.stats.selected.findIndex((item) => item.order === order);
-      state.showcase_info.stats.selected.splice(idx, 1)
+      const idx = state.userSettings.statistics.selected.findIndex((item) => item.order === order);
+      state.userSettings.statistics.selected.splice(idx, 1)
     },
 
     updateCountStats(state, stats_name){
-      const count = state.showcase_info.stats.all.filter((element)=> element.data.name == stats_name)[0].data.count
-      const length = state.showcase_info.stats.selected.length
+      const count = state.userSettings.statistics.all.filter((element)=> element.data.name == stats_name)[0].data.count
+      const length = state.userSettings.statistics.selected.length
       const data = {'data': {'name': stats_name,'count': count},'order': length, 'type': 'creating'}
-      state.showcase_info.stats.selected.splice(-1, 1, data)
+      state.userSettings.statistics.selected.splice(-1, 1, data)
     },
 
     saveLastStatBlock(state, stats_name){
-      const count = state.showcase_info.stats.all.filter((element)=> element.data.name == stats_name)[0].data.count
-      const length = state.showcase_info.stats.selected.length
+      const count = state.userSettings.statistics.all.filter((element)=> element.data.name == stats_name)[0].data.count
+      const length = state.userSettings.statistics.selected.length
       const data = {'data': {'name': stats_name,'count': count},'order': length}
-      state.showcase_info.stats.selected.splice(-1, 1, data)
+      state.userSettings.statistics.selected.splice(-1, 1, data)
     },
     
     changeUserData(state, user_data){
@@ -220,7 +194,7 @@ export const accounts = {
     },
 
     getShowcaseStats(state){
-      return state.showcase_info.stats
+      return state.userSettings.statistics
     },
 
     getUserInfo(state){

@@ -102,36 +102,37 @@ class CommentsListPagination(PageNumberPagination):
     max_page_size = 1000
 
 def get_user_statistics(user_id):
-    statistics = {"selected": [], "all": []}
+    statistics = {"selected": []}
     account_instance = Account.objects.all().get(pk=user_id)
 
-    selected_stats_list = StatsSerializer(account_instance.stats.all(), many=True).data
+    selected_stats_list = AccountStatsSerializer(AccountStats.objects.filter(account=account_instance), many=True).data
     all_stats_list = StatsSerializer(Stats.objects.all(), many = True).data
 
     post_reactions = PostReaction.objects.filter(post__author_id=user_id).values('reaction_type').annotate(count=Count('reaction_type'))
     comment_reactions = CommentReaction.objects.filter(comment__author_id=user_id).values('reaction_type').annotate(count=Count('reaction_type'))
     
-    order = 1
     for element in selected_stats_list:
         match element['slug']:
-            case 'post-likes':
+            case 'post-likes-count':
                 count = post_reactions.get(reaction_type='like')['count'] if post_reactions.filter(reaction_type='like') else 0
-            case 'post-dislikes':
+            case 'post-dislikes-count':
                 count = post_reactions.get(reaction_type='dislike')['count'] if post_reactions.filter(reaction_type='dislike') else 0
-            case 'comment-likes':
+            case 'comment-likes-count':
                 count = comment_reactions.get(reaction_type='like')['count'] if comment_reactions.filter(reaction_type='like') else 0
-            case 'comment-dislikes':
+            case 'comment-dislikes-count':
                 count = comment_reactions.get(reaction_type='dislike')['count'] if comment_reactions.filter(reaction_type='dislike') else 0
             case 'posts-count':
                 count = Post.objects.filter(author_id=user_id).count()
             case 'comments-count':
                 count = Comment.objects.filter(post__author_id=user_id).count()
+            case _:
+                statistics["all"] = [{"data": {"name": element['option_name']}} for element in all_stats_list]
+                return statistics
         
-        selected_data = {"data": {"name": element['option_name'], "count": count}, "order": order}
+        selected_data = {"data": {"name": element['option_name'], "count": count}, "order": element['order']}
         statistics["selected"].append(selected_data)
-        order += 1
     
-    statistics["all"].append([{"data": {"name": element['option_name']}} for element in all_stats_list])
+    statistics["all"] = [{"data": {"name": element['option_name']}} for element in all_stats_list]
     return statistics
 
 @receiver(post_save, sender=PostReaction)
@@ -1138,16 +1139,53 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_403_FORBIDDEN)
         else:
             data = {}
-
-            print(request.data.items())
             for key, value in request.data.items():
+                print(key)
                 if(key == 'profile_background_img_new'):
                     data['background_image'] = request.FILES.get(key)
                 elif(key == 'profile_avtar_img_new'):
                     data['avatar'] = request.FILES.get(key)
+                elif(key == 'statistics'):
+                    statistics = json.loads(request.data.get(key))
+                    # Выставляем корректный порядок блоков в случае удаления или перестановки блоков на фронтенде
+                    data['statistics'] = [stat_block := {**block, 'order': i} for i, block in enumerate(statistics)]
+                    print(f'statistic dict {data['statistics']}')
+                    data_original = AccountStats.objects.filter(account=instance)
+
+                    # Проверяем, есть ли в data элементы, которых нет в data_original
+                    data_names = [item["data"]["name"] for item in data['statistics']]
+                    missing_stats = data_original.exclude(stat__option_name__in=data_names)
+
+                    # Создаем экземпляры AccountStats для отсутствующих элементов
+                    for missing_stat in missing_stats:
+                        missing_stat.delete()  # Удаляем отсутствующие элементы из data_original
+
+                    for item in data['statistics']:
+                        name = item["data"]["name"]
+                        count = item["data"]["count"]
+                        order = item["order"]
+                        
+                        # Проверяем, есть ли уже такой элемент в data_original
+                        stat = data_original.filter(stat__option_name=name).first()
+                        print(f'stat {stat}')
+                        
+                        if stat:
+                            # Обновляем значения
+                            if stat.order != order:
+                                print(f'order is {order}')
+                                print(f'yes {name} change order')
+                                stat.order = order
+                                stat.save()
+                        else:
+
+                            # Создаем новую запись в data_original
+                            new_stat = AccountStats(account=instance, stat=Stats.objects.get(option_name=name))
+                            new_stat.save()
+
                 else:
                     data[key] = request.data.get(key)
-            print(data)
+
+
             return Response('yes')
             # serializer = AccountSettingsSerializer(instance, data=request.data, context={"request": request}, partial=True)
             # if serializer.is_valid():

@@ -10,27 +10,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name="Stats",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("option_name", models.CharField(max_length=50, unique=True)),
-                ("slug", models.SlugField(max_length=75, null=True, unique=True)),
-            ],
-            options={
-                "verbose_name": "Stats",
-                "verbose_name_plural": "Stats",
-                "db_table": "Stats",
-            },
-        ),
         migrations.RemoveField(
             model_name="account",
             name="all_stats",
@@ -39,9 +18,9 @@ class Migration(migrations.Migration):
             model_name="account",
             name="selected_stats",
         ),
-        migrations.AddField(
-            model_name="account",
-            name="stats",
-            field=models.ManyToManyField(blank=True, to="journal_api.stats"),
+        migrations.AlterField(
+            model_name="tag",
+            name="slug",
+            field=models.SlugField(blank=True, max_length=75, null=True),
         ),
     ]

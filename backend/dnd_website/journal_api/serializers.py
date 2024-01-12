@@ -9,6 +9,7 @@ from rest_framework.serializers import HyperlinkedModelSerializer
 from .models import *
 
 from django.db.models import Count, Q, Sum
+import json
 
 
 ## JWT serializers ################################################################
@@ -49,6 +50,21 @@ class StatsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stats
         fields = "__all__"
+
+class AccountStatsSerializer(serializers.ModelSerializer):
+    stat = StatsSerializer()
+
+    class Meta:
+        model = AccountStats
+        fields = ['stat', 'order']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        stat_representation = representation.pop('stat')
+        representation.update(stat_representation)  # Объединяем словари
+        return json.loads(json.dumps(representation))  # Преобразуем в строку и затем обратно в словарь
+
+        
         
 
 class ConfirmationCodeSerializer(serializers.ModelSerializer):

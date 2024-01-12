@@ -196,7 +196,7 @@
                 <v-card-text>
                     <div class="showcase_container d-flex flex-row align-center pa-2" style="overflow-x: auto;">
                         <DraggableShowcase 
-                            :list="user_data.additional_profile_info.stats.selected" 
+                            :list="user_data.additional_profile_info.statistics.selected" 
                             :type="'stats'" 
                             :edit="true" 
                             @changeStatOption="changeStatOption"
@@ -204,7 +204,7 @@
                         </DraggableShowcase>
 
                         <v-btn class="add_stat_block ml-3"
-                            v-if="user_data.additional_profile_info.stats?.selected?.length < 4"
+                            v-if="user_data.additional_profile_info.statistics?.selected?.length < 4"
                             @click="addStatsBlock"
                             icon="mdi-plus" 
                             width="50px"
@@ -351,7 +351,7 @@ let user_data = ref({
         'profile_avatar_img': '',
         'profile_avatar_img_new': '',
         'about_info': '',
-        'stats': {
+        'statistics': {
             'selected':[
                 {'data': {'name': 'Likes','count': 12000},'order': 1},
                 {'data': {'name': 'Comments','count': 360},'order': 2},
@@ -385,15 +385,12 @@ const updateSettingPart = async(current_data, type) => {
     for(const [key, value] of Object.entries(initial__user_data.value[type])) {
         //Проверяем и отправляем объект только с теми полями, которые были изменены
         if(JSON.stringify(current_data[key]) != JSON.stringify(value)){
-            formData.append(key, current_data[key])
+            if(value['selected']){formData.append(key, JSON.stringify(current_data[key]['selected']))}
+            else{formData.append(key, JSON.stringify(current_data[key]))}
         }
     }
 
     const response = await store.dispatch('accounts/updateUserSettings', formData)
-    console.log(response)
-
-
-
 }
 
 
@@ -459,6 +456,7 @@ const validator_rules = computed(() => ({
 
 const validator = useVuelidate(validator_rules, user_data)
 
+let test = ref(null)
 
 onBeforeMount(async() => {
     const response = await store.dispatch('accounts/getUserSettings')
@@ -471,6 +469,7 @@ onBeforeMount(async() => {
         user_data.value.additional_profile_info.profile_avatar_img = response.avatar
         user_data.value.additional_profile_info.about_info = response.about_info
         user_data.value.sign_in.username = response.username
+        user_data.value.additional_profile_info.statistics = response.statistics
       
 
         Object.assign(initial__user_data, JSON.parse(JSON.stringify(user_data)))
