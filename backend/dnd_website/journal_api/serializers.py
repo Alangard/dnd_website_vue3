@@ -40,12 +40,25 @@ class AccountSerializer(serializers.ModelSerializer):
         fields = [  'id',
                     "username", 
                     "password",
+                    "about_info",
                     "avatar",
+                    "background_image",
                     "email",
                     "is_staff",
                     "is_active",
                     'confirmation_code']
-        
+
+class AccountSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = [  'id',
+                    "about_info",
+                    "avatar",
+                    "background_image",
+                    "is_staff",
+                    "is_active",
+                    'confirmation_code']
+
 class StatsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stats

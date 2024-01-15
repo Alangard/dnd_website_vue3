@@ -14,7 +14,7 @@ class CustomAccountAdmin(UserAdmin):
         (None, {"fields": ["username", "email", "password"]}),
         ("Advanced info", {
             "classes": ["collapse"],
-            "fields": ['slug', 'avatar', 'about_info'],
+            "fields": ['slug', 'avatar','background_image', 'about_info'],
         }),
     )
     add_fieldsets = (

@@ -11,15 +11,19 @@
                     width="auto" 
                     max-height='300px' 
                     cover 
-                    src="https://cdn.vuetifyjs.com/images/parallax/material.jpg" 
+                    :src="
+                        user_data.additional_profile_info.profile_background_img_new != '' 
+                        ?user_data.additional_profile_info.profile_background_img_new 
+                        :'https://cdn.vuetifyjs.com/images/parallax/material.jpg'
+                    "
                     style="position: relative;">
                 </v-img>
             </div>
             <div class="avatar_container"
                 style="display: inline-block; margin: -45px 10px 0 12px; position: relative;">
-                <v-avatar class="avatar" v-if="user_data?.avatar" 
-                    :image="user_data?.avatar" 
-                    :alt="user_data?.username" 
+                <v-avatar class="avatar" v-if="user_data.additional_profile_info.profile_avatar_img_new" 
+                    :image="user_data.additional_profile_info.profile_avatar_img_new" 
+                    :alt="user_data.sign_in.username" 
                     size="120"
                     :style="`border: 4px solid ${theme.current.value.colors.background}; border-radius: 80px; display: inline-block;position: relative; overflow: hidden;`">
                 </v-avatar>
@@ -35,13 +39,13 @@
             </div>
             <div class="user_title" style="display: inline-block; vertical-align: top;">
                 <div class="px-2">  
-                    <div class="username text-h6">{{user_data?.username}}</div>
+                    <div class="username text-h6">{{user_data.sign_in.username}}</div>
                     <div class="user_role">{{user_role}}</div>
                 </div>      
                 <div class="last_visited text-caption px-2" v-if="!online_status">Last visited: {{DateTimeFormat(last_online_date)}}</div>
             </div>
             <div class="about d-flex flex-row user_info mx-3 mt-3" :style=" width >= mobileWidthLimit ? 'max-width: 600px; position: relative;' : 'position: relative; max-width: 300px;'">
-                <v-card class="pa-2" variant="tonal">{{user_data?.about_info}}</v-card>
+                <v-card class="pa-2" variant="tonal">{{user_data.additional_profile_info.about_info}}</v-card>
             </div>
             <v-card class="stats mt-5 mx-3" style="position: relative;">
                 <v-card-title>Stats</v-card-title>
@@ -67,7 +71,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount } from 'vue';
+import { ref, computed, onBeforeMount, defineProps } from 'vue';
 import { useStore } from 'vuex';
 import { useDisplay } from 'vuetify/lib/framework.mjs';
 import { useTheme } from 'vuetify/lib/framework.mjs';
@@ -78,6 +82,7 @@ import DraggableShowcase from '@/components/Profile/DraggableShowcase.vue'
 let theme = useTheme()
 const { width } = useDisplay();
 const store = useStore();
+const props = defineProps(['user_info',])
 
 const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLimit']})
 const stats_info = computed(() => {return store.getters['accounts/getShowcaseStats']})
@@ -88,7 +93,7 @@ let user_role = ref('user')
 
 
 onBeforeMount(async() => {
-    user_data = computed(() => {return store.getters['auth/getUserData']})
+   if(props.user_info){user_data.value = props.user_info}
 })
 
 </script>

@@ -6,29 +6,28 @@
         <draggable
             class="d-flex flex-row list-group"
             :component-data="{ tag: 'ul', type: 'transition-group', name: !drag ? 'flip-list' : null}"
-
+            style="min-height: 110px; height: auto;"
             :list="props.list"
             handle=".drag"
-
             v-bind="dragOptions"
-            @start="drag = true"
+            @start="drag = true, emit('startDrag')"
             @end="drag = false"
             item-key="order"
         >
           <template #item="{ element }">
             <div class="list-group-item" >
-                <v-card class="d-flex flex-column align-center mr-2" rounded="0" v-if="props.type == 'stats'" style="max-width:160px">
+                <v-card class="d-flex flex-column align-center mr-2" rounded="0" v-if="props.type == 'stats'" style="max-width:160px; height: 100%;">
 
-                  <div class="d-flex flex-column align-center pb-1" v-if="!element?.type">
+                  <div class="d-flex flex-column align-center pb-1 h-100" v-if="!element?.type">
                     <v-card-title class="d-flex flex-row align-center justify-center" style="white-space: normal;">{{ element.data.name }}</v-card-title>
-                    <v-card-text class="pt-0 pb-1">{{ element.data.count }}</v-card-text>
+                    <v-card-text class="d-flex flex-row align-end pt-0 pb-1">{{ element.data.count }}</v-card-text>
                   </div>
 
                   <div class="d-flex flex-column align-center px-2 w-100" v-else-if="element?.type == 'creating'">
                     <v-cart-title class="w-100">
                       <v-combobox class="stat_type pb-2 pt-1 ma-0"
                           v-model="statType"
-                          :items="['Like', 'Dislikes', 'Workshop Count']"
+                          :items="props.all_elements_list.map(element => element.data.name)"
                           label="Stat type"
                           density="compact"
                           hide-details
@@ -81,10 +80,10 @@
   import { ref, defineProps, computed, defineEmits} from 'vue';
   import draggable from 'vuedraggable'
 
-  const props = defineProps(['list', 'type', 'edit', 'addBlock'])
-  const emit = defineEmits(['changeStatOption', 'removeStatBlock'])
+  const props = defineProps(['list', 'type', 'edit', 'addBlock', 'all_elements_list'])
+  const emit = defineEmits(['changeStatOption', 'removeStatBlock', 'startDrag'])
 
-  let statType = ref('like') 
+  let statType = ref(null) 
 
   const drag = ref(false);
   const dragOptions = {

@@ -126,6 +126,7 @@
                     :error-messages="validator.additional_profile_info.profile_background_img_new.$errors.map(e => e.$message)"
                     @input="validator.additional_profile_info.profile_background_img_new.$touch"
                     :accept="allowedImageExtensions.map(ext => `image/${ext}`).join(', ')"
+                    @update:model-value="user_data.additional_profile_info.save = false"
                     prepend-inner-icon="mdi-image"
                     prepend-icon=""
                     variant="solo"
@@ -140,7 +141,8 @@
                     style="position: absolute; top: 50px; right: 15px">
                 </v-btn>
                 <v-btn 
-                    v-show="user_data.additional_profile_info.profile_background_img" 
+                    v-show="user_data.additional_profile_info.profile_background_img"
+                    @click="deleteBackgroundImg" 
                     density="comfortable"
                     icon="mdi-trash-can-outline"  
                     style="position: absolute; top: 95px; right: 15px">
@@ -170,6 +172,7 @@
                             :error-messages="validator.additional_profile_info.profile_avatar_img_new.$errors.map(e => e.$message)"
                             @input="validator.additional_profile_info.profile_avatar_img_new.$touch"
                             :accept="allowedImageExtensions.map(ext => `image/${ext}`).join(', ')"
+                            @update:model-value="user_data.additional_profile_info.save = false"
                             prepend-inner-icon="mdi-image"
                             prepend-icon=""
                             variant="solo"
@@ -183,6 +186,7 @@
         
             <v-textarea class="about_info d-flex flex-row flex-wrap"
                 v-model="user_data.additional_profile_info.about_info"
+                @update:model-value="user_data.additional_profile_info.save = false"
                 auto-grow
                 clearable
                 variant="solo"
@@ -196,9 +200,11 @@
                 <v-card-text>
                     <div class="showcase_container d-flex flex-row align-center pa-2" style="overflow-x: auto;">
                         <DraggableShowcase 
-                            :list="user_data.additional_profile_info.statistics.selected" 
+                            :list="user_data.additional_profile_info.statistics.selected"
+                            :all_elements_list="user_data.additional_profile_info.statistics.all" 
                             :type="'stats'" 
-                            :edit="true" 
+                            :edit="true"
+                            @startDrag="user_data.additional_profile_info.save = false" 
                             @changeStatOption="changeStatOption"
                             @removeStatBlock="removeStatBlock">
                         </DraggableShowcase>
@@ -215,7 +221,7 @@
             </v-card>
 
             <div class="d-flex flex-row-reverse mt-6">
-                <v-btn :disabled="!wasEdited" @click="updateSettingPart(user_data.additional_profile_info, 'additional_profile_info')">SAVE AND VERIFY</v-btn>
+                <v-btn :disabled="user_data.additional_profile_info.save" @click="updateSettingPart(user_data.additional_profile_info, 'additional_profile_info')">SAVE AND VERIFY</v-btn>
             </div>
         </v-card-text>
     </v-card>
@@ -325,7 +331,7 @@
 
  
     <v-dialog class="ma-0" v-model="profilePreviewDialog" width="auto" scrollable >
-        <Profile></Profile>
+        <Profile :user_info="user_data"></Profile>
     </v-dialog>
   
 </template>
@@ -379,6 +385,7 @@ let initial__user_data = ref(null)
 
 
 
+
 const updateSettingPart = async(current_data, type) => {
     const formData = new FormData();
 
@@ -386,11 +393,18 @@ const updateSettingPart = async(current_data, type) => {
         //Проверяем и отправляем объект только с теми полями, которые были изменены
         if(JSON.stringify(current_data[key]) != JSON.stringify(value)){
             if(value['selected']){formData.append(key, JSON.stringify(current_data[key]['selected']))}
+            else if(key == 'profile_background_img_new'){formData.append(key, current_data[key][0])}
+            else if(key == 'profile_avatar_img_new'){formData.append(key, current_data[key][0])}
             else{formData.append(key, JSON.stringify(current_data[key]))}
         }
     }
 
     const response = await store.dispatch('accounts/updateUserSettings', formData)
+    if(response.status == 200){
+        user_data.value.additional_profile_info.profile_avatar_img = user_data.value.additional_profile_info.profile_avatar_img_new
+        user_data.value.additional_profile_info.profile_background_img = user_data.value.additional_profile_info.profile_background_img_new
+        user_data.value.additional_profile_info.save = true
+    }
 }
 
 
@@ -419,7 +433,7 @@ let addStat = ref(false)
 let statType = ref(false)
 
 const allowedImageExtensions = ref(['jpg', 'jpeg', 'png', 'webp']);
-const maxImageSize = ref(2000000)
+const maxImageSize = ref({'background': 6000000, 'avatar': 2000000})
 
 const validator_rules = computed(() => ({
 
@@ -429,7 +443,7 @@ const validator_rules = computed(() => ({
             maxSize: helpers.withMessage('Maximum file size must not be greater than 2MB', (value) => {
                 if (!value[0]) return true;
                 const fileSize = value[0].size;
-                return fileSize <= maxImageSize.value;
+                return fileSize <= maxImageSize.value.background;
             }),
             fileExt: helpers.withMessage('The file must have the extension: *.jpg,*.jpeg,*.png,*.webp', (value) => {
                 if (!value[0] || !value[0].name) return true;
@@ -440,9 +454,9 @@ const validator_rules = computed(() => ({
         profile_avatar_img_new: {
             required: helpers.withMessage('Please select an image file', required),
             maxSize: helpers.withMessage('Maximum file size must not be greater than 2MB', (value) => {
-                if (!value) return true;
-                const fileSize = value.size;
-                return fileSize <= maxImageSize.value;
+                if (!value[0]) return true;
+                const fileSize = value[0].size;
+                return fileSize <= maxImageSize.value.avatar;
             }),
             fileExt: helpers.withMessage('The file must have the extension: *.jpg,*.jpeg,*.png,*.webp', (value) => {
                 if (!value[0] || !value[0].name) return true;
@@ -456,7 +470,6 @@ const validator_rules = computed(() => ({
 
 const validator = useVuelidate(validator_rules, user_data)
 
-let test = ref(null)
 
 onBeforeMount(async() => {
     const response = await store.dispatch('accounts/getUserSettings')
@@ -478,31 +491,35 @@ onBeforeMount(async() => {
 
 })
 
-const delete_avatar =() =>{
-    if(user_data.value.avatar != null){
-        store.dispatch('accounts/changeAccountData', {'avatar': 'null'})
-    }
+const delete_avatar =async() =>{
+    if(user_data.value.additional_profile_info.profile_avatar_img != null){
+        user_data.value.additional_profile_info.profile_avatar_img = ''
+        const formData = new FormData();
+        formData.append('profile_avatar_img_new', null)
 
-}
-
-const avatar_edit_confirm =()=> {
-    avatar_change_dialog__opened.value = false
-    let formData = new FormData();
-
-    if(validator?.avatar?.$errors?.length > 0){
-        if(user_data.value.avatar== null){formData.append("avatar", user_data.value.avatar)}
-        else{formData.append("avatar", user_data.value.avatar[0])}
-
-        store.dispatch('accounts/changeAccountData', formData)
+        await store.dispatch('accounts/updateUserSettings', formData)
     }
 }
+
+const deleteBackgroundImg =async() =>{
+    if(user_data.value.additional_profile_info.profile_background_img != null){
+        user_data.value.additional_profile_info.profile_background_img = ''
+        const formData = new FormData();
+        formData.append('profile_avatar_img_new', null)
+
+        await store.dispatch('accounts/updateUserSettings', formData)
+    }
+}
+
 
 const addStatsBlock =() => { 
     addStat.value = true;
+    user_data.value.additional_profile_info.save = false
     store.commit('accounts/addStatBlock')
 }
 
 const removeStatBlock =(order) => {
+    user_data.value.additional_profile_info.save = false
     store.commit('accounts/removeStatBlock', order)
 }
 

@@ -93,7 +93,7 @@ export const accounts = {
     async updateUserSettings({state, commit}, data){
       try{
         const response = await interceptorsInstance.post(BASE_URL + `auth/user/${state.user.user_data.id}/settings/change/`, data, { headers: authHeader() })
-        return response.data
+        return response
       }
       catch(error){console.log(error)}
     },
@@ -156,9 +156,10 @@ export const accounts = {
     },
 
     updateCountStats(state, stats_name){
+      console.log(stats_name)
       const count = state.userSettings.statistics.all.filter((element)=> element.data.name == stats_name)[0].data.count
       const length = state.userSettings.statistics.selected.length
-      const data = {'data': {'name': stats_name,'count': count},'order': length, 'type': 'creating'}
+      const data = {'data': {'name': stats_name,'count': count},'order': length}
       state.userSettings.statistics.selected.splice(-1, 1, data)
     },
 

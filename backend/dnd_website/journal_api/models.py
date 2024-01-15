@@ -40,7 +40,7 @@ def avatar_upload_to(instance, filename):
 def background_image__upload_to(instance, filename):
     username = instance.username
     uuid_filename = uuid.uuid4()
-    return 'images/user_bacground_img/{}/{}'.format(username, uuid_filename)
+    return 'images/user_background_img/{}/{}'.format(username, uuid_filename)
 
 class Account(AbstractUser):
     email = models.EmailField(unique=True, blank=False)
