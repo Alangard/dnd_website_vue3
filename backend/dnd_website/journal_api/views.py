@@ -1139,6 +1139,33 @@ class UserViewSet(viewsets.ModelViewSet):
             data["statistics"] = get_user_statistics(user_id)
             return Response(data)
 
+    @action(detail=True, methods=['post'], url_path='settings/verify')
+    def verify_settings_data(self, request, pk=None):
+        user_id = pk
+        # Проверяем существование пользователя
+        try:
+            instance = self.queryset.get(pk=user_id)
+        except Account.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        # Проверяем, аутентифицирован ли пользователь и является ли он запрашиваемым пользователем
+        if not request.user.is_authenticated or int(request.user.id) != int(user_id):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        else:
+            data = {}
+            for key, value in request.data.items():
+                match key:
+                    case 'email':
+                        pass
+                    case 'profile_name':
+                        pass
+                    case 'tagname':
+                        pass
+                    case 'username':
+                        pass
+                    # case 'current_password': '','new_password': '', 'confirm_new_password': '',
+        return Response(200)
+
     @action(detail=True, methods=['post'], url_path='settings/change')
     def update_settings(self, request, pk=None):
         user_id = pk

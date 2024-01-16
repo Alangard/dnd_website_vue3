@@ -18,16 +18,31 @@
 
         <v-card-text class="pa-6">
             <v-text-field class="d-flex flex-row flex-wrap" 
-                v-model="user_data.personal_info.email" 
+                v-model="user_data.personal_info.email"
+                :error-messages="user_data.personal_info.backend_errors[0]"
+                @update:model-value="resetFields(user_data.personal_info, 'personal_info')"
                 label="EMAIL ADDRESS" type="email" variant="solo" color="primary" clearable>
+
+                    <template v-slot:append-inner>
+                        <v-fade-transition leave-absolute>
+                            <v-progress-circular v-if="user_data.personal_info.loading == true" color="info" indeterminate size="24"></v-progress-circular>
+                            <v-icon v-else-if="user_data.personal_info.loading == false && user_data.personal_info.verify_success != null"
+                                height="24" width="24" 
+                                :icon="user_data.personal_info.verify_success == true ? 'mdi-checkbox-marked-circle-outline' : 'mdi-close-circle-outline'" 
+                                :color="user_data.personal_info.verify_success == true ? 'success': 'error'">
+                            </v-icon>
+                        </v-fade-transition>
+                    </template>
             </v-text-field>
             <v-select class="d-flex flex-row flex-wrap text-caption" 
                 v-model="user_data.personal_info.region" 
-                label="REGION" clearable variant="solo" :items="['Rus', 'Eng']">
+                label="REGION" clearable variant="solo" :items="['Rus', 'Eng']"
+                @update:model-value="resetFields(user_data.personal_info, 'personal_info')">
             </v-select>
 
             <div class="d-flex flex-row-reverse mt-6">
-                <v-btn :disabled="!wasEdited" @click="updateSettingPart(user_data.personal_info, 'personal_info')">SAVE AND VERIFY</v-btn>
+                <v-btn v-if="user_data.personal_info.verify_success == null" :disabled="user_data.personal_info.verify_success !== null" @click="verifyData(user_data.personal_info, 'personal_info')">VERIFY DATA</v-btn>
+                <v-btn v-if="user_data.personal_info.verify_success == true  && !user_data.personal_info.saved == true " @click="updateSettingPart(user_data.personal_info, 'personal_info')">SAVE CHANGES</v-btn>
             </div>
         </v-card-text>
     </v-card>
@@ -126,7 +141,7 @@
                     :error-messages="validator.additional_profile_info.profile_background_img_new.$errors.map(e => e.$message)"
                     @input="validator.additional_profile_info.profile_background_img_new.$touch"
                     :accept="allowedImageExtensions.map(ext => `image/${ext}`).join(', ')"
-                    @update:model-value="user_data.additional_profile_info.save = false"
+                    @update:model-value="user_data.additional_profile_info.saved = false"
                     prepend-inner-icon="mdi-image"
                     prepend-icon=""
                     variant="solo"
@@ -172,7 +187,7 @@
                             :error-messages="validator.additional_profile_info.profile_avatar_img_new.$errors.map(e => e.$message)"
                             @input="validator.additional_profile_info.profile_avatar_img_new.$touch"
                             :accept="allowedImageExtensions.map(ext => `image/${ext}`).join(', ')"
-                            @update:model-value="user_data.additional_profile_info.save = false"
+                            @update:model-value="user_data.additional_profile_info.saved = false"
                             prepend-inner-icon="mdi-image"
                             prepend-icon=""
                             variant="solo"
@@ -186,7 +201,7 @@
         
             <v-textarea class="about_info d-flex flex-row flex-wrap"
                 v-model="user_data.additional_profile_info.about_info"
-                @update:model-value="user_data.additional_profile_info.save = false"
+                @update:model-value="user_data.additional_profile_info.saved = false"
                 auto-grow
                 clearable
                 variant="solo"
@@ -204,7 +219,7 @@
                             :all_elements_list="user_data.additional_profile_info.statistics.all" 
                             :type="'stats'" 
                             :edit="true"
-                            @startDrag="user_data.additional_profile_info.save = false" 
+                            @startDrag="user_data.additional_profile_info.saved = false" 
                             @changeStatOption="changeStatOption"
                             @removeStatBlock="removeStatBlock">
                         </DraggableShowcase>
@@ -221,7 +236,7 @@
             </v-card>
 
             <div class="d-flex flex-row-reverse mt-6">
-                <v-btn :disabled="user_data.additional_profile_info.save" @click="updateSettingPart(user_data.additional_profile_info, 'additional_profile_info')">SAVE AND VERIFY</v-btn>
+                <v-btn :disabled="user_data.additional_profile_info.saved" @click="updateSettingPart(user_data.additional_profile_info, 'additional_profile_info')">SAVE AND VERIFY</v-btn>
             </div>
         </v-card-text>
     </v-card>
@@ -349,8 +364,8 @@ import Profile from '@/pages/Profile/Profile.vue'
 import DraggableShowcase from '@/components/Profile/DraggableShowcase.vue'
 
 let user_data = ref({
-    'personal_info': {'email': '','region': '', 'save': false},
-    'profile_id': {'profile_name': '', 'tagname': '', 'save': false},
+    'personal_info': {'email': '','region': '', 'verify_success': null, 'saved': false, 'loading': false, 'backend_errors': {}},
+    'profile_id': {'profile_name': '', 'tagname': '', 'verify_success': null, 'saved': false, 'loading': false, 'backend_errors': {}},
     'additional_profile_info': {
         'profile_background_img': '',
         'profile_background_img_new': '',
@@ -370,14 +385,14 @@ let user_data = ref({
                 {'data': {'name': 'Dislikes','count': 3}}
             ]
         },
-        'save': false
+        'saved': false
     },
     'sign_in': {
         'username': '',
         'current_password': '',
         'new_password': '',
         'confirm_new_password': '',
-        'save': false
+        'verify_success': null, 'saved': false, 'loading': false, 'backend_errors': {}
     },
 })
 
@@ -385,6 +400,25 @@ let initial__user_data = ref(null)
 
 
 
+const verifyData = async(current_data, type) => {
+    user_data.value[type].loading = true
+    const response = await store.dispatch('accounts/verifyData', current_data) //
+    if(response.status == 200){
+        user_data.value[type].verify_success = true
+        user_data.value[type].loading = false
+    }
+    else{
+        user_data.value[type].verify_success = false
+        user_data.value[type].backend_errors = response.data.errors // errors = {'field_name': [error1, error2...]}
+        user_data.value[type].loading = false
+    }
+
+}
+
+const resetFields = async(current_data, type) => {
+    user_data.value[type].verify_success = null
+    user_data.value[type].backend_errors = []
+}
 
 const updateSettingPart = async(current_data, type) => {
     const formData = new FormData();
@@ -403,7 +437,7 @@ const updateSettingPart = async(current_data, type) => {
     if(response.status == 200){
         user_data.value.additional_profile_info.profile_avatar_img = user_data.value.additional_profile_info.profile_avatar_img_new
         user_data.value.additional_profile_info.profile_background_img = user_data.value.additional_profile_info.profile_background_img_new
-        user_data.value.additional_profile_info.save = true
+        user_data.value.additional_profile_info.saved = true
     }
 }
 
@@ -514,12 +548,12 @@ const deleteBackgroundImg =async() =>{
 
 const addStatsBlock =() => { 
     addStat.value = true;
-    user_data.value.additional_profile_info.save = false
+    user_data.value.additional_profile_info.saved = false
     store.commit('accounts/addStatBlock')
 }
 
 const removeStatBlock =(order) => {
-    user_data.value.additional_profile_info.save = false
+    user_data.value.additional_profile_info.saved = false
     store.commit('accounts/removeStatBlock', order)
 }
 
