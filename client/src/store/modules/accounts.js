@@ -42,11 +42,15 @@ export const accounts = {
       catch(error){console.log(error)}
     },
 
-    async getUserInfo({commit, state}, username){
+    async getUserInfo({commit, state}, profile_name){
       try{
-        const response = await interceptorsInstance.get(BASE_URL + `auth/user/?username=${username}`)
-        state.searched_user_info = response.data.results[0]
-        return response.data.results[0]
+        const response = await interceptorsInstance.get(BASE_URL + `auth/user/?profile_name=${profile_name}`)
+        if(response.data.data !== null){
+          state.searched_user_info = response.data?.results
+          return response.data?.results[0]
+        }
+        else{return null}
+
       }
       catch(error){console.log(error)}
     },
@@ -92,7 +96,7 @@ export const accounts = {
 
     async verifyData({state, commit}, data){
       try{
-        const response = await interceptorsInstance.post(BASE_URL + `auth/user/${state.user.user_data.id}/settings/verify/`, data, { headers: authHeader() })
+        const response = await interceptorsInstance.post(BASE_URL + `auth/user/${state.user.user_data.id}/settings/verify_settings/`, data, { headers: authHeader() })
         return response
       }
       catch(error){console.log(error)}

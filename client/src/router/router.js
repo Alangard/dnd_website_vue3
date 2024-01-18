@@ -67,7 +67,7 @@ const routes = [
   },
 
   {
-    path: '/user/:username',
+    path: '/user/:profile_name',
     name: 'user_profile',
     meta: {navbar_name: 'User profile', navbar_style: 'default' },
     component: () => import('@/pages/Profile/Profile.vue'),

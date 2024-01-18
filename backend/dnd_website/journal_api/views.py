@@ -23,6 +23,7 @@ from django.db.models import Count
 
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.core.validators import validate_email
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.conf import settings
@@ -1139,7 +1140,7 @@ class UserViewSet(viewsets.ModelViewSet):
             data["statistics"] = get_user_statistics(user_id)
             return Response(data)
 
-    @action(detail=True, methods=['post'], url_path='settings/verify')
+    @action(detail=True, methods=['post'], url_path='settings/verify_settings')
     def verify_settings_data(self, request, pk=None):
         user_id = pk
         # Проверяем существование пользователя
@@ -1153,18 +1154,37 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_403_FORBIDDEN)
         else:
             data = {}
+            errors ={}
             for key, value in request.data.items():
                 match key:
                     case 'email':
-                        pass
+                        if Account.objects.filter(email=value).exists():
+                            errors['email'] = ['Account with this email already exists.']
+                        elif not re.match(r'^[w\.-]+@[w\.-]+\.w+$', value):
+                            errors['email'].append('Invalid email format.')
+                        elif len(value) > instance._meta.get_field('email').max_length:
+                            errors['email'].append('Email exceeds maximum length.')
                     case 'profile_name':
-                        pass
+                        if Account.objects.filter(profile_name=value).exists():
+                            errors['profile_name'] = ['Account with this profile_name already exists.']
+                        elif len(value) > instance._meta.get_field('profile_name').max_length:
+                            errors['Profile name'].append('Profile name exceeds maximum length.')
                     case 'tagname':
-                        pass
+                        if Account.objects.filter(tagname=value).exists():
+                            errors['tagname'] = ['Account with this tagname already exists.']
+                        elif len(value) > instance._meta.get_field('email').max_length:
+                            errors['tagname'].append('Tagname exceeds maximum length.')
                     case 'username':
-                        pass
+                        if Account.objects.filter(username=value).exists():
+                            errors['username'] = ['Account with this username already exists.']
+                        elif len(value) > instance._meta.get_field('email').max_length:
+                            errors['username'].append('Username exceeds maximum length.')
                     # case 'current_password': '','new_password': '', 'confirm_new_password': '',
-        return Response(200)
+                print(errors)
+                if(len(errors) == 0):
+                    return Response(status=status.HTTP_200_OK)
+                else:
+                    return Response({'errors': errors})
 
     @action(detail=True, methods=['post'], url_path='settings/change')
     def update_settings(self, request, pk=None):
@@ -1234,10 +1254,9 @@ class UserViewSet(viewsets.ModelViewSet):
             #     serializer.save()
             #     return Response(serializer.data)
             # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
         
     def list(self, request, *args, **kwargs):
-        self.ordering = ['-username']
+        self.ordering = ['-profile_name']
         self.pagination_class = UsersListPagination
 
         def myfilters(queryset):
@@ -1245,16 +1264,29 @@ class UserViewSet(viewsets.ModelViewSet):
             params = request.query_params
 
             for param in params:
-                if param == 'username' and params[param] != None:
-                    instance = instance.filter(username__exact=params[param])
+                if param == 'profile_name' and params[param] != None:
+                    instance = instance.filter(profile_name__exact=params[param])
             return instance
 
         instance = myfilters(self.queryset)
 
-        page = self.paginate_queryset(instance)
-        if page is not None: 
-            serializer = self.serializer_class(page, many=True, context={"request": request})
-            return self.get_paginated_response(serializer.data)
+        if len(instance) != 0:
+            page = self.paginate_queryset(instance)
+            if page is not None: 
+                serializer = ProfileDataSerializer(page, many=True)      
+                data = serializer.data
+                data[0]["statistics"] = get_user_statistics(instance[0].id)
+                return self.get_paginated_response(data)
+        else:
+            return Response({'data': None})
+        
+        # instance = self.queryset.filter(is_publish=True, is_draft=False)
+        # instance = myfilters(instance)
+
+        # page = self.paginate_queryset(instance)
+        # if page is not None: 
+        #     serializer = self.get_serializer(page, many=True)
+        #     return self.get_paginated_response(serializer.data)
 
     def partial_update(self, request, *args, **kwargs):
 

@@ -19,7 +19,7 @@
         <v-card-text class="pa-6">
             <v-text-field class="d-flex flex-row flex-wrap" 
                 v-model="user_data.personal_info.email"
-                :error-messages="user_data.personal_info.backend_errors[0]"
+                :error-messages="user_data.personal_info.backend_errors.email"
                 @update:model-value="resetFields(user_data.personal_info, 'personal_info')"
                 label="EMAIL ADDRESS" type="email" variant="solo" color="primary" clearable>
 
@@ -60,24 +60,51 @@
             <v-card-text class="pa-0">Your Profile ID and Profile Name is used by players to find you through the social panel.</v-card-text>
         </v-card>
 
-        <v-card-text class="pa-6">
+        <v-card-text class="pa-6" style="width: min-content;">
             <v-row>
                 <v-col cols="6">
                     <v-text-field class="d-flex flex-row flex-wrap"
-                        v-model="user_data.profile_id.profile_name" 
+                        v-model="user_data.profile_id.profile_name"
+                        :error-messages="user_data.profile_id.backend_errors.profile_name" 
+                        @update:model-value="resetFields(user_data.profile_id, 'profile_id')"
                         label="PROFILE NAME" type="text" variant="solo" color="primary" clearable>
+
+                        <template v-slot:append-inner>
+                            <v-fade-transition leave-absolute>
+                                <v-progress-circular v-if="user_data.profile_id.loading == true" color="info" indeterminate size="24"></v-progress-circular>
+                                <v-icon v-else-if="user_data.profile_id.loading == false && user_data.profile_id.verify_success != null"
+                                    height="24" width="24" 
+                                    :icon="user_data.profile_id.backend_errors['profile_name'] ? 'mdi-close-circle-outline' : 'mdi-checkbox-marked-circle-outline'" 
+                                    :color="user_data.profile_id.backend_errors['profile_name'] ? 'error' : 'success'">
+                                </v-icon>
+                            </v-fade-transition>
+                        </template>
                     </v-text-field>
                 </v-col>
                 <v-col cols="6">
                     <v-text-field class="d-flex flex-row flex-wrap"
-                        v-model="user_data.profile_id.tagname"  
-                        label="TAGNAME" type="text" variant="solo" color="primary" clearable>
+                        v-model="user_data.profile_id.tagname"
+                        :error-messages="user_data.profile_id.backend_errors.tagname" 
+                        @update:model-value="resetFields(user_data.profile_id, 'profile_id')"  
+                        label="TAGNAME" type="text" variant="solo" color="primary" clearable prepend-inner-icon="mdi-pound">
+
+                        <template v-slot:append-inner>
+                            <v-fade-transition leave-absolute>
+                                <v-progress-circular v-if="user_data.profile_id.loading == true" color="info" indeterminate size="24"></v-progress-circular>
+                                <v-icon v-else-if="user_data.profile_id.loading == false && user_data.profile_id.verify_success != null && user_data.profile_id.tagname !== null"
+                                    height="24" width="24" 
+                                    :icon="user_data.profile_id.backend_errors['tagname'] ? 'mdi-close-circle-outline' : 'mdi-checkbox-marked-circle-outline'" 
+                                    :color="user_data.profile_id.backend_errors['tagname'] ? 'error' : 'success'">
+                                </v-icon>
+                            </v-fade-transition>
+                        </template>
                     </v-text-field>
                 </v-col>
             </v-row>
 
             <div class="d-flex flex-row-reverse mt-6">
-                <v-btn :disabled="!wasEdited" @click="updateSettingPart(user_data.profile_id, 'profile_id')">SAVE AND VERIFY</v-btn>
+                <v-btn v-if="user_data.profile_id.verify_success == null" :disabled="user_data.profile_id.verify_success !== null" @click="verifyData(user_data.profile_id, 'profile_id')">VERIFY DATA</v-btn>
+                <v-btn v-if="user_data.profile_id.verify_success == true  && !user_data.profile_id.saved == true " @click="updateSettingPart(user_data.profile_id, 'profile_id')">SAVE CHANGES</v-btn>
             </div>
         </v-card-text>
     </v-card>
@@ -257,11 +284,24 @@
         <v-card-text class="pa-6">
             <v-text-field class="d-flex flex-row flex-wrap" 
                 v-model='user_data.sign_in.username' 
+                :error-messages="user_data.sign_in.backend_errors.username" 
+                @update:model-value="resetFields(user_data.sign_in, 'sign_in')" 
                 label="USERNAME" 
                 type="text" 
                 variant="solo"
                 color="primary" 
                 clearable>
+
+                <template v-slot:append-inner>
+                    <v-fade-transition leave-absolute>
+                        <v-progress-circular v-if="user_data.sign_in.loading == true" color="info" indeterminate size="24"></v-progress-circular>
+                        <v-icon v-else-if="user_data.sign_in.loading == false && user_data.sign_in.verify_success != null"
+                            height="24" width="24" 
+                            :icon="user_data.sign_in.backend_errors['username'] ? 'mdi-close-circle-outline' : 'mdi-checkbox-marked-circle-outline'" 
+                            :color="user_data.sign_in.backend_errors['username'] ? 'error' : 'success'">
+                        </v-icon>
+                    </v-fade-transition>
+                </template>
             </v-text-field>
 
             <p class="text-h6 mb-2">Change Password</p>
@@ -271,39 +311,81 @@
                 v-model="user_data.sign_in.current_password"
                 :append-inner-icon="showCurrPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 :type="showCurrPassword ? 'text' : 'password'"
+                :error-messages="user_data.sign_in.backend_errors.current_password" 
+                @update:model-value="resetFields(user_data.sign_in, 'sign_in')" 
                 @click:append="showCurrPassword = !showCurrPassword"
                 clearable
                 color="primary"
                 label="CURRENT PASSWORD"
-                variant="solo"
-            ></v-text-field>
+                variant="solo">
+            
+                <template v-slot:append-inner>
+                    <v-fade-transition leave-absolute>
+                        <v-progress-circular v-if="user_data.sign_in.loading == true" color="info" indeterminate size="24"></v-progress-circular>
+                        <v-icon v-else-if="user_data.sign_in.loading == false && user_data.sign_in.verify_success != null && user_data.sign_in.current_password != ''"
+                            height="24" width="24" 
+                            :icon="user_data.sign_in.backend_errors['current_password'] ? 'mdi-close-circle-outline' : 'mdi-checkbox-marked-circle-outline'" 
+                            :color="user_data.sign_in.backend_errors['current_password'] ? 'error' : 'success'">
+                        </v-icon>
+                    </v-fade-transition>
+                </template>
+            </v-text-field>
 
             <v-text-field
                 class="d-flex flex-row flex-wrap"
                 v-model="user_data.sign_in.new_password"
                 :append-inner-icon="showNewPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 :type="showNewPassword ? 'text' : 'password'"
+                :error-messages="user_data.sign_in.backend_errors.new_password" 
+                @update:model-value="resetFields(user_data.sign_in, 'sign_in')" 
                 @click:append="showNewPassword = !showNewPassword"
                 clearable
                 color="primary"
                 label="NEW PASSWORD"
-                variant="solo"
-            ></v-text-field>
+                variant="solo">
+
+                <template v-slot:append-inner>
+                    <v-fade-transition leave-absolute>
+                        <v-progress-circular v-if="user_data.sign_in.loading == true" color="info" indeterminate size="24"></v-progress-circular>
+                        <v-icon v-else-if="user_data.sign_in.loading == false && user_data.sign_in.verify_success != null && user_data.sign_in.new_password != ''"
+                            height="24" width="24" 
+                            :icon="user_data.sign_in.backend_errors['new_password'] ? 'mdi-close-circle-outline' : 'mdi-checkbox-marked-circle-outline'" 
+                            :color="user_data.sign_in.backend_errors['new_password'] ? 'error' : 'success'">
+                        </v-icon>
+                    </v-fade-transition>
+                </template>
+            
+            </v-text-field>
 
             <v-text-field
                 class="d-flex flex-row flex-wrap"
                 v-model="user_data.sign_in.confirm_new_password"
                 :append-inner-icon="showConfirmNewPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 :type="showConfirmNewPassword ? 'text' : 'password'"
+                :error-messages="user_data.sign_in.backend_errors.confirm_new_password" 
+                @update:model-value="resetFields(user_data.sign_in, 'sign_in')" 
                 @click:append="showConfirmNewPassword = !showConfirmNewPassword"
                 clearable
                 color="primary"
                 label="CONFIRM NEW PASSWORD"
-                variant="solo"
-            ></v-text-field>
+                variant="solo">
+
+                <template v-slot:append-inner>
+                    <v-fade-transition leave-absolute>
+                        <v-progress-circular v-if="user_data.sign_in.loading == true" color="info" indeterminate size="24"></v-progress-circular>
+                        <v-icon v-else-if="user_data.sign_in.loading == false && user_data.sign_in.verify_success != null && user_data.sign_in.confirm_new_password != ''"
+                            height="24" width="24" 
+                            :icon="user_data.sign_in.backend_errors['confirm_new_password'] ? 'mdi-close-circle-outline' : 'mdi-checkbox-marked-circle-outline'" 
+                            :color="user_data.sign_in.backend_errors['confirm_new_password'] ? 'error' : 'success'">
+                        </v-icon>
+                    </v-fade-transition>
+                </template>
+            
+            </v-text-field>
 
             <div class="d-flex flex-row-reverse mt-6">
-                <v-btn :disabled="!wasEdited" @click="updateSettingPart(user_data.sign_in, 'sign_in')">SAVE AND VERIFY</v-btn>
+                <v-btn v-if="user_data.sign_in.verify_success == null" :disabled="user_data.sign_in.verify_success !== null" @click="verifyData(user_data.sign_in, 'sign_in')">VERIFY DATA</v-btn>
+                <v-btn v-if="user_data.sign_in.verify_success == true  && !user_data.sign_in.saved == true " @click="updateSettingPart(user_data.sign_in, 'sign_in')">SAVE CHANGES</v-btn>
             </div>
         </v-card-text>
     </v-card>
@@ -403,7 +485,7 @@ let initial__user_data = ref(null)
 const verifyData = async(current_data, type) => {
     user_data.value[type].loading = true
     const response = await store.dispatch('accounts/verifyData', current_data) //
-    if(response.status == 200){
+    if(Object.keys(response.data.errors).length == 0){
         user_data.value[type].verify_success = true
         user_data.value[type].loading = false
     }
@@ -510,7 +592,7 @@ onBeforeMount(async() => {
 
         user_data.value.personal_info.email = response?.email
         user_data.value.personal_info.region = response?.region
-        !response.profile_name ? user_data.value.profile_id.profile_name = response.username : response.profile_name
+        user_data.value.profile_id.profile_name = response.profile_name
         user_data.value.profile_id.tagname = response.tagname
         user_data.value.additional_profile_info.profile_background_img = response.background_image
         user_data.value.additional_profile_info.profile_avatar_img = response.avatar

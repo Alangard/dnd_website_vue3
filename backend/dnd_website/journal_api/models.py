@@ -71,7 +71,8 @@ class Account(AbstractUser):
 
     def save(self, *args, **kwargs):
         from django.utils.text import slugify
-        self.slug = slugify(self.username)
+        self.slug = slugify(self.profile_name)
+        if isinstance(self.tagname, str) : self.tagname = '#' + self.tagname
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -58,6 +58,11 @@ class AccountSettingsSerializer(serializers.ModelSerializer):
                     "is_staff",
                     "is_active",
                     'confirmation_code']
+        
+class ProfileDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = ['id', 'slug', 'avatar', 'background_image', 'profile_name', 'tagname', 'about_info']
 
 class StatsSerializer(serializers.ModelSerializer):
     class Meta:
