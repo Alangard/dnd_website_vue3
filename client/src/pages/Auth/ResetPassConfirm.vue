@@ -126,7 +126,9 @@ const validator = useVuelidate(validator_rules, formdata)
 const submitForm =(data) =>{
   if(validator.$errors == undefined){
     store.dispatch("auth/reset_password_confirm", {new_password:data.new_password, confirmation_code: data.confirmation_code}).then(
-        () => {router.push({ name: 'login'})},
+        () => {
+          store.commit('auth/logout')
+          router.push({ name: 'login'})},
         (error) => {
           if(!error.response.data.message.isArray){
               validationErrors.value['confirmation_code'] = error.response.data.message

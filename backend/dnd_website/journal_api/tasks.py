@@ -10,6 +10,7 @@ from django.utils.text import slugify
 from celery import shared_task
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.core.mail import send_mail
 
 channel_layer = get_channel_layer()
 
@@ -31,4 +32,8 @@ def postponed_publish(id):
 def notifications(post_author_id, post_author_username, data):
     print(post_author_id, post_author_username, data)
     async_to_sync(channel_layer.group_send)(f'{post_author_username}_{post_author_id}', {'type': 'send_notification', 'data': data})
-    
+
+
+@shared_task
+def send_email_task(email_subject, email_message, email_address):
+    send_mail(email_subject, email_message, settings.DEFAULT_FROM_EMAIL, [email_address])

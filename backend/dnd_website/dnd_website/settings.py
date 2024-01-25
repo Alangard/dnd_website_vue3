@@ -104,6 +104,7 @@ INSTALLED_APPS = [
     "mptt",
     "rest_framework",
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'djoser',
     'django_filters',
     "debug_toolbar",

@@ -34,15 +34,17 @@
                         </v-fade-transition>
                     </template>
             </v-text-field>
-            <v-select class="d-flex flex-row flex-wrap text-caption" 
+<!--          <v-select class="d-flex flex-row flex-wrap text-caption" 
                 v-model="user_data.personal_info.region" 
                 label="REGION" clearable variant="solo" :items="['Rus', 'Eng']"
                 @update:model-value="resetFields(user_data.personal_info, 'personal_info')">
             </v-select>
-
+-->  
             <div class="d-flex flex-row-reverse mt-6">
-                <v-btn v-if="user_data.personal_info.verify_success == null" :disabled="user_data.personal_info.verify_success !== null" @click="verifyData(user_data.personal_info, 'personal_info')">VERIFY DATA</v-btn>
-                <v-btn v-if="user_data.personal_info.verify_success == true  && !user_data.personal_info.saved == true " @click="updateSettingPart(user_data.personal_info, 'personal_info')">SAVE CHANGES</v-btn>
+                <v-btn :disabled="user_data.personal_info.backend_errors.length > 0" 
+                    @click="updateSettingPart(user_data.personal_info, 'personal_info')">
+                    VERIFY AND SAVE
+                </v-btn>
             </div>
         </v-card-text>
     </v-card>
@@ -103,8 +105,10 @@
             </v-row>
 
             <div class="d-flex flex-row-reverse mt-6">
-                <v-btn v-if="user_data.profile_id.verify_success == null" :disabled="user_data.profile_id.verify_success !== null" @click="verifyData(user_data.profile_id, 'profile_id')">VERIFY DATA</v-btn>
-                <v-btn v-if="user_data.profile_id.verify_success == true  && !user_data.profile_id.saved == true " @click="updateSettingPart(user_data.profile_id, 'profile_id')">SAVE CHANGES</v-btn>
+                <v-btn :disabled="user_data.profile_id.backend_errors.length > 0" 
+                    @click="updateSettingPart(user_data.profile_id, 'profile_id')">
+                    VERIFY AND SAVE
+                </v-btn>
             </div>
         </v-card-text>
     </v-card>
@@ -263,7 +267,10 @@
             </v-card>
 
             <div class="d-flex flex-row-reverse mt-6">
-                <v-btn :disabled="user_data.additional_profile_info.saved" @click="updateSettingPart(user_data.additional_profile_info, 'additional_profile_info')">SAVE AND VERIFY</v-btn>
+                <v-btn :disabled="validator.additional_profile_info.$errors.length > 0 || user_data.additional_profile_info.backend_errors.length > 0" 
+                    @click="updateSettingPart(user_data.additional_profile_info, 'additional_profile_info')">
+                    VERIFY AND SAVE
+                </v-btn>
             </div>
         </v-card-text>
     </v-card>
@@ -308,13 +315,9 @@
 
             <v-text-field
                 class="d-flex flex-row flex-wrap"
-                v-model="user_data.sign_in.current_password"
-                :append-inner-icon="showCurrPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                :model-value="'*'.repeat(minPasswordLength)"
                 :type="showCurrPassword ? 'text' : 'password'"
-                :error-messages="user_data.sign_in.backend_errors.current_password" 
-                @update:model-value="resetFields(user_data.sign_in, 'sign_in')" 
-                @click:append="showCurrPassword = !showCurrPassword"
-                clearable
+                readonly
                 color="primary"
                 label="CURRENT PASSWORD"
                 variant="solo">
@@ -336,13 +339,15 @@
                 v-model="user_data.sign_in.new_password"
                 :append-inner-icon="showNewPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 :type="showNewPassword ? 'text' : 'password'"
-                :error-messages="user_data.sign_in.backend_errors.new_password" 
+                :error-messages="validator.sign_in.new_password.$errors.map(e => e.$message)"
+                @input="validator.sign_in.new_password.$touch" 
                 @update:model-value="resetFields(user_data.sign_in, 'sign_in')" 
-                @click:append="showNewPassword = !showNewPassword"
+                @click:append-inner="showNewPassword = !showNewPassword"
                 clearable
                 color="primary"
                 label="NEW PASSWORD"
                 variant="solo">
+
 
                 <template v-slot:append-inner>
                     <v-fade-transition leave-absolute>
@@ -357,14 +362,18 @@
             
             </v-text-field>
 
+
+
+
             <v-text-field
                 class="d-flex flex-row flex-wrap"
                 v-model="user_data.sign_in.confirm_new_password"
                 :append-inner-icon="showConfirmNewPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 :type="showConfirmNewPassword ? 'text' : 'password'"
-                :error-messages="user_data.sign_in.backend_errors.confirm_new_password" 
+                :error-messages="validator.sign_in.confirm_new_password.$errors.map(e => e.$message)"
+                @input="validator.sign_in.confirm_new_password.$touch" 
                 @update:model-value="resetFields(user_data.sign_in, 'sign_in')" 
-                @click:append="showConfirmNewPassword = !showConfirmNewPassword"
+                @click:append-inner="showConfirmNewPassword = !showConfirmNewPassword"
                 clearable
                 color="primary"
                 label="CONFIRM NEW PASSWORD"
@@ -384,8 +393,11 @@
             </v-text-field>
 
             <div class="d-flex flex-row-reverse mt-6">
-                <v-btn v-if="user_data.sign_in.verify_success == null" :disabled="user_data.sign_in.verify_success !== null" @click="verifyData(user_data.sign_in, 'sign_in')">VERIFY DATA</v-btn>
-                <v-btn v-if="user_data.sign_in.verify_success == true  && !user_data.sign_in.saved == true " @click="updateSettingPart(user_data.sign_in, 'sign_in')">SAVE CHANGES</v-btn>
+                <v-btn :disabled="validator.sign_in.$errors.length > 0 || user_data.sign_in.backend_errors.length > 0" 
+                    @click="updateSettingPart(user_data.sign_in, 'sign_in')">
+                    VERIFY AND SAVE
+                </v-btn>
+                <!-- <v-btn v-if="user_data.sign_in.verify_success == true  && !user_data.sign_in.saved == true " @click="updateSettingPart(user_data.sign_in, 'sign_in')">VERIFY DATA AND SAVE CHANGES</v-btn> -->
             </div>
         </v-card-text>
     </v-card>
@@ -439,12 +451,13 @@ import { useStore } from 'vuex';
 import { useDisplay } from 'vuetify/lib/framework.mjs';
 import { useTheme } from 'vuetify/lib/framework.mjs';
 import { useVuelidate } from '@vuelidate/core'
-import { required, helpers } from '@vuelidate/validators'
+import { required, sameAs, minLength, numeric, not, helpers } from '@vuelidate/validators'
 import routes from '@/router/router'
 
 import Profile from '@/pages/Profile/Profile.vue'
 import DraggableShowcase from '@/components/Profile/DraggableShowcase.vue'
 
+const minPasswordLength = 8
 let user_data = ref({
     'personal_info': {'email': '','region': '', 'verify_success': null, 'saved': false, 'loading': false, 'backend_errors': {}},
     'profile_id': {'profile_name': '', 'tagname': '', 'verify_success': null, 'saved': false, 'loading': false, 'backend_errors': {}},
@@ -455,19 +468,10 @@ let user_data = ref({
         'profile_avatar_img_new': '',
         'about_info': '',
         'statistics': {
-            'selected':[
-                {'data': {'name': 'Likes','count': 12000},'order': 1},
-                {'data': {'name': 'Comments','count': 360},'order': 2},
-                {'data': {'name': 'Post','count': 15},'order': 3}
-            ],
-            'all':[
-                {'data': {'name': 'Likes','count': 12000}},
-                {'data': {'name': 'Comments','count': 360}},
-                {'data': {'name': 'Post','count': 15}},
-                {'data': {'name': 'Dislikes','count': 3}}
-            ]
+            'selected':[],
+            'all':[]
         },
-        'saved': false
+        'verify_success': null, 'saved': false, 'loading': false, 'backend_errors': {}
     },
     'sign_in': {
         'username': '',
@@ -480,49 +484,60 @@ let user_data = ref({
 
 let initial__user_data = ref(null)
 
-
-
-const verifyData = async(current_data, type) => {
-    user_data.value[type].loading = true
-    const response = await store.dispatch('accounts/verifyData', current_data) //
-    if(Object.keys(response.data.errors).length == 0){
-        user_data.value[type].verify_success = true
-        user_data.value[type].loading = false
-    }
-    else{
-        user_data.value[type].verify_success = false
-        user_data.value[type].backend_errors = response.data.errors // errors = {'field_name': [error1, error2...]}
-        user_data.value[type].loading = false
-    }
-
-}
-
 const resetFields = async(current_data, type) => {
     user_data.value[type].verify_success = null
-    user_data.value[type].backend_errors = []
+    user_data.value[type].backend_errors = {}
 }
 
 const updateSettingPart = async(current_data, type) => {
-    const formData = new FormData();
+    let formData = new FormData();
+    const data = {}
+    // Избавиться от отдельного метода verify и если есть ошибка при изменении данных, то выводить, а если нет, то сразу сохранять
 
     for(const [key, value] of Object.entries(initial__user_data.value[type])) {
         //Проверяем и отправляем объект только с теми полями, которые были изменены
         if(JSON.stringify(current_data[key]) != JSON.stringify(value)){
-            if(value['selected']){formData.append(key, JSON.stringify(current_data[key]['selected']))}
-            else if(key == 'profile_background_img_new'){formData.append(key, current_data[key][0])}
-            else if(key == 'profile_avatar_img_new'){formData.append(key, current_data[key][0])}
-            else{formData.append(key, JSON.stringify(current_data[key]))}
+            if(key == 'statistics' && 'selected' in value){data[key] = JSON.stringify(current_data[key]['selected'])}
+            else if(key == 'profile_background_img_new'){data[key]  = current_data[key][0]}
+            else if(key == 'profile_avatar_img_new'){data[key] = current_data[key][0]}
+            else{data[key]  = current_data[key]}
         }
     }
 
-    const response = await store.dispatch('accounts/updateUserSettings', formData)
-    if(response.status == 200){
-        user_data.value.additional_profile_info.profile_avatar_img = user_data.value.additional_profile_info.profile_avatar_img_new
-        user_data.value.additional_profile_info.profile_background_img = user_data.value.additional_profile_info.profile_background_img_new
-        user_data.value.additional_profile_info.saved = true
+    if(Object.entries(data).length !== 0){
+        for (var key in data) {formData.append(key, data[key])}
+
+        user_data.value[type].loading = true
+
+        const response = await store.dispatch('accounts/updateUserSettings', formData)
+        if(response.status == 200){
+
+            user_data.value[type].verify_success = true
+            user_data.value[type].loading = false
+
+            if(type == 'additional_profile_info'){
+                if(response.data['background_image']){
+                    user_data.value.additional_profile_info.profile_background_img = response.data['background_image']
+                    user_data.value.additional_profile_info.profile_background_img_new = ''
+                    validator.value.additional_profile_info.profile_background_img_new.$reset()
+                    editProfileBackgroundImg.value = false
+                }
+                else if(response.data['avatar']){
+                    user_data.value.additional_profile_info.profile_avatar_img = response.data['avatar']
+                    user_data.value.additional_profile_info.profile_avatar_img_new = ''
+                    validator.value.additional_profile_info.profile_avatar_img_new.$reset()
+                }
+                user_data.value.additional_profile_info.saved = true
+            }
+            else if('new_password' in data){store.commit('auth/logout')}
+        }
+        else{
+            user_data.value[type].verify_success = false
+            user_data.value[type].backend_errors = response.data.errors // errors = {'field_name': [error1, error2...]}
+            user_data.value[type].loading = false
+        }
     }
 }
-
 
 let theme = useTheme()
 const { width } = useDisplay();
@@ -533,8 +548,6 @@ const mobileWidthLimit = computed(() => {return store.getters['getMobileWidthLim
 // const stats_info = computed(() => {return store.getters['accounts/getShowcaseStats']})
 
 const wasEdited = ref(true)
-
-const formattedDate = ref('')
 
 let showCurrPassword = ref(false);
 let showNewPassword = ref(false);
@@ -552,7 +565,6 @@ const allowedImageExtensions = ref(['jpg', 'jpeg', 'png', 'webp']);
 const maxImageSize = ref({'background': 6000000, 'avatar': 2000000})
 
 const validator_rules = computed(() => ({
-
     additional_profile_info: {
         profile_background_img_new: {
             required: helpers.withMessage('Please select an image file', required),
@@ -579,7 +591,18 @@ const validator_rules = computed(() => ({
                 const fileExtension = value[0].name.split('.').pop().toLowerCase();
                 return allowedImageExtensions.value.includes(fileExtension);
             })
-        }
+        },
+    },
+    sign_in: {
+        new_password: { 
+            required, 
+            minLength: minLength(minPasswordLength),
+            notOnlyNumeric: helpers.withMessage('Your password can’t be entirely numeric', not(numeric)),
+        },
+        confirm_new_password: {
+            required, 
+            sameAs: helpers.withMessage('Password and Confirm Password must be equal', sameAs(user_data.value.sign_in.new_password))
+        },
     }
     
 }));
@@ -593,7 +616,7 @@ onBeforeMount(async() => {
         user_data.value.personal_info.email = response?.email
         user_data.value.personal_info.region = response?.region
         user_data.value.profile_id.profile_name = response.profile_name
-        user_data.value.profile_id.tagname = response.tagname
+        user_data.value.profile_id.tagname = response.tagname.slice(1)
         user_data.value.additional_profile_info.profile_background_img = response.background_image
         user_data.value.additional_profile_info.profile_avatar_img = response.avatar
         user_data.value.additional_profile_info.about_info = response.about_info
@@ -602,6 +625,7 @@ onBeforeMount(async() => {
       
 
         Object.assign(initial__user_data, JSON.parse(JSON.stringify(user_data)))
+
    
     
 
@@ -644,13 +668,6 @@ const changeStatOption =(type) =>{
     store.commit('accounts/updateCountStats', type)
 }
 
-const saveStats =() =>{
-    if(statType.value !== ''){
-        store.commit('accounts/saveLastStatBlock', statType.value)
-        statType.value = ''
-    }
-
-}
 
 </script>
 
@@ -660,51 +677,3 @@ const saveStats =() =>{
     }
 </style>
 
-
-<!-- <template> 
-    <v-container> 
-        <v-form id="form" @submit.prevent="checkDate"> 
-        <v-text-field label="Date" id="date" v-model="date"></v-text-field> 
-        <small>Enter date as Month / Day / Year</small> 
-        <v-btn type="submit">Submit</v-btn> </v-form> <p id="result">{{ result }}</p> 
-    </v-container> 
-</template> 
-<script> import { ref } from 'vue'; export default { 
-    setup() { 
-        const date = ref(''); 
-        const result = ref(''); 
-        function checkValue(str, max) { 
-            if (/^\D|^0\d/.test(str)) { 
-                var num = parseInt(str); 
-                if (isNaN(num) || num <= 0 || num > max) num = 1; 
-                str = num > parseInt(max.toString().charAt(0)) && num.toString().length == 1 ? '0' + num : num.toString(); 
-            } 
-            return str; 
-        } 
-        
-        function checkDate() { 
-            let input = date.value; 
-            if (/\D\D\D$/.test(input)) input = input.substr(0, input.length - 3); 
-            let values = input.split('/').map((v) => v.replace(/\D/g, '')); 
-            if (values[0]) values[0] = checkValue(values[0], 12); 
-            if (values[1]) values[1] = checkValue(values[1], 31); 
-            let output = values.map((v, i) => (v.length == 2 && i < 2 ? v + ' / ' : v)); 
-            date.value = output.join('').substr(0, 14); 
-            if (values.length == 3) { 
-                    let year = values[2].length !== 4 ? parseInt(values[2]) + 2000 : parseInt(values[2]); 
-                let month = parseInt(values[0]) - 1; 
-                let day = parseInt(values[1]); 
-                let d = new Date(year, month, day); 
-                if (!isNaN(d)) { 
-                    result.value = d.toString(); 
-                    let dates = [d.getMonth() + 1, d.getDate(), d.getFullYear()]; 
-                    output = dates.map((v) => { v = v.toString(); return v.length == 1 ? '0' + v : v; }).join(' / '); 
-                } 
-            } 
-            date.value = output; 
-        } 
-        return { date, result, checkDate }; 
-    }, 
-}; 
-</script> 
-<style> </style> -->

@@ -10,6 +10,7 @@ from rest_framework import generics, filters
 from django_filters import rest_framework as DjangoFilters
 from rest_framework.permissions import *
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
+from rest_framework_simplejwt.tokens import RefreshToken
 import re
 import os
 
@@ -22,7 +23,6 @@ from django.db.models import Count
 
 
 from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
 from django.core.validators import validate_email
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
@@ -53,7 +53,7 @@ from django.utils.text import slugify
 from django.utils.dateparse import parse_datetime
 
 from PIL import Image
-from .tasks import postponed_publish, notifications
+from .tasks import postponed_publish, notifications, send_email_task
 
 from rest_framework.decorators import action
 
@@ -1094,7 +1094,6 @@ class TagViewSet(viewsets.ModelViewSet):
 
 
 def SendConfirmationCode(email):
-    # user = get_object_or_404(Account, email = email)
     try:
         user = Account.objects.get(email = email)
     
@@ -1105,8 +1104,8 @@ def SendConfirmationCode(email):
 
         email_subject = 'Confirmation code'
         email_message = f'To execute the operation, insert this confirmation code {confirmation_code} in the "confirmation code" field'
-        send_mail(email_subject, email_message, settings.DEFAULT_FROM_EMAIL, [email])
         
+        send_email_task(email_subject, email_message, email)
         return JsonResponse({'status': 'success'})
     
     except ObjectDoesNotExist:
@@ -1140,52 +1139,6 @@ class UserViewSet(viewsets.ModelViewSet):
             data["statistics"] = get_user_statistics(user_id)
             return Response(data)
 
-    @action(detail=True, methods=['post'], url_path='settings/verify_settings')
-    def verify_settings_data(self, request, pk=None):
-        user_id = pk
-        # Проверяем существование пользователя
-        try:
-            instance = self.queryset.get(pk=user_id)
-        except Account.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        # Проверяем, аутентифицирован ли пользователь и является ли он запрашиваемым пользователем
-        if not request.user.is_authenticated or int(request.user.id) != int(user_id):
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        else:
-            data = {}
-            errors ={}
-            for key, value in request.data.items():
-                match key:
-                    case 'email':
-                        if Account.objects.filter(email=value).exists():
-                            errors['email'] = ['Account with this email already exists.']
-                        elif not re.match(r'^[w\.-]+@[w\.-]+\.w+$', value):
-                            errors['email'].append('Invalid email format.')
-                        elif len(value) > instance._meta.get_field('email').max_length:
-                            errors['email'].append('Email exceeds maximum length.')
-                    case 'profile_name':
-                        if Account.objects.filter(profile_name=value).exists():
-                            errors['profile_name'] = ['Account with this profile_name already exists.']
-                        elif len(value) > instance._meta.get_field('profile_name').max_length:
-                            errors['Profile name'].append('Profile name exceeds maximum length.')
-                    case 'tagname':
-                        if Account.objects.filter(tagname=value).exists():
-                            errors['tagname'] = ['Account with this tagname already exists.']
-                        elif len(value) > instance._meta.get_field('email').max_length:
-                            errors['tagname'].append('Tagname exceeds maximum length.')
-                    case 'username':
-                        if Account.objects.filter(username=value).exists():
-                            errors['username'] = ['Account with this username already exists.']
-                        elif len(value) > instance._meta.get_field('email').max_length:
-                            errors['username'].append('Username exceeds maximum length.')
-                    # case 'current_password': '','new_password': '', 'confirm_new_password': '',
-                print(errors)
-                if(len(errors) == 0):
-                    return Response(status=status.HTTP_200_OK)
-                else:
-                    return Response({'errors': errors})
-
     @action(detail=True, methods=['post'], url_path='settings/change')
     def update_settings(self, request, pk=None):
         user_id = pk
@@ -1201,7 +1154,6 @@ class UserViewSet(viewsets.ModelViewSet):
         else:
             data = {}
             for key, value in request.data.items():
-                print(key)
                 if(key == 'profile_background_img_new'):
                     data['background_image'] = request.FILES.get(key)
                 elif(key == 'profile_avatar_img_new'):
@@ -1240,20 +1192,24 @@ class UserViewSet(viewsets.ModelViewSet):
                 else:
                     data[key] = request.data.get(key)
 
-            print(data)
-            serializer = AccountSettingsSerializer(instance, data=data, partial=True)
-            if serializer.is_valid(raise_exception=True):
-                account = serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response({"error": "Сериализация не пройдена"}, status=status.HTTP_400_BAD_REQUEST)
-
+            if 'new_password' in data:
+                try:
+                    # Активация учетной записи пользователя
+                    instance.set_password(data['new_password'])
+                    instance.confirmation_code = None
+                    instance.save()
+                    # token.blacklist()
+                    return Response(data, status=status.HTTP_200_OK)
+                except:
+                    return Response({"error": "Пароль не был изменён"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-            # serializer = AccountSettingsSerializer(instance, data=request.data, context={"request": request}, partial=True)
-            # if serializer.is_valid():
-            #     serializer.save()
-            #     return Response(serializer.data)
-            # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                serializer = AccountSettingsSerializer(instance, data=data, context={"request": request}, partial=True)
+                if serializer.is_valid(raise_exception=True):
+                    account = serializer.save()
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                else:
+                    return Response({"error": "Сериализация не пройдена"}, status=status.HTTP_400_BAD_REQUEST)
         
     def list(self, request, *args, **kwargs):
         self.ordering = ['-profile_name']
