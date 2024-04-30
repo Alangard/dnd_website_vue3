@@ -45,15 +45,15 @@
     
                             <v-avatar class="clickable transformable avatar" 
                                 :image="post?.author?.avatar" 
-                                :alt="post?.author?.username" 
+                                :alt="post?.author?.profile_name" 
                                 size="32" 
-                                @click="routes.push({name: 'user_profile', params: { username: post.author.username }})">
+                                @click="routes.push({name: 'user_profile', params: { profile_name: post.author.profile_name }})">
                                 <v-icon icon="mdi-account-circle" size="32"></v-icon>
                             </v-avatar>
 
-                            <span class="username clickable transformable px-1 text-caption text-capitalize font-weight-regular"
-                                @click="routes.push({name: 'user_profile', params: { username: post.author.username }})">
-                                {{post.author.username}}
+                            <span class="profile_name clickable transformable px-1 text-caption text-capitalize font-weight-regular"
+                                @click="routes.push({name: 'user_profile', params: { profile_name: post.author.profile_name }})">
+                                {{post.author.profile_name}}
                             </span> 
 
                             <span class="pr-1">•</span>

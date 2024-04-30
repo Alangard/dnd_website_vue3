@@ -24,7 +24,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         else:
             image_url = None
 
-        data['user_data'] = {'id': self.user.id, 'username': self.user.username, 'avatar': image_url}
+        data['user_data'] = {'id': self.user.id, 'username': self.user.username, 'profile_name': self.user.profile_name, 'avatar': image_url}
         return data
 
 ## Accounts serializers ############################################################
@@ -112,7 +112,7 @@ class ShortAccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Account
-        fields = ["id", "username", "avatar", "about_info"]
+        fields = ["id", "profile_name", "avatar", "about_info"]
 
 class AccountSettingsSerializer(serializers.ModelSerializer):
 

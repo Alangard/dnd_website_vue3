@@ -17,16 +17,15 @@ from django.conf import settings
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+from pathlib import Path
+import os
+from dotenv import load_dotenv, find_dotenv
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.1/howto/static-files/
-
-STATIC_URL = '/static/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'
-
+#load_dotenv('.env/.env.prod') 
+load_dotenv()
 
 
 
@@ -34,20 +33,17 @@ MEDIA_URL = '/media/'
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-3+n@28ce9p$%*k^=z#5s0%j43vmn0wjvrb6uz2&^2saqvtfz@h"
+SECRET_KEY = os.environ.get("SECRET_KEY")
+DEBUG = int(os.environ.get("DEBUG", default=0))
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(' ')
+INTERNAL_IPS = ["127.0.0.1",]
+DOMAIN_NAME = os.environ.get('DOMAIN')
 
 # Django Debug Toolbar
-INTERNAL_IPS = ["127.0.0.1",]
-
-ALLOWED_HOSTS = []
 
 FRONTEND_AUTHORITY = "http://localhost:8080"
-
 CORS_ALLOWED_ORIGINS = ["http://localhost:8080","http://127.0.0.1:8000",]
-
 CORS_ORIGIN_ALLOW_ALL = True
 
 
@@ -55,8 +51,9 @@ CORS_ORIGIN_ALLOW_ALL = True
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 # CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'  # URL-адрес RabbitMQ
-CELERY_BROKER_URL = 'amqp://localhost'
-CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'  # URL-адрес Redis
+
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/0"),
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "redis://redis:6379/0"),
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=True
 
 # Websocket and async
@@ -71,13 +68,11 @@ CHANNEL_LAYERS = {
 }
 
 #gmail_send/settings.py
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'testdndwebsite@gmail.com'
-EMAIL_HOST_PASSWORD = 'qpnjaussafsckmnk' #past the key or password app here
+EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = 'test'
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
@@ -105,7 +100,6 @@ INSTALLED_APPS = [
     "rest_framework",
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    'djoser',
     'django_filters',
     "debug_toolbar",
     'tinymce',
@@ -167,14 +161,6 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
-# DJOSER = {
-#     'PASSWORD_RESET_CONFIRM_URL': '{FRONTEND_AUTHORITY}/password/reset/confirm/{uid}/{token}',
-#     'USERNAME_RESET_CONFIRM_URL': '{FRONTEND_AUTHORITY}/username/reset/confirm/{uid}/{token}',
-#     'ACTIVATION_URL': 'http://localhost:8080/activate/{uid}/{token}',
-#     'SEND_ACTIVATION_EMAIL': True,
-#     'SERIALIZERS': {},
-# }
-
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -231,16 +217,36 @@ WSGI_APPLICATION = "dnd_website.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'OPTIONS': {'charset': 'utf8mb4'},
+#         'NAME': 'dnd_bd',
+#         'USER': 'root',
+#         'PASSWORD': 'root',
+#     }
+# }
+
+
+import pymysql
+pymysql.install_as_MySQLdb()
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'OPTIONS': {'charset': 'utf8mb4'},
-        'NAME': 'dnd_bd',
-        'USER': 'root',
-        'PASSWORD': 'root',
-    }
+        'NAME': os.environ.get('MYSQL_DATABASE'),
+        'USER': os.environ.get('MYSQL_USER'),
+        'PASSWORD': os.environ.get('MYSQL_PASSWORD'),
+        'HOST': os.environ.get('MYSQL_HOST'),
+        'PORT': '3306',
 
+        'TEST': {
+            'NAME': 'mytestdatabase',
+        },
+    }
 }
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -265,6 +271,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.1/howto/static-files/
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
 
 # Default primary key field type

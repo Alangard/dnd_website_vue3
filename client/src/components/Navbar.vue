@@ -45,7 +45,7 @@
 
                 <v-list>
 
-                    <v-list-item value="0" active-color="primary">
+                    <v-list-item value="0" active-color="primary" @click="routes.push({ name: 'user_profile', replace: true })">
                         <template v-slot:prepend>
                             <v-avatar class="avatar mr-2" style="cursor:pointer" >
                                 <v-img v-if="currUserData?.avatar !== null" :src="currUserData?.avatar" :alt="currUserData?.username"></v-img>
@@ -64,7 +64,7 @@
                         active-color="primary"  
                         v-for="(section, i) in sections" :key="i" 
                         :value="section.section_name" 
-                        @click="clickOnSection(section.page_name)"
+                        @click="clickOnSection(section)"
                     >
                         <template v-slot:prepend>
                             <v-icon class="mr-5" :icon="section.icon"></v-icon>
@@ -112,6 +112,7 @@ import { useStore } from 'vuex';
 import { useTheme } from 'vuetify/lib/framework.mjs';
 import routes from '@/router/router';
 import Notifications from '@/components/Notifications/Notifications.vue'
+import router from '@/router/router';
 
 let theme = useTheme();
 const store = useStore();
@@ -124,8 +125,8 @@ const loggedIn = computed(() => {return store.getters['auth/loginState']});
 const currUserData = computed(() => {return store.getters['auth/getUserData'];})
 
 const sections = ref([
-    { section_name: 'Profile', page_name: 'profile', icon: 'mdi-account' },
-    { section_name: 'Settings', page_name: 'settings', icon: 'mdi-cog' },
+    { section_name: 'Profile', page_name: 'user_profile', icon: 'mdi-account'},
+    { section_name: 'Settings', page_name: 'account_settings', icon: 'mdi-cog' },
 ])
 
 const toggleDarkMode = () => {
@@ -133,7 +134,12 @@ const toggleDarkMode = () => {
     localStorage.setItem('theme', theme.global.name.value)
     emit('changeTheme');
 }
-const clickOnSection = (section_name) => {console.log(section_name)}
+const clickOnSection = (section) => {
+    console.log(section)
+    if(section.section_name == 'Profile'){
+        routes.push({ name: section.page_name, params:{profile_name : currUserData.value.profile_name}, replace: true,  })
+    }
+    routes.push({ name: section.page_name, replace: true })}
 const logout = () => {store.dispatch("auth/logout")}
 const openMenuDrawer = () => {emit('openMenuDrawer')}
 

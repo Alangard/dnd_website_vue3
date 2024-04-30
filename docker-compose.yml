@@ -1,0 +1,115 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: JournalAPI
+    command: >
+      bash -c "python dnd_website/manage.py collectstatic --no-input &&
+      python dnd_website/manage.py makemigrations &&
+      python dnd_website/manage.py migrate &&
+      daphne --bind 0.0.0.0:8000 dnd_website.asgi:application --timeout 200 --workers=5"
+    ports:
+      - 8000:8000
+    restart: always
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/code
+      - static_volume:/code/static/
+      - media_volume:/code/media/
+    env_file:
+      - ./.env/.env.prod
+    networks:
+      api_network:
+        
+#   frontend:
+#     build:
+#       context: ./client
+#     container_name: JournalFrontend
+#     # command: > 
+#     #   /bin/sh -c "npm run dev"
+#     ports:
+#       - 8080:8080
+#     restart: always
+#     depends_on:
+#         - backend
+#     volumes:
+#       - ./client:/code
+#       - static_volume:/code/static/
+#       - media_volume:/code/media/
+#     env_file:
+#         - ./.env/.env.prod
+#     networks:
+#         api_network:
+
+  # MySQL Database Service
+  db:
+    container_name: JournalMySQL
+    image: mysql:8.3.0
+    ports:
+      - "3306:3306"
+    restart: always
+    volumes:
+      - "mysql_data:/var/lib/mysql"
+    env_file:
+      - ./.env/.env.prod
+    networks:
+      api_network:
+
+#   nginx:
+#     image: nginx:1.25-alpine
+#     container_name: JournalNginx
+#     restart: unless-stopped
+#     volumes:
+#       # path template to use env variables
+#       - ./nginx/nginx_dev.conf:/etc/nginx/conf.d/nginx.tmpl
+
+#       - /etc/letsencrypt:/etc/letsencrypt
+#       - certbot_www:/var/www/certbot/
+#       - static_volume:/code/static/
+#       - media_volume:/code/media/
+#     ports:
+#       - "80:80"
+#       - "443:443"
+#     depends_on:
+#       - backend
+#     env_file:
+#       - ./.env/.env.prod
+#     # use env variables
+#     command: /bin/sh -c "envsubst < /etc/nginx/conf.d/nginx.tmpl > /etc/nginx/nginx.conf && exec nginx -g 'daemon off;'"
+#     networks:
+#       api_network:
+
+# # Celery Service
+#   celery:
+#     build:
+#       context: ./backend
+#     container_name: JournalCelery
+#     command: celery -A journal_api worker --loglevel=info
+#     volumes:
+#         - .:/code
+#     env_file:
+#       - ./.env/.env.prod
+#     depends_on:
+#         - backend
+#         - redis
+#     networks:
+#       api_network:
+
+#   #Redis Service
+#   redis:
+#     container_name: JournalRedis
+#     image: "redis:7.2-alpine"
+#     networks:
+#       api_network:
+
+  
+volumes:
+  # will be used to store our ssl certificate and make it persistent as wel   
+  static_volume:
+  media_volume:
+  mysql_data:
+  certbot_www:
+    
+networks:
+  api_network:
